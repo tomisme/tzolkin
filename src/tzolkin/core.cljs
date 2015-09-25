@@ -1,30 +1,51 @@
 (ns tzolkin.core
   (:require
-   #_[om.core :as om :include-macros true]
-   [sablono.core :as sab :include-macros true])
+   [reagent.core :as rg])
   (:require-macros
    [devcards.core :as dc :refer [defcard deftest]]))
 
-#_(defn next-state
-    [prev-state input]
-    #_{:pre (is input? Vector)}
+(defn next-state
+  [prev-state]
+  (-> prev-state
+    (update :turn inc)))
+
+(defn app-container
+  []
+  [:div {:class "ui button"} "Here be the app (eventually)."])
+
+(defcard test-board
+  "Tzolk'in is fun game.
+
+  Let's build a version of it in clojurescript, using:
+
+   - devcards!
+   - reagent
+   - re-frame?
+   - semantic-ui?
+
+  Here's our first test board. It's just a button that increments the turn number.
+
+  The game logic is currently:
+
+  ```
+  (defn next-state
+    [prev-state]
     (-> prev-state
-      (assoc :num inc)))
+      (update :turn inc)))
+  ```
 
-#_(defn view
-    [current-state]
-    [:span "I'm board"])
-
-(enable-console-print!)
-
-(defcard board
-  "You're playing Tzolk'in! Just pretend for now."
-  (sab/html [:center "bam"]))
+  With the magic of devcards, the data behind it can be inspected and time travelled, whoa!"
+  (dc/reagent
+   (fn [data-atom _]
+     [:div {:class "ui segment"}
+      [:div {:class "ui button"
+             :onClick (fn [] (swap! data-atom next-state data-atom))}
+       "Current Turn: " (:turn @data-atom)]]))
+  {:turn 1}
+  {:inspect-data true :history true})
 
 (defn main []
-  ;; conditionally start the app based on wether the #main-app-area
-  ;; node is on the page
-  (if-let [node (.getElementById js/document "main-app-area")]
-    (js/React.render (sab/html [:div "WHAT TIME IS IT?"]) node)))
+  (if-let [node (.getElementById js/document "app")]
+    (rg/render [app-container] node)))
 
 (main)
