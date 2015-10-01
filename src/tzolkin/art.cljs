@@ -169,4 +169,4 @@
                  }]]]))
   gears-atom)
 
-#_(js/setInterval #(swap! gears-atom update :rotation inc) 100)
+(js/setInterval #(swap! gears-atom update :rotation inc) 100)

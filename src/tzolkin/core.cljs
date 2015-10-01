@@ -2,7 +2,8 @@
   (:require
    [reagent.core :as rg]
    [tzolkin.art]
-   [tzolkin.logic])
+   [tzolkin.logic]
+   [tzolkin.d3])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-doc deftest]]))
 
