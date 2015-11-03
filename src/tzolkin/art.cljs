@@ -1,14 +1,16 @@
 (ns tzolkin.art
   (:require
    [reagent.core :as rg]
-   [tzolkin.logic])
+   [tzolkin.logic]
+   [timothypratley.reanimated.core :as anim])
   (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-doc deftest]]))
+   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
 
 (defcard-doc
   "##Gears
-  The spinning gears are a once of the coolest mechanics in Tzolk'in.
-  We're going to make them out of SVG elements.")
+  The spinning gears are a one of the coolest mechanics in Tzolk'in.
+
+  Let's see if we can make them out of raw SVG elements.")
 
 (defn e->val
   [event]
@@ -33,81 +35,113 @@
                            :style style
                            :transform (str "rotate(" deg " " cx " " cy ")")}])])
 
-(defcard gear-creator
-  (dc/reagent
-   (fn [data _]
-     (let [{:keys [size teeth tooth-width-factor tooth-height-factor]} @data
-           set #(swap! data assoc %1 %2)]
-       [:div {:class "ui segment"}
-        [:div {:class "ui grid"}
-         [:div {:class "six wide column"}
-          [:div {:class "ui form"}
-           [:div {:class "field"}
-            [:div {:class "label"} "Size"]
-            [:input {:type "range"
-                     :value size
-                     :min 100, :max 200
-                     :on-change #(set :size (e->val %))}]]
-           [:div {:class "field"}
-            [:div {:class "label"} "Teeth"]
-            [:input {:type "range"
-                     :value teeth
-                     :min 10, :max 26
-                     :on-change #(set :teeth (e->val %))}]]
-           [:div {:class "field"}
-            [:div {:class "label"} "Tooth Width Factor"]
-            [:input {:type "range"
-                     :value tooth-width-factor
-                     :min 0.1, :max 2
-                     :step 0.1
-                     :on-change #(set :tooth-width-factor (e->val %))}]]
-           [:div {:class "field"}
-            [:div {:class "label"} "Tooth Height Factor"]
-            [:input {:type "range"
-                     :value tooth-height-factor
-                     :min 0.1, :max 2
-                     :step 0.1
-                     :on-change #(set :tooth-height-factor (e->val %))}]] ]]
-         [:div {:class "ten wide colum"}
-          [:svg {:width (* size 3)
-                 :height (* size 3)}
-           [gear-el {:cx (* size 1.5)
-                     :cy (* size 1.5)
-                     :r size
-                     :teeth teeth
-                     :tooth-width-factor tooth-width-factor
-                     :tooth-height-factor tooth-height-factor}]]]]])))
+(defcard-rg gear-creator
+  (fn [data _]
+    (let [{:keys [size teeth tooth-width-factor tooth-height-factor]} @data
+          set #(swap! data assoc %1 %2)]
+      [:div {:class "ui segment"}
+       [:div {:class "ui grid"}
+        [:div {:class "six wide column"}
+         [:div {:class "ui form"}
+          [:div {:class "field"}
+           [:div {:class "label"} "Size"]
+           [:input {:type "range"
+                    :value size
+                    :min 100, :max 200
+                    :on-change #(set :size (e->val %))}]]
+          [:div {:class "field"}
+           [:div {:class "label"} "Teeth"]
+           [:input {:type "range"
+                    :value teeth
+                    :min 10, :max 26
+                    :on-change #(set :teeth (e->val %))}]]
+          [:div {:class "field"}
+           [:div {:class "label"} "Tooth Width Factor"]
+           [:input {:type "range"
+                    :value tooth-width-factor
+                    :min 0.1, :max 2
+                    :step 0.1
+                    :on-change #(set :tooth-width-factor (e->val %))}]]
+          [:div {:class "field"}
+           [:div {:class "label"} "Tooth Height Factor"]
+           [:input {:type "range"
+                    :value tooth-height-factor
+                    :min 0.1, :max 2
+                    :step 0.1
+                    :on-change #(set :tooth-height-factor (e->val %))}]] ]]
+        [:div {:class "ten wide colum"}
+         [:svg {:width (* size 3)
+                :height (* size 3)}
+          [gear-el {:cx (* size 1.5)
+                    :cy (* size 1.5)
+                    :r size
+                    :teeth teeth
+                    :tooth-width-factor tooth-width-factor
+                    :tooth-height-factor tooth-height-factor}]]]]]))
   (rg/atom {:size 75
             :teeth 12
             :tooth-width-factor 1
             :tooth-height-factor 1})
   {:inspect-data true})
 
-(def gears-atom (rg/atom {:rotation 0}))
+(def rotation-atom (rg/atom 0))
 
-(defcard gears-1
+(defn spring-gear
+  [rotation]
+  (let [ rotation-spring (anim/spring rotation)]
+    (js/setInterval #(swap! rotation + 10) 2000)
+    (fn render-spring-gear []
+      [:center
+       [:svg {:width 300 :height 200
+              :on-click #(swap! rotation + 30)}
+        [gear-el {:cx 150
+                  :cy 100
+                  :r 50
+                  :teeth 10
+                  :tooth-height-factor 1.25
+                  :tooth-width-factor 0.75
+                  :rotation @rotation-spring}]
+        [:text {:x 114
+                :y 100
+                :style {:stroke "#3ADF00"
+                        :fill "#3ADF00"}
+                :font-size 18}
+         "Click Me!"]]])))
+
+(defcard-rg spring-test
+  "This test uses a js/setInterval to move the gear every couple of seconds."
+  (fn [data _] [spring-gear data])
+  (rg/atom 0)
+  {:inspect-data true})
+
+#_(def gears-atom (rg/atom {:rotation 0}))
+
+#_(defcard gears-1
   (dc/reagent
    (fn [data _]
      [:center
+      [:button {:on-click #(do (print @rotation-atom)
+                               (swap! rotation-atom + 10))} "rotate!"]
       [:svg {:width 350
              :height 250}
        [gear-el {:cx 100
-                 :cy 155
-                 :r 75
-                 :teeth 13
-                 :tooth-height-factor 1.25
-                 :tooth-width-factor 0.75
-                 :rotation (* -1 (:rotation @data)) }]
+                :cy 155
+                :r 75
+                :teeth 13
+                :tooth-height-factor 1.25
+                :tooth-width-factor 0.75
+                :rotation (* -1 @rotation-spring)
+                }]
        [gear-el {:cx 256
                  :cy 95
                  :r 75
                  :teeth 13
                  :tooth-height-factor 1.25
                  :tooth-width-factor 0.75
-                 :rotation (:rotation @data)}]]]))
-  gears-atom)
+                 :rotation @rotation-atom}]]]))
+  (rg/atom 0))
 
-(defcard gears-2
+#_(defcard gears-2
   (dc/reagent
    (fn [data _]
      [:center
@@ -169,4 +203,4 @@
                  }]]]))
   gears-atom)
 
-(js/setInterval #(swap! gears-atom update :rotation inc) 100)
+#_(js/setInterval #(swap! gears-atom update :rotation inc) 100)
