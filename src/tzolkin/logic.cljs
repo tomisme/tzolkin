@@ -6,22 +6,76 @@
 
 (def game-spec
   {:gears
-   {:yax {:name "Yaxchilan"
-          :teeth 10
-          :location 1}
-    :tik {:name "Tikal"
-          :teeth 10
-          :location 6}
-    :uxe {:name "Uxmal"
-          :teeth 10
-          :location 11}
-    :chi {:name "Chichen Itza"
-          :teeth 13
-          :location 16}
-    :pal {:name "Palenque"
-          :teeth 10
-          :location 22}}})
-
+    {:yax {:name "Yaxchilan"
+           :teeth 10
+           :location 1
+           :spaces [{:wood 1}
+                    {:stone 1
+                     :corn 1}
+                    {:gold 1
+                     :corn 2}
+                    {:skull 1}
+                    {:gold 1
+                     :stone 1
+                     :corn 2}]}
+     :tik {:name "Tikal"
+           :teeth 10
+           :location 6
+           :spaces []}
+     :uxe {:name "Uxmal"
+           :teeth 10
+           :location 11
+           :spaces []}
+     :chi {:name "Chichen Itza"
+           :teeth 13
+           :location 16
+           :spaces []}
+     :pal {:name "Palenque"
+           :teeth 10
+           :location 22
+           :spaces [{:corn 3}
+                    {:corn 4}
+                    {:corn 5
+                     :wood 2}
+                    {:corn 7
+                     :wood 3}
+                    {:corn 9
+                     :wood 4}]}}
+   :resources [:corn :wood :stone :gold :skull]
+   :temples {:chac {:name "Chaac"
+                    :steps [{:points -1}
+                            {:points 0}
+                            {:points 2
+                             :resource :stone}
+                            {:points 4}
+                            {:points 6
+                             :resource :stone}
+                            {:points 7}
+                            {:points 8}]}
+             :quet {:name "Quetzalcoatl"
+                    :steps [{:points -2}
+                            {:points 0}
+                            {:points 1}
+                            {:points 2
+                             :resource :gold}
+                            {:points 4}
+                            {:points 6
+                             :resource :gold}
+                            {:points 9}
+                            {:points 12}
+                            {:points 13}]}
+             :kuku {:name "Kukulcan"
+                    :steps [{:points -3}
+                            {:points 0}
+                            {:points 1
+                             :resource :wood}
+                            {:points 3}
+                            {:points 5
+                             :resource :wood}
+                            {:points 7
+                             :resource :skull}
+                            {:points 9}
+                            {:points 10}]}}})
 (defcard-doc
   "## Game Spec
 
