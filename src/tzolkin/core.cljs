@@ -3,6 +3,7 @@
    [reagent.core :as rg]
    [tzolkin.art]
    [tzolkin.logic]
+   [tzolkin.tests]
    [tzolkin.d3])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-doc deftest]]))
