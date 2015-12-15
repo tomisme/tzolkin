@@ -68,7 +68,7 @@
                     :value tooth-height-factor
                     :min 0.1, :max 2
                     :step 0.1
-                    :on-change #(set :tooth-height-factor (e->val %))}]] ]]
+                    :on-change #(set :tooth-height-factor (e->val %))}]]]]
         [:div {:class "ten wide colum"}
          [:svg {:width (* size 3)
                 :height (* size 3)}
@@ -109,98 +109,98 @@
          "Click Me!"]]])))
 
 (defcard-rg spring-test
-  "This test uses a js/setInterval to move the gear every couple of seconds."
+  "This test uses a js/setInterval and [reanimated](https://github.com/timothypratley/reanimated)."
   (fn [data _] [spring-gear data])
   (rg/atom 0)
   {:inspect-data true})
 
-#_(def gears-atom (rg/atom {:rotation 0}))
+; (def gears-atom (rg/atom {:rotation 0}))
 
-#_(defcard gears-1
-  (dc/reagent
-   (fn [data _]
-     [:center
-      [:button {:on-click #(do (print @rotation-atom)
-                               (swap! rotation-atom + 10))} "rotate!"]
-      [:svg {:width 350
-             :height 250}
-       [gear-el {:cx 100
-                :cy 155
-                :r 75
-                :teeth 13
-                :tooth-height-factor 1.25
-                :tooth-width-factor 0.75
-                :rotation (* -1 @rotation-spring)
-                }]
-       [gear-el {:cx 256
-                 :cy 95
-                 :r 75
-                 :teeth 13
-                 :tooth-height-factor 1.25
-                 :tooth-width-factor 0.75
-                 :rotation @rotation-atom}]]]))
-  (rg/atom 0))
+; (defcard gears-1
+;  (dc/reagent
+;   (fn [data _]
+;     [:center
+;      [:button {:on-click #(do (print @rotation-atom)
+;                               (swap! rotation-atom + 10))} "rotate!"]
+;      [:svg {:width 350
+;             :height 250}
+;       [gear-el {:cx 100
+;                 :cy 155
+;                 :r 75
+;                 :teeth 13
+;                 :tooth-height-factor 1.25
+;                 :tooth-width-factor 0.75
+;                 :rotation (* -1 @rotation-spring)}]
+;
+;       [gear-el {:cx 256
+;                 :cy 95
+;                 :r 75
+;                 :teeth 13
+;                 :tooth-height-factor 1.25
+;                 :tooth-width-factor 0.75
+;                 :rotation @rotation-atom}]]]))
+;  (rg/atom 0))
 
-#_(defcard gears-2
-  (dc/reagent
-   (fn [data _]
-     [:center
-      [:svg {:width 600
-             :height 500}
-       [gear-el {:cx 300
-                 :cy 230
-                 :r 115
-                 :teeth 26
-                 :tooth-height-factor 1.12
-                 :tooth-width-factor 0.35
-                 :rotation (* -1 (+ 14 (:rotation @data)))
-                 :style {:fill "grey"}
-                 }]
-       [gear-el {:cx 144 ;; CHICHEN ITZA
-                 :cy 338
-                 :r 60
-                 :teeth 13
-                 :tooth-height-factor 1.32
-                 :tooth-width-factor 0.64
-                 :rotation (+ 28 (* (/ 26 13) (:rotation @data)))
-                 :style {:fill "#5882FA"}
-                 }]
-       [gear-el {:cx 155
-                 :cy 130
-                 :r 45
-                 :teeth 10
-                 :tooth-height-factor 1.32
-                 :tooth-width-factor 0.75
-                 :rotation (* (/ 26 10) (:rotation @data))
-                 :style {:fill "#74DF00"}
-                 }]
-       [gear-el {:cx 350
-                 :cy 70
-                 :r 45
-                 :teeth 10
-                 :tooth-height-factor 1.32
-                 :tooth-width-factor 0.75
-                 :rotation (* (/ 26 10) (:rotation @data))
-                 :style {:fill "#F7BE81"}
-                 }]
-       [gear-el {:cx 457
-                 :cy 211
-                 :r 45
-                 :teeth 10
-                 :tooth-height-factor 1.32
-                 :tooth-width-factor 0.75
-                 :rotation (* (/ 26 10) (:rotation @data))
-                 :style {:fill "#B43104"}
-                 }]
-       [gear-el {:cx 376
-                 :cy 369
-                 :r 45
-                 :teeth 10
-                 :tooth-height-factor 1.32
-                 :tooth-width-factor 0.75
-                 :rotation (* (/ 26 10) (:rotation @data))
-                 :style {:fill "#FFFF00"}
-                 }]]]))
-  gears-atom)
+; (defcard gears-2
+;  (dc/reagent
+;   (fn [data _]
+;     [:center
+;      [:svg {:width 600
+;             :height 500}
+;       [gear-el {:cx 300
+;                 :cy 230
+;                 :r 115
+;                 :teeth 26
+;                 :tooth-height-factor 1.12
+;                 :tooth-width-factor 0.35
+;                 :rotation (* -1 (+ 14 (:rotation @data)))
+;                 :style {:fill "grey"}}]
+;
+;       [gear-el {:cx 144 ;; CHICHEN ITZA
+;                 :cy 338
+;                 :r 60
+;                 :teeth 13
+;                 :tooth-height-factor 1.32
+;                 :tooth-width-factor 0.64
+;                 :rotation (+ 28 (* (/ 26 13) (:rotation @data)))
+;                 :style {:fill "#5882FA"}}]
+;
+;       [gear-el {:cx 155
+;                 :cy 130
+;                 :r 45
+;                 :teeth 10
+;                 :tooth-height-factor 1.32
+;                 :tooth-width-factor 0.75
+;                 :rotation (* (/ 26 10) (:rotation @data))
+;                 :style {:fill "#74DF00"}}]
+;
+;       [gear-el {:cx 350
+;                 :cy 70
+;                 :r 45
+;                 :teeth 10
+;                 :tooth-height-factor 1.32
+;                 :tooth-width-factor 0.75
+;                 :rotation (* (/ 26 10) (:rotation @data))
+;                 :style {:fill "#F7BE81"}}]
+;
+;       [gear-el {:cx 457
+;                 :cy 211
+;                 :r 45
+;                 :teeth 10
+;                 :tooth-height-factor 1.32
+;                 :tooth-width-factor 0.75
+;                 :rotation (* (/ 26 10) (:rotation @data))
+;                 :style {:fill "#B43104"}}]
+;
+;       [gear-el {:cx 376
+;                 :cy 369
+;                 :r 45
+;                 :teeth 10
+;                 :tooth-height-factor 1.32
+;                 :tooth-width-factor 0.75
+;                 :rotation (* (/ 26 10) (:rotation @data))
+;                 :style {:fill "#FFFF00"}}]]]))
+;
+;  gears-atom)
 
-#_(js/setInterval #(swap! gears-atom update :rotation inc) 100)
+; (js/setInterval #(swap! gears-atom update :rotation inc) 100)

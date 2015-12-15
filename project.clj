@@ -18,15 +18,14 @@
 
   :source-paths ["src"]
 
-  :cljsbuild {
-              :builds [{:id "devcards"
+  :cljsbuild {:builds [{:id "devcards"
                         :source-paths ["src"]
-                        :figwheel { :devcards true }
-                        :compiler { :main       "tzolkin.core"
-                                    :asset-path "js/compiled/devcards_out"
-                                    :output-to  "resources/public/js/compiled/tzolkin_devcards.js"
-                                    :output-dir "resources/public/js/compiled/devcards_out"
-                                    :source-map-timestamp true }}
+                        :figwheel {:devcards true}
+                        :compiler {:main       "tzolkin.core"
+                                   :asset-path "js/compiled/devcards_out"
+                                   :output-to  "resources/public/js/compiled/tzolkin_devcards.js"
+                                   :output-dir "resources/public/js/compiled/devcards_out"
+                                   :source-map-timestamp true}}
                        {:id "dev"
                         :source-paths ["src"]
                         :figwheel true
@@ -34,7 +33,7 @@
                                    :asset-path "js/compiled/out"
                                    :output-to  "resources/public/js/compiled/tzolkin.js"
                                    :output-dir "resources/public/js/compiled/out"
-                                   :source-map-timestamp true }}
+                                   :source-map-timestamp true}}
                        {:id "prod"
                         :source-paths ["src"]
                         :compiler {:main       "tzolkin.core"
@@ -42,4 +41,4 @@
                                    :output-to  "resources/public/js/compiled/tzolkin.js"
                                    :optimizations :advanced}}]}
 
-  :figwheel { :css-dirs ["resources/public/css"] })
+  :figwheel {:css-dirs ["resources/public/css"]})
