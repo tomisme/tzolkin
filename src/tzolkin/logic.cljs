@@ -41,8 +41,16 @@
                      :wood 3}
                     {:corn 9
                      :wood 4}]}}
-   :resources [:corn :wood :stone :gold :skull]
+   :trades {:wood 2
+            :sone 3
+            :gold 4}
+   :tech {:agriculture {}
+          :extraction {}
+          :architecture {}
+          :theology {}}
    :temples {:chac {:name "Chaac"
+                    :bonus {:age1 6
+                            :age2 2}
                     :steps [{:points -1}
                             {:points 0}
                             {:points 2
@@ -53,6 +61,8 @@
                             {:points 7}
                             {:points 8}]}
              :quet {:name "Quetzalcoatl"
+                    :bonus {:age1 2
+                            :age2 6}
                     :steps [{:points -2}
                             {:points 0}
                             {:points 1}
@@ -65,6 +75,8 @@
                             {:points 12}
                             {:points 13}]}
              :kuku {:name "Kukulcan"
+                    :bonus {:age1 4
+                            :age2 4}
                     :steps [{:points -3}
                             {:points 0}
                             {:points 1
@@ -76,10 +88,36 @@
                              :resource :skull}
                             {:points 9}
                             {:points 10}]}}})
+
+(def game-state
+  {:skulls 13
+   :players []
+   :gears {:yax []
+           :tik []
+           :uxe []
+           :chi []
+           :pal []}})
+
+(def player-state
+  {:resources {:corn 0
+               :wood 0
+               :stone 0
+               :gold 0
+               :skull 0}
+   :workers 3
+   :tech {:agriculture 0
+          :extraction 0
+          :architecture 0
+          :theology 0}
+   :tiles {:corn 0
+           :wood 0}})
+
 (defcard-doc
   "## Game Spec
+  Hello
+  ###Gears
 
-  * `:location` defines the gear's spot around the 26 hour clockface of the calendar
+  * `:location` defines the gear's location on the 26 hour clockface of the calendar
   * `:teeth` also defines the number of worker spaces on the gear: `teeth - 2`
   "
   game-spec)
