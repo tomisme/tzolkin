@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as rg])
   (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-doc deftest]]))
+   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
 
 (def game-spec
   {:gears
@@ -89,7 +89,7 @@
                             {:points 9}
                             {:points 10}]}}})
 
-(def game-state
+(def initial-game-state
   {:skulls 13
    :players []
    :gears {:yax []
@@ -98,7 +98,7 @@
            :chi []
            :pal []}})
 
-(def player-state
+(def new-player-state
   {:resources {:corn 0
                :wood 0
                :stone 0
@@ -111,6 +111,16 @@
           :theology 0}
    :tiles {:corn 0
            :wood 0}})
+
+(defn new-test-game
+  []
+  (-> initial-game-state
+    (update-in [:players] conj (-> new-player-state
+                                 (assoc :name "Elisa")
+                                 (assoc :color :red)))
+    (update-in [:players] conj (-> new-player-state
+                                 (assoc :name "Tom")
+                                 (assoc :color :blue)))))
 
 (defcard-doc
   "## Game Spec
@@ -142,7 +152,31 @@
                           (update :turn inc)))]
        [:div {:class "ui segment"}
         [:div {:class "ui button"
-               :onClick (fn [] (swap! state next-state state))}
+               :onClick (fn [] (swap! state next-state))}
          "Current Turn: " (:turn @state)]])))
   {:turn 1}
+  {:inspect-data true :history true})
+
+(defn place-worker
+  [state player-id gear]
+  (-> state
+    (update-in [:players player-id :workers] dec)))
+
+(defcard-rg test-worker-placement
+  (fn [state _]
+    [:button {:on-click #(swap! state place-worker 0 :yax)}
+      "Place Worker"])
+  (new-test-game)
+  {:inspect-data true :history true})
+
+(defcard-rg test-board
+  (fn [state-atom _]
+    (let [state @state-atom
+          players (:players state)]
+      [:span "Players: " (map (fn [player]
+                               ^{:key (name (:color player))}
+                               [:span {:style {:color (name (:color player))}}
+                                      (:name player) " "])
+                           players)]))
+  (new-test-game)
   {:inspect-data true :history true})
