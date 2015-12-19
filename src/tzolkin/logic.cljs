@@ -92,11 +92,11 @@
 (def initial-game-state
   {:skulls 13
    :players []
-   :gears {:yax []
-           :tik []
-           :uxe []
-           :chi []
-           :pal []}})
+   :gears {:yax [nil nil nil nil nil nil nil nil]
+           :tik [nil nil nil nil nil nil nil nil]
+           :uxe [nil nil nil nil nil nil nil nil]
+           :chi [nil nil nil nil nil nil nil nil nil nil]
+           :pal [nil nil nil nil nil nil nil nil]}})
 
 (def new-player-state
   {:resources {:corn 0
@@ -157,10 +157,26 @@
   {:turn 1}
   {:inspect-data true :history true})
 
+(defn indexed
+  "Returns a lazy sequence of [index, item] pairs, where items come
+  from 's' and indexes count up from zero.
+
+  (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
+  [s]
+  (map vector (iterate inc 0) s))
+
+(defn first-nil
+  [coll]
+  (first (for [[index element] (indexed coll) :when (= element nil)] index)))
+
 (defn place-worker
   [state player-id gear]
-  (-> state
-    (update-in [:players player-id :workers] dec)))
+  (let [gear-slots (get-in state [:gears gear])
+        gear-location (first-nil gear-slots)
+        color (get-in state [:players player-id :color])]
+    (-> state
+      (update-in [:players player-id :workers] dec)
+      (update-in [:gears gear] assoc gear-location color))))
 
 (defcard-rg test-worker-placement
   (fn [state _]
