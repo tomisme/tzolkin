@@ -1,10 +1,9 @@
 (ns tzolkin.core
   (:require
    [reagent.core :as rg]
-   [tzolkin.art]
-   [tzolkin.logic]
-   [tzolkin.tests]
-   [tzolkin.d3])
+   [tzolkin.art :as art]
+   [tzolkin.logic :as logic]
+   [tzolkin.tests :as tests])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-doc deftest]]))
 
