@@ -9,11 +9,15 @@
   "##Gears
   The spinning gears are a one of the coolest mechanics in Tzolk'in.
 
-  Let's see if we can make them out of raw SVG elements.")
+  Let's make them out of svg elements!")
 
 (defn e->val
   [event]
   (-> event .-target .-value))
+
+(def color-names
+  {:red "red"
+   :blue "blue"})
 
 (defn gear-el
   [{:keys [cx cy r teeth rotation style workers
@@ -36,15 +40,18 @@
                  :style style
                  :transform (str "rotate(" deg " " cx " " cy ")")}])
     (if workers
-      (for [worker-spot (range (- teeth 2))
-            :let [spacing (/ 360 teeth)
-                  deg (* worker-spot spacing)]]
-        ^{:key worker-spot}
-        [:circle {:style {:fill "red"}
-                  :r (/ r 5)
-                  :cx (+ cx 0)
-                  :cy (+ cy (* r 0.75))
-                  :transform (str "rotate(" (+ deg 0) " " cx " " cy ")")}]))])
+      (map-indexed (fn [index worker]
+                     (let [spacing (/ 360 teeth)
+                           deg (* index spacing)
+                           offset (/ spacing 2)
+                           transform (str "rotate(" (+ deg offset) " " cx " " cy ")")]
+                       ^{:key index}
+                       [:circle {:style {:fill (or (get color-names worker) "white")}
+                                 :r (/ r 5)
+                                 :cx (+ cx 0)
+                                 :cy (+ cy (* r 0.75))
+                                 :transform transform}]))
+        workers))])
 
 (defcard-rg gear-creator
   (fn [data _]
@@ -92,14 +99,29 @@
   (rg/atom {:size 75
             :teeth 12
             :tooth-width-factor 1
-            :tooth-height-factor 1})
+            :tooth-height-factor 1.1})
   {:inspect-data true})
+
+(defn worker-gear-test
+  [{:keys [workers]}]
+  [:center
+    [:svg {:width 300 :height 200}
+      [gear-el {:cx 150
+                :cy 100
+                :r 75
+                :teeth 10
+                :tooth-height-factor 1.15
+                :tooth-width-factor 0.75
+                :workers workers}]]])
+
+(defcard-rg worker-gear-test
+  [worker-gear-test {:workers [:blue nil :blue :red nil nil :red nil]}])
 
 (def rotation-atom (rg/atom 0))
 
 (defn spring-gear
   [rotation]
-  (let [ rotation-spring (anim/spring rotation)]
+  (let [rotation-spring (anim/spring rotation)]
     (fn render-spring-gear []
       [:center
        [:svg {:width 300 :height 200
@@ -123,21 +145,3 @@
   (fn [data _] [spring-gear data])
   (rg/atom 0)
   {:inspect-data true})
-
-(defn worker-gear-test
-  [{:keys [workers]}]
-  [:center
-    [:svg {:width 300 :height 200}
-      [gear-el {:cx 150
-                :cy 100
-                :r 75
-                :teeth 10
-                :tooth-height-factor 1.15
-                :tooth-width-factor 0.75
-                :workers workers}]]])
-
-
-(defcard-rg worker-gear-test
-  [worker-gear-test {:workers [:blue nil :blue :red nil nil :red nil]}])
-
-(def gears-atom (rg/atom {:rotation 0}))
