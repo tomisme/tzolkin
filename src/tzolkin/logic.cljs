@@ -1,6 +1,7 @@
 (ns tzolkin.logic
   (:require
-   [reagent.core :as rg])
+   [reagent.core :as rg]
+   [tzolkin.art :as art])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
 
@@ -113,49 +114,23 @@
            :wood 0}})
 
 (defn new-test-game
-  []
-  (-> initial-game-state
-    (update-in [:players] conj (-> new-player-state
-                                 (assoc :name "Elisa")
-                                 (assoc :color :red)))
-    (update-in [:players] conj (-> new-player-state
-                                 (assoc :name "Tom")
-                                 (assoc :color :blue)))))
+  [{:keys [players]}]
+  (cond-> initial-game-state
+   (> players 0) (update-in [:players] conj (-> new-player-state
+                                              (assoc :name "Elisa")
+                                              (assoc :color :red)))
+   (> players 1) (update-in [:players] conj (-> new-player-state
+                                              (assoc :name "Tom")
+                                              (assoc :color :blue)))))
 
 (defcard-doc
   "## Game Spec
-  Hello
   ###Gears
 
   * `:location` defines the gear's location on the 26 hour clockface of the calendar
   * `:teeth` also defines the number of worker spaces on the gear: `teeth - 2`
   "
   game-spec)
-
-(defcard first-board
-  "Here's our first test board. It's just a button that increments the turn number.
-
-  The game logic is simply:
-
-  ```
-  (defn next-state
-    [prev-state]
-    (-> prev-state
-      (update :turn inc)))
-  ```
-
-  With the magic of devcards, our game state can be inspected and time travelled!"
-  (dc/reagent
-   (fn [state _]
-     (let [next-state (fn [prev-state]
-                        (-> prev-state
-                          (update :turn inc)))]
-       [:div {:class "ui segment"}
-        [:div {:class "ui button"
-               :onClick (fn [] (swap! state next-state))}
-         "Current Turn: " (:turn @state)]])))
-  {:turn 1}
-  {:inspect-data true :history true})
 
 (defn indexed
   "Returns a lazy sequence of [index, item] pairs, where items come
@@ -179,10 +154,14 @@
       (update-in [:gears gear] assoc gear-location color))))
 
 (defcard-rg test-worker-placement
+  "Workers are placed on a gear in the first available location."
   (fn [state _]
-    [:button {:on-click #(swap! state place-worker 0 :yax)}
-      "Place Worker"])
-  (new-test-game)
+    [:div
+      [:button {:on-click #(swap! state place-worker 0 :yax)}
+        "Place a Worker on Yaxchilan"]
+      (art/worker-gear-test {:workers (get-in @state [:gears :yax])})])
+  (-> (new-test-game {:players 1})
+    (update :gears assoc :yax [:blue nil :blue :red nil nil :red nil]))
   {:inspect-data true :history true})
 
 (defcard-rg test-board
@@ -190,9 +169,9 @@
     (let [state @state-atom
           players (:players state)]
       [:span "Players: " (map (fn [player]
-                               ^{:key (name (:color player))}
-                               [:span {:style {:color (name (:color player))}}
-                                      (:name player) " "])
+                                ^{:key (name (:color player))}
+                                [:span {:style {:color (name (:color player))}}
+                                  (:name player) " "])
                            players)]))
-  (new-test-game)
+  (new-test-game {:players 2})
   {:inspect-data true :history true})
