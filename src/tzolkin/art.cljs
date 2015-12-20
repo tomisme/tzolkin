@@ -32,21 +32,22 @@
                 deg (* tooth (/ 360 teeth))]]
       ^{:key tooth}
       [:rect {:x (- cx (/ width 2))
-                 :y cy
-                 :rx (/ width 4)
-                 :ry (/ width 4)
-                 :width width
-                 :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
-                 :style style
-                 :transform (str "rotate(" deg " " cx " " cy ")")}])
+              :y cy
+              :rx (/ width 4)
+              :ry (/ width 4)
+              :width width
+              :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
+              :style style
+              :transform (str "rotate(" deg " " cx " " cy ")")}])
     (if workers
       (map-indexed (fn [index worker]
                      (let [spacing (/ 360 teeth)
                            deg (* index spacing)
                            offset (/ spacing 2)
-                           transform (str "rotate(" (+ deg offset) " " cx " " cy ")")]
+                           transform (str "rotate(" (+ deg offset) " " cx " " cy ")")
+                           color (or (get color-names worker) "white")]
                        ^{:key index}
-                       [:circle {:style {:fill (or (get color-names worker) "white")}
+                       [:circle {:style {:fill color}
                                  :r (/ r 5)
                                  :cx (+ cx 0)
                                  :cy (+ cy (* r 0.75))
@@ -116,8 +117,6 @@
 
 (defcard-rg worker-gear-test
   [worker-gear-test {:workers [:blue nil :blue :red nil nil :red nil]}])
-
-(def rotation-atom (rg/atom 0))
 
 (defn spring-gear
   [rotation]
