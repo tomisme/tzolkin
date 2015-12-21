@@ -52,7 +52,30 @@
                                  :cx (+ cx 0)
                                  :cy (+ cy (* r 0.75))
                                  :transform transform}]))
-        workers))])
+        workers))
+    (map-indexed (fn [index worker]
+                   (let [spacing (/ 360 teeth)
+                         deg (* index spacing)
+                         offset (/ spacing 2)
+                         text-x (+ cx (* r 0.05))
+                         text-y (+ cy (* r 1.15))
+                         transform1 (str "rotate(" (+ deg offset) " " cx " " cy ")")
+                         transform2 (str transform1 " rotate(180 " text-x " " text-y ")")]
+                     ^{:key index}
+                     [:g
+                       [:circle {:style {:fill "yellow"}
+                                 :r (/ r 7)
+                                 :cx cx
+                                 :cy (+ cy (* r 1.2))
+                                 :transform transform1}]
+                       [:text {:x text-x
+                               :y text-y
+                               :style {:stroke "black"
+                                       :fill "black"}
+                               :font-size 11
+                               :transform transform2}
+                        (str index)]]))
+      (range 0 8))])
 
 (defcard-rg gear-creator
   (fn [data _]
