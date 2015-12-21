@@ -22,60 +22,61 @@
 (defn gear-el
   [{:keys [cx cy r teeth rotation style workers
            tooth-height-factor tooth-width-factor]}]
-  [:g {:transform (str "rotate(" (if rotation rotation 0) " " cx " " cy ")")}
-    [:circle {:cx cx
-              :cy cy
-              :r r
-              :style style}]
-    (for [tooth (range teeth)
-          :let [width (* r 0.35 tooth-width-factor)
-                deg (* tooth (/ 360 teeth))]]
-      ^{:key tooth}
-      [:rect {:x (- cx (/ width 2))
-              :y cy
-              :rx (/ width 4)
-              :ry (/ width 4)
-              :width width
-              :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
-              :style style
-              :transform (str "rotate(" deg " " cx " " cy ")")}])
-    (if workers
-      (map-indexed (fn [index worker]
-                     (let [spacing (/ 360 teeth)
-                           deg (* index spacing)
-                           offset (/ spacing 2)
-                           transform (str "rotate(" (+ deg offset) " " cx " " cy ")")
-                           color (or (get color-names worker) "white")]
-                       ^{:key index}
-                       [:circle {:style {:fill color}
-                                 :r (/ r 5)
-                                 :cx (+ cx 0)
-                                 :cy (+ cy (* r 0.75))
-                                 :transform transform}]))
-        workers))
-    (map-indexed (fn [index worker]
-                   (let [spacing (/ 360 teeth)
-                         deg (* index spacing)
-                         offset (/ spacing 2)
-                         text-x (+ cx (* r 0.05))
-                         text-y (+ cy (* r 1.15))
-                         transform1 (str "rotate(" (+ deg offset) " " cx " " cy ")")
-                         transform2 (str transform1 " rotate(180 " text-x " " text-y ")")]
-                     ^{:key index}
-                     [:g
-                       [:circle {:style {:fill "yellow"}
-                                 :r (/ r 7)
-                                 :cx cx
-                                 :cy (+ cy (* r 1.2))
-                                 :transform transform1}]
-                       [:text {:x text-x
-                               :y text-y
-                               :style {:stroke "black"
-                                       :fill "black"}
-                               :font-size 11
-                               :transform transform2}
-                        (str index)]]))
-      (range 0 8))])
+  [:g
+    (if true ; replace with check for big gear
+      (for [index (range 0 (- teeth 2))]
+        (let [spacing (/ 360 teeth)
+              deg (* index spacing)
+              offset (/ spacing 2)
+              text-x (+ cx (* r 0.05))
+              text-y (+ cy (* r 1.15))
+              transform1 (str "rotate(" (+ deg offset) " " cx " " cy ")")
+              transform2 (str transform1 " rotate(180 " text-x " " text-y ")")]
+          ^{:key index}
+          [:g
+            [:circle {:style {:fill "yellow"}
+                      :r (/ r 7)
+                      :cx cx
+                      :cy (+ cy (* r 1.2))
+                      :transform transform1}]
+            [:text {:x text-x
+                    :y text-y
+                    :style {:stroke "black"
+                            :fill "black"}
+                    :font-size 11
+                    :transform transform2}
+             (str index)]])))
+    [:g {:transform (str "rotate(" (if rotation rotation 0) " " cx " " cy ")")}
+      [:circle {:cx cx
+                :cy cy
+                :r r
+                :style style}]
+      (for [tooth (range teeth)
+            :let [width (* r 0.35 tooth-width-factor)
+                  deg (* tooth (/ 360 teeth))]]
+        ^{:key tooth}
+        [:rect {:x (- cx (/ width 2))
+                :y cy
+                :rx (/ width 4)
+                :ry (/ width 4)
+                :width width
+                :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
+                :style style
+                :transform (str "rotate(" deg " " cx " " cy ")")}])
+      (if workers
+        (map-indexed (fn [index worker]
+                       (let [spacing (/ 360 teeth)
+                             deg (* index spacing)
+                             offset (/ spacing 2)
+                             transform (str "rotate(" (+ deg offset) " " cx " " cy ")")
+                             color (or (get color-names worker) "white")]
+                         ^{:key index}
+                         [:circle {:style {:fill color}
+                                   :r (/ r 5)
+                                   :cx (+ cx 0)
+                                   :cy (+ cy (* r 0.75))
+                                   :transform transform}]))
+          workers))]])
 
 (defcard-rg gear-creator
   (fn [data _]
@@ -144,26 +145,21 @@
 (defn spring-gear
   [rotation]
   (let [rotation-spring (anim/spring rotation)]
-    (fn render-spring-gear []
+    (fn []
       [:center
-       [:svg {:width 300 :height 200
-              :on-click #(swap! rotation + 30)}
-        [gear-el {:cx 150
-                  :cy 100
-                  :r 50
-                  :teeth 10
-                  :tooth-height-factor 1.25
-                  :tooth-width-factor 0.75
-                  :rotation @rotation-spring}]
-        [:text {:x 114
-                :y 100
-                :style {:stroke "#3ADF00"
-                        :fill "#3ADF00"}
-                :font-size 18}
-         "Click Me!"]]])))
+        [:svg {:width 300 :height 200
+               :on-click #(swap! rotation + (/ 360 10))}
+          [gear-el {:cx 150
+                    :cy 100
+                    :r 50
+                    :teeth 10
+                    :tooth-height-factor 1.25
+                    :tooth-width-factor 0.75
+                    :rotation @rotation-spring
+                    :workers [:blue nil :blue :red nil nil :red nil nil nil]}]]])))
 
 (defcard-rg spring-test
-  "Spinning a gear with [reanimated](https://github.com/timothypratley/reanimated)."
+  "Click the gear to spin with [reanimated](https://github.com/timothypratley/reanimated)."
   (fn [data _] [spring-gear data])
   (rg/atom 0)
   {:inspect-data true})
