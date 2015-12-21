@@ -141,8 +141,8 @@
   (map vector (iterate inc 0) s))
 
 (defn first-nil
-  [coll]
-  (first (for [[index element] (indexed coll) :when (= element nil)] index)))
+  [collection]
+  (first (for [[index element] (indexed collection) :when (= element nil)] index)))
 
 (defn place-worker
   [state player-id gear]
@@ -151,17 +151,20 @@
         color (get-in state [:players player-id :color])]
     (-> state
       (update-in [:players player-id :workers] dec)
-      (update-in [:gears gear] assoc gear-location color))))
+      (update-in [:gears gear] assoc gear-location color)
+      (update-in [:players player-id :resources :corn] - gear-location))))
 
 (defcard-rg test-worker-placement
   "Workers are placed on a gear in the first available location."
   (fn [state _]
-    [:div
-      [:button {:on-click #(swap! state place-worker 0 :yax)}
-        "Place a Worker on Yaxchilan"]
-      (art/worker-gear-test {:workers (get-in @state [:gears :yax])})])
+    (let [corn (get-in @state [:players 0 :resources :corn])]
+      [:div
+        [:button {:on-click #(swap! state place-worker 0 :yax)}
+          "Place a Worker on Yaxchilan (" corn " corn remaining)"]
+        (art/worker-gear-test {:workers (get-in @state [:gears :yax])})]))
   (-> (new-test-game {:players 1})
-    (update :gears assoc :yax [:blue nil :blue :red nil nil :red nil]))
+    (update :gears assoc :yax [:blue nil nil :blue nil nil :red nil])
+    (update-in [:players 0 :resources] assoc :corn 12))
   {:inspect-data true :history true})
 
 (defcard-rg test-board
