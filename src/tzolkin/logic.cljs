@@ -91,13 +91,14 @@
                             {:points 10}]}}})
 
 (def initial-game-state
-  {:skulls 13
+  {:turn 0
+   :skulls 13
    :players []
-   :gears {:yax [nil nil nil nil nil nil nil nil]
-           :tik [nil nil nil nil nil nil nil nil]
-           :uxe [nil nil nil nil nil nil nil nil]
-           :chi [nil nil nil nil nil nil nil nil nil nil]
-           :pal [nil nil nil nil nil nil nil nil]}})
+   :gears {:yax [nil nil nil nil nil nil nil nil nil nil]
+           :tik [nil nil nil nil nil nil nil nil nil nil]
+           :uxe [nil nil nil nil nil nil nil nil nil nil]
+           :chi [nil nil nil nil nil nil nil nil nil nil nil nil]
+           :pal [nil nil nil nil nil nil nil nil nil nil]}})
 
 (def new-player-state
   {:resources {:corn 0
@@ -154,20 +155,34 @@
       (update-in [:gears gear] assoc gear-location color)
       (update-in [:players player-id :resources :corn] - gear-location))))
 
-(defcard-rg test-worker-placement
-  "Workers are placed on a gear in the first available location."
+(defn remove-worker
+  [state player-id gear gear-location]
+  (-> state
+    (update-in [:players player-id :workers] inc)
+    (update-in [:gears gear] assoc gear-location nil)))
+
+(defn end-turn
+  [state]
+  (-> state
+    (update :turn inc)))
+
+(defcard-rg gear-test
+  "Click a worker to remove it."
   (fn [state _]
-    (let [corn (get-in @state [:players 0 :resources :corn])]
+    (let [corn (get-in @state [:players 0 :resources :corn])
+          on-worker-click (fn [slot] (remove-worker state 0 :yax slot))]
       [:div
         [:button {:on-click #(swap! state place-worker 0 :yax)}
           "Place a Worker on Yaxchilan (" corn " corn remaining)"]
+        [:button {:on-click #(swap! state end-turn)}
+          "End Turn"]
         (art/worker-gear-test {:workers (get-in @state [:gears :yax])})]))
   (-> (new-test-game {:players 1})
-    (update :gears assoc :yax [:blue nil nil :blue nil nil :red nil])
+    (update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
     (update-in [:players 0 :resources] assoc :corn 12))
   {:inspect-data true :history true})
 
-(defcard-rg test-board
+(defcard-rg board-test
   (fn [state-atom _]
     (let [state @state-atom
           players (:players state)]
