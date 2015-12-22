@@ -149,17 +149,26 @@
   [state player-id gear]
   (let [gear-slots (get-in state [:gears gear])
         gear-location (first-nil gear-slots)
-        color (get-in state [:players player-id :color])]
-    (-> state
-      (update-in [:players player-id :workers] dec)
-      (update-in [:gears gear] assoc gear-location color)
-      (update-in [:players player-id :resources :corn] - gear-location))))
+        cost gear-location
+        player-color (get-in state [:players player-id :color])
+        remaining-workers (get-in state [:players player-id :workers])
+        remaining-corn (get-in state [:players player-id :resources :corn])]
+    (if (and (> remaining-workers 0) (>= remaining-corn cost))
+      (-> state
+        (update-in [:players player-id :workers] dec)
+        (update-in [:gears gear] assoc gear-location player-color)
+        (update-in [:players player-id :resources :corn] - gear-location))
+      state)))
 
 (defn remove-worker
   [state player-id gear gear-location]
-  (-> state
-    (update-in [:players player-id :workers] inc)
-    (update-in [:gears gear] assoc gear-location nil)))
+  (let [player-color (get-in state [:players player-id :color])
+        target-color (get-in state [:gears gear gear-location])]
+    (if (= player-color target-color)
+      (-> state
+        (update-in [:players player-id :workers] inc)
+        (update-in [:gears gear] assoc gear-location nil))
+      state)))
 
 (defn end-turn
   [state]
@@ -170,13 +179,14 @@
   "Click a worker to remove it."
   (fn [state _]
     (let [corn (get-in @state [:players 0 :resources :corn])
-          on-worker-click (fn [slot] (remove-worker state 0 :yax slot))]
+          on-worker-click (fn [slot] (swap! state remove-worker 0 :yax slot))]
       [:div
         [:button {:on-click #(swap! state place-worker 0 :yax)}
           "Place a Worker on Yaxchilan (" corn " corn remaining)"]
         [:button {:on-click #(swap! state end-turn)}
           "End Turn"]
-        (art/worker-gear-test {:workers (get-in @state [:gears :yax])})]))
+        (art/worker-gear-test {:workers (get-in @state [:gears :yax])
+                               :on-worker-click on-worker-click})]))
   (-> (new-test-game {:players 1})
     (update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
     (update-in [:players 0 :resources] assoc :corn 12))

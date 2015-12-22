@@ -20,7 +20,7 @@
    :blue "blue"})
 
 (defn gear-el
-  [{:keys [cx cy r teeth rotation style workers
+  [{:keys [cx cy r teeth rotation style workers on-worker-click
            tooth-height-factor tooth-width-factor]}]
   [:g
     (if true ; replace with check for big gear
@@ -72,6 +72,7 @@
                              color (or (get color-names worker) "white")]
                          ^{:key index}
                          [:circle {:style {:fill color}
+                                   :on-click #(on-worker-click index)
                                    :r (/ r 5)
                                    :cx (+ cx 0)
                                    :cy (+ cy (* r 0.75))
@@ -128,7 +129,7 @@
   {:inspect-data true})
 
 (defn worker-gear-test
-  [{:keys [workers]}]
+  [{:keys [workers on-worker-click]}]
   [:center
     [:svg {:width 300 :height 200}
       [gear-el {:cx 150
@@ -137,7 +138,8 @@
                 :teeth 10
                 :tooth-height-factor 1.15
                 :tooth-width-factor 0.75
-                :workers workers}]]])
+                :workers workers
+                :on-worker-click on-worker-click}]]])
 
 (defcard-rg worker-gear-test
   [worker-gear-test {:workers [:blue nil :blue :red nil nil :red nil]}])
