@@ -145,6 +145,11 @@
   [collection]
   (first (for [[index element] (indexed collection) :when (= element nil)] index)))
 
+(defn gear-position
+  [state gear index]
+  (let [turn (get state :turn)]
+    (+ index turn))) ;; HOW DO I DO THIS? (mod ? ?)
+
 (defn place-worker
   [state player-id gear]
   (let [gear-slots (get-in state [:gears gear])
@@ -185,8 +190,8 @@
           "Place a Worker on Yaxchilan (" corn " corn remaining)"]
         [:button {:on-click #(swap! state end-turn)}
           "End Turn"]
-        (art/worker-gear-test {:workers (get-in @state [:gears :yax])
-                               :on-worker-click on-worker-click})]))
+        (art/worker-gear {:workers (get-in @state [:gears :yax])
+                          :on-worker-click on-worker-click})]))
   (-> (new-test-game {:players 1})
     (update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
     (update-in [:players 0 :resources] assoc :corn 12))

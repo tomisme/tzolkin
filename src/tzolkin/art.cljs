@@ -128,7 +128,7 @@
             :tooth-height-factor 1.1})
   {:inspect-data true})
 
-(defn worker-gear-test
+(defn worker-gear
   [{:keys [workers on-worker-click]}]
   [:center
     [:svg {:width 300 :height 200}
@@ -141,27 +141,25 @@
                 :workers workers
                 :on-worker-click on-worker-click}]]])
 
-(defcard-rg worker-gear-test
-  [worker-gear-test {:workers [:blue nil :blue :red nil nil :red nil]}])
+(def gear-rotation-atom (rg/atom 0))
 
-(defn spring-gear
-  [rotation]
-  (let [rotation-spring (anim/spring rotation)]
+(defn worker-gear-spin-test
+  [{:keys [workers on-worker-click]}]
+  (let [rotation-spring (anim/spring gear-rotation-atom)]
     (fn []
       [:center
-        [:svg {:width 300 :height 200
-               :on-click #(swap! rotation + (/ 360 10))}
+        [:button {:on-click #(swap! gear-rotation-atom + (/ 360 10))}
+          "Spin the gear! (turn: " (str (/ @gear-rotation-atom 36)) ")"]
+        [:svg {:width 300 :height 200}
           [gear-el {:cx 150
                     :cy 100
-                    :r 50
+                    :r 75
                     :teeth 10
-                    :tooth-height-factor 1.25
+                    :tooth-height-factor 1.15
                     :tooth-width-factor 0.75
+                    :workers workers
                     :rotation @rotation-spring
-                    :workers [:blue nil :blue :red nil nil :red nil nil nil]}]]])))
+                    :on-worker-click on-worker-click}]]])))
 
-(defcard-rg spring-test
-  "Click the gear to spin with [reanimated](https://github.com/timothypratley/reanimated)."
-  (fn [data _] [spring-gear data])
-  (rg/atom 0)
-  {:inspect-data true})
+(defcard-rg worker-gear-spin-test
+  [worker-gear-spin-test {:workers [:blue nil :blue :red nil nil :red nil]}])
