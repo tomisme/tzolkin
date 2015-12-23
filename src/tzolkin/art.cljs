@@ -23,29 +23,62 @@
   [{:keys [cx cy r teeth rotation style workers on-worker-click
            tooth-height-factor tooth-width-factor]}]
   [:g
-    (if true ; replace with check for big gear
-      (for [index (range 0 (- teeth 2))]
-        (let [spacing (/ 360 teeth)
-              deg (* index spacing)
-              offset (/ spacing 2)
-              text-x (+ cx (* r 0.05))
-              text-y (+ cy (* r 1.15))
-              transform1 (str "rotate(" (+ deg offset) " " cx " " cy ")")
-              transform2 (str transform1 " rotate(180 " text-x " " text-y ")")]
-          ^{:key index}
-          [:g
-            [:circle {:style {:fill "yellow"}
-                      :r (/ r 7)
-                      :cx cx
-                      :cy (+ cy (* r 1.2))
-                      :transform transform1}]
-            [:text {:x text-x
-                    :y text-y
-                    :style {:stroke "black"
-                            :fill "black"}
-                    :font-size 11
-                    :transform transform2}
-             (str index)]])))
+    [:circle {:style {:fill "green"}
+              :r (* r 1.85)
+              :cx cx
+              :cy cy}]
+    [:circle {:style {:fill "white"}
+              :r (* r 1.4)
+              :cx cx
+              :cy cy}]
+    ;; SPACERS
+    (for [tooth (range teeth)
+          :let [width (* r 0.1)
+                deg (* tooth (/ 360 teeth))]]
+      ^{:key tooth}
+      [:rect {:x (- cx (/ width 2))
+              :y (+ cy (/ r 3))
+              :width width
+              :height (* r 1.6)
+              :style {:fill "white"}
+              :transform (str "rotate(" deg " " cx " " cy ")")}])
+    ;; BLOCK OFF FINAL 3
+    (for [tooth (range 3)
+          :let [width (* r 0.15)
+                space (/ 360 teeth)
+                deg (- (* tooth space) (* 2 space))]]
+      ^{:key tooth}
+      (for [block-num (range 10)]
+        [:rect {:x (- cx width)
+                :y (+ cy (/ r 3))
+                :width width
+                :height (* r 1.6)
+                :style {:fill "white"}
+                :transform (str "rotate(" (+ deg (* block-num 3.5)) " " cx " " cy ")")}]))
+    ;; CORN COST LABEL
+    (for [index (range 0 (- teeth 2))]
+      (let [spacing (/ 360 teeth)
+            deg (* index spacing)
+            offset (/ spacing 2)
+            text-x (+ cx (* r 0.05))
+            text-y (+ cy (* r 1.15))
+            transform1 (str "rotate(" (+ deg offset) " " cx " " cy ")")
+            transform2 (str transform1 " rotate(180 " text-x " " text-y ")")]
+        ^{:key index}
+        [:g
+          [:circle {:style {:fill "yellow"}
+                    :r (/ r 7)
+                    :cx cx
+                    :cy (+ cy (* r 1.2))
+                    :transform transform1}]
+          [:text {:x text-x
+                  :y text-y
+                  :style {:stroke "black"
+                          :fill "black"}
+                  :font-size 11
+                  :transform transform2}
+           (str index)]]))
+    ;; THE GEAR
     [:g {:transform (str "rotate(" (if rotation rotation 0) " " cx " " cy ")")}
       [:circle {:cx cx
                 :cy cy
@@ -63,6 +96,7 @@
                 :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
                 :style style
                 :transform (str "rotate(" deg " " cx " " cy ")")}])
+      ;; WORKER SLOTS
       (if workers
         (map-indexed (fn [index worker]
                        (let [spacing (/ 360 teeth)
@@ -114,10 +148,10 @@
                     :step 0.1
                     :on-change #(set :tooth-height-factor (e->val %))}]]]]
         [:div {:class "ten wide colum"}
-         [:svg {:width (* size 3)
-                :height (* size 3)}
-          [gear-el {:cx (* size 1.5)
-                    :cy (* size 1.5)
+         [:svg {:width (* size 5)
+                :height (* size 5)}
+          [gear-el {:cx (* size 2)
+                    :cy (* size 2)
                     :r size
                     :teeth teeth
                     :tooth-width-factor tooth-width-factor
@@ -131,9 +165,9 @@
 (defn worker-gear
   [{:keys [workers on-worker-click]}]
   [:center
-    [:svg {:width 300 :height 200}
+    [:svg {:width 300 :height 300}
       [gear-el {:cx 150
-                :cy 100
+                :cy 150
                 :r 75
                 :teeth 10
                 :tooth-height-factor 1.15
@@ -144,22 +178,37 @@
 (def gear-rotation-atom (rg/atom 0))
 
 (defn worker-gear-spin-test
-  [{:keys [workers on-worker-click]}]
+  [{:keys [workers actions on-worker-click]}]
   (let [rotation-spring (anim/spring gear-rotation-atom)]
     (fn []
       [:center
         [:button {:on-click #(swap! gear-rotation-atom + (/ 360 10))}
           "Spin the gear! (turn: " (str (/ @gear-rotation-atom 36)) ")"]
-        [:svg {:width 300 :height 200}
+        [:svg {:width 300 :height 300}
           [gear-el {:cx 150
-                    :cy 100
+                    :cy 150
                     :r 75
                     :teeth 10
                     :tooth-height-factor 1.15
                     :tooth-width-factor 0.75
+                    :actions actions
                     :workers workers
                     :rotation @rotation-spring
                     :on-worker-click on-worker-click}]]])))
 
+(def test-actions
+  [{:wood 1}
+   {:stone 1
+    :corn 1}
+   {:gold 1
+    :corn 2}
+   {:skull 1}
+   {:gold 1
+    :stone 1
+    :corn 2}
+   :free
+   :free])
+
 (defcard-rg worker-gear-spin-test
-  [worker-gear-spin-test {:workers [:blue nil :blue :red nil nil :red nil]}])
+  [worker-gear-spin-test {:workers [:blue nil :blue :red nil nil :red nil nil nil]
+                          :actions test-actions}])
