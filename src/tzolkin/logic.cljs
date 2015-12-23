@@ -90,6 +90,7 @@
                             {:points 9}
                             {:points 10}]}}})
 
+; TODO: Generate from game-spec
 (def initial-game-state
   {:turn 0
    :skulls 13
@@ -97,7 +98,7 @@
    :gears {:yax [nil nil nil nil nil nil nil nil nil nil]
            :tik [nil nil nil nil nil nil nil nil nil nil]
            :uxe [nil nil nil nil nil nil nil nil nil nil]
-           :chi [nil nil nil nil nil nil nil nil nil nil nil nil]
+           :chi [nil nil nil nil nil nil nil nil nil nil nil nil nil]
            :pal [nil nil nil nil nil nil nil nil nil nil]}})
 
 (def new-player-state
@@ -135,20 +136,23 @@
 
 (defn indexed
   "Returns a lazy sequence of [index, item] pairs, where items come
-  from 's' and indexes count up from zero.
+  from 'sequence' and indexes count up from zero.
 
   (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
-  [s]
-  (map vector (iterate inc 0) s))
+  [sequence]
+  (map vector (iterate inc 0) sequence))
 
 (defn first-nil
+  "Returns the index of the first instance of nil in a collection"
   [collection]
   (first (for [[index element] (indexed collection) :when (= element nil)] index)))
 
 (defn gear-position
-  [state gear index]
-  (let [turn (get state :turn)]
-    (+ index turn))) ;; HOW DO I DO THIS? (mod ? ?)
+  "Returns the current board position of a gear slot"
+  [state gear slot]
+  (let [turn (get state :turn)
+        teeth (get-in game-spec [:gears gear :teeth])]
+    (mod (+ slot turn) teeth)))
 
 (defn place-worker
   [state player-id gear]
