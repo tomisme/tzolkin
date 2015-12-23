@@ -157,16 +157,16 @@
 (defn place-worker
   [state player-id gear]
   (let [gear-slots (get-in state [:gears gear])
-        gear-location (first-nil gear-slots)
-        cost gear-location
+        slot (first-nil gear-slots)
+        position (gear-position state gear slot)
         player-color (get-in state [:players player-id :color])
         remaining-workers (get-in state [:players player-id :workers])
         remaining-corn (get-in state [:players player-id :resources :corn])]
-    (if (and (> remaining-workers 0) (>= remaining-corn cost))
+    (if (and (> remaining-workers 0) (>= remaining-corn position))
       (-> state
         (update-in [:players player-id :workers] dec)
-        (update-in [:gears gear] assoc gear-location player-color)
-        (update-in [:players player-id :resources :corn] - gear-location))
+        (update-in [:gears gear] assoc position player-color)
+        (update-in [:players player-id :resources :corn] - position))
       state)))
 
 (defn remove-worker
