@@ -19,6 +19,39 @@
   {:red "red"
    :blue "blue"})
 
+(def test-actions
+  [{:wood 1}
+   {:stone 1
+    :corn 1}
+   {:gold 1
+    :corn 2}
+   {:skull 1}
+   {:gold 1
+    :stone 1
+    :corn 2}
+   :free
+   :free])
+
+(defn action-labels
+  [actions teeth cx cy r]
+  [:g
+    (map-indexed (fn [index action]
+                   (let [x cx
+                         y (+ cy (* r 1.56))
+                         spacing (/ 360 teeth)
+                         offset (/ spacing 2)
+                         deg (+ (* (+ index 1) spacing) offset)
+                         first-transform (str "rotate(" deg " " cx " " cy ")")
+                         second-transform (str "rotate(" 180 " " x " " y ")")
+                         transform (str first-transform " " second-transform)]
+                     [:text {:x x
+                             :y y
+                             :font-size 12
+                             :text-anchor "middle"
+                             :transform transform}
+                       "Hello"]))
+      actions)])
+
 (defn gear-el
   [{:keys [cx cy r teeth rotation style workers on-worker-click
            tooth-height-factor tooth-width-factor]}]
@@ -47,14 +80,15 @@
           :let [width (* r 0.15)
                 space (/ 360 teeth)
                 deg (- (* tooth space) (* 2 space))]]
-      ^{:key tooth}
       (for [block-num (range 10)]
+        ^{:key (str tooth "-" block-num)}
         [:rect {:x (- cx width)
                 :y (+ cy (/ r 3))
                 :width width
                 :height (* r 1.6)
                 :style {:fill "white"}
                 :transform (str "rotate(" (+ deg (* block-num 3.5)) " " cx " " cy ")")}]))
+    (action-labels test-actions teeth cx cy r)
     ;; CORN COST LABEL
     (for [index (range 0 (- teeth 2))]
       (let [spacing (/ 360 teeth)
@@ -98,19 +132,20 @@
                 :transform (str "rotate(" deg " " cx " " cy ")")}])
       ;; WORKER SLOTS
       (if workers
-        (map-indexed (fn [index worker]
-                       (let [spacing (/ 360 teeth)
-                             deg (* index spacing)
-                             offset (/ spacing 2)
-                             transform (str "rotate(" (+ deg offset) " " cx " " cy ")")
-                             color (or (get color-names worker) "white")]
-                         ^{:key index}
-                         [:circle {:style {:fill color}
-                                   :on-click #(on-worker-click index)
-                                   :r (/ r 5)
-                                   :cx (+ cx 0)
-                                   :cy (+ cy (* r 0.75))
-                                   :transform transform}]))
+        (map-indexed
+          (fn [index worker]
+            (let [spacing (/ 360 teeth)
+                  deg (* index spacing)
+                  offset (/ spacing 2)
+                  transform (str "rotate(" (+ deg offset) " " cx " " cy ")")
+                  color (or (get color-names worker) "white")]
+              ^{:key index}
+              [:circle {:style {:fill color}
+                        :on-click #(on-worker-click index)
+                        :r (/ r 5)
+                        :cx (+ cx 0)
+                        :cy (+ cy (* r 0.75))
+                        :transform transform}]))
           workers))]])
 
 (defcard-rg gear-creator
@@ -191,24 +226,9 @@
                     :teeth 10
                     :tooth-height-factor 1.15
                     :tooth-width-factor 0.75
-                    :actions actions
                     :workers workers
                     :rotation @rotation-spring
                     :on-worker-click on-worker-click}]]])))
 
-(def test-actions
-  [{:wood 1}
-   {:stone 1
-    :corn 1}
-   {:gold 1
-    :corn 2}
-   {:skull 1}
-   {:gold 1
-    :stone 1
-    :corn 2}
-   :free
-   :free])
-
 (defcard-rg worker-gear-spin-test
-  [worker-gear-spin-test {:workers [:blue nil :blue :red nil nil :red nil nil nil]
-                          :actions test-actions}])
+  [worker-gear-spin-test {:workers [:blue nil :blue :red nil nil :red nil nil nil]}])
