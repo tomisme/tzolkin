@@ -32,9 +32,66 @@
    :free
    :free])
 
+(defn corn-cost-labels
+  [cx cy r teeth]
+  (for [index (range 0 (- teeth 2))]
+    (let [spacing (/ 360 teeth)
+          deg (* index spacing)
+          offset (/ spacing 2)
+          text-x (+ cx (* r 0.05))
+          text-y (+ cy (* r 1.15))
+          transform1 (str "rotate(" (+ deg offset) " " cx " " cy ")")
+          transform2 (str transform1 " rotate(180 " text-x " " text-y ")")]
+      ^{:key index}
+      [:g
+        [:circle {:style {:fill "yellow"}
+                  :r (/ r 7)
+                  :cx cx
+                  :cy (+ cy (* r 1.2))
+                  :transform transform1}]
+        [:text {:x text-x
+                :y text-y
+                :style {:stroke "black"
+                        :fill "black"}
+                :font-size 11
+                :transform transform2}
+         (str index)]])))
+
 (defn action-labels
-  [actions teeth cx cy r]
+  [cx cy r teeth actions]
   [:g
+    [:circle {:style {:fill "green"}
+              :r (* r 1.85)
+              :cx cx
+              :cy cy}]
+    [:circle {:style {:fill "white"}
+              :r (* r 1.4)
+              :cx cx
+              :cy cy}]
+    ;; WHITE SEPARATORS
+    (for [tooth (range teeth)
+          :let [width (* r 0.1)
+                deg (* tooth (/ 360 teeth))]]
+      ^{:key tooth}
+      [:rect {:x (- cx (/ width 2))
+              :y (+ cy (/ r 3))
+              :width width
+              :height (* r 1.6)
+              :style {:fill "white"}
+              :transform (str "rotate(" deg " " cx " " cy ")")}])
+    ;; BLOCK OFF FINAL 3 LABELS
+    (for [tooth (range 3)
+          :let [width (* r 0.15)
+                space (/ 360 teeth)
+                deg (- (* tooth space) (* 2 space))]]
+      (for [block-num (range 10)]
+        ^{:key (str tooth "-" block-num)}
+        [:rect {:x (- cx width)
+                :y (+ cy (/ r 3))
+                :width width
+                :height (* r 1.6)
+                :style {:fill "white"}
+                :transform (str "rotate(" (+ deg (* block-num 3.5)) " " cx " " cy ")")}]))
     (map-indexed (fn [index action]
                    (let [x cx
                          y (+ cy (* r 1.56))
@@ -49,75 +106,38 @@
                              :font-size 12
                              :text-anchor "middle"
                              :transform transform}
-                       "Hello"]))
+                       "poops"]))
       actions)])
 
+(defn worker-slots
+  [cx cy r teeth workers on-click]
+  [:g
+    (map-indexed
+      (fn [index worker]
+        (let [spacing (/ 360 teeth)
+              deg (* index spacing)
+              offset (/ spacing 2)
+              transform (str "rotate(" (+ deg offset) " " cx " " cy ")")
+              color (or (get color-names worker) "white")]
+          ^{:key index}
+          [:circle {:style {:fill color}
+                    :on-click #(on-click index)
+                    :r (/ r 5)
+                    :cx (+ cx 0)
+                    :cy (+ cy (* r 0.75))
+                    :transform transform}]))
+      workers)])
+
 (defn gear-el
-  [{:keys [cx cy r teeth rotation style workers on-worker-click
+  [{:keys [cx cy r teeth rotation workers on-worker-click
            tooth-height-factor tooth-width-factor]}]
   [:g
-    [:circle {:style {:fill "green"}
-              :r (* r 1.85)
-              :cx cx
-              :cy cy}]
-    [:circle {:style {:fill "white"}
-              :r (* r 1.4)
-              :cx cx
-              :cy cy}]
-    ;; SPACERS
-    (for [tooth (range teeth)
-          :let [width (* r 0.1)
-                deg (* tooth (/ 360 teeth))]]
-      ^{:key tooth}
-      [:rect {:x (- cx (/ width 2))
-              :y (+ cy (/ r 3))
-              :width width
-              :height (* r 1.6)
-              :style {:fill "white"}
-              :transform (str "rotate(" deg " " cx " " cy ")")}])
-    ;; BLOCK OFF FINAL 3
-    (for [tooth (range 3)
-          :let [width (* r 0.15)
-                space (/ 360 teeth)
-                deg (- (* tooth space) (* 2 space))]]
-      (for [block-num (range 10)]
-        ^{:key (str tooth "-" block-num)}
-        [:rect {:x (- cx width)
-                :y (+ cy (/ r 3))
-                :width width
-                :height (* r 1.6)
-                :style {:fill "white"}
-                :transform (str "rotate(" (+ deg (* block-num 3.5)) " " cx " " cy ")")}]))
-    (action-labels test-actions teeth cx cy r)
-    ;; CORN COST LABEL
-    (for [index (range 0 (- teeth 2))]
-      (let [spacing (/ 360 teeth)
-            deg (* index spacing)
-            offset (/ spacing 2)
-            text-x (+ cx (* r 0.05))
-            text-y (+ cy (* r 1.15))
-            transform1 (str "rotate(" (+ deg offset) " " cx " " cy ")")
-            transform2 (str transform1 " rotate(180 " text-x " " text-y ")")]
-        ^{:key index}
-        [:g
-          [:circle {:style {:fill "yellow"}
-                    :r (/ r 7)
-                    :cx cx
-                    :cy (+ cy (* r 1.2))
-                    :transform transform1}]
-          [:text {:x text-x
-                  :y text-y
-                  :style {:stroke "black"
-                          :fill "black"}
-                  :font-size 11
-                  :transform transform2}
-           (str index)]]))
-    ;; THE GEAR
+    (action-labels cx cy r teeth test-actions)
+    (corn-cost-labels cx cy r teeth)
     [:g {:transform (str "rotate(" (if rotation rotation 0) " " cx " " cy ")")}
       [:circle {:cx cx
                 :cy cy
-                :r r
-                :style style}]
+                :r r}]
       (for [tooth (range teeth)
             :let [width (* r 0.35 tooth-width-factor)
                   deg (* tooth (/ 360 teeth))]]
@@ -128,25 +148,9 @@
                 :ry (/ width 4)
                 :width width
                 :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
-                :style style
                 :transform (str "rotate(" deg " " cx " " cy ")")}])
-      ;; WORKER SLOTS
       (if workers
-        (map-indexed
-          (fn [index worker]
-            (let [spacing (/ 360 teeth)
-                  deg (* index spacing)
-                  offset (/ spacing 2)
-                  transform (str "rotate(" (+ deg offset) " " cx " " cy ")")
-                  color (or (get color-names worker) "white")]
-              ^{:key index}
-              [:circle {:style {:fill color}
-                        :on-click #(on-worker-click index)
-                        :r (/ r 5)
-                        :cx (+ cx 0)
-                        :cy (+ cy (* r 0.75))
-                        :transform transform}]))
-          workers))]])
+        (worker-slots cx cy r teeth workers on-worker-click))]])
 
 (defcard-rg gear-creator
   (fn [data _]
