@@ -15,22 +15,40 @@
   [event]
   (-> event .-target .-value))
 
-(def color-names
+(def color-strings
   {:red "red"
    :blue "blue"})
 
+(def resource-symbols
+  {:wood "🌲"
+   :stone "🐚"
+   :gold "🍋"
+   :corn "🌽"
+   :skull "💎"})
+
+(defn resources-str
+  [resources]
+  (apply str (for [[resource amount] resources]
+               (apply str (repeat amount (get resource-symbols resource))))))
+
+(defn action-str
+  [[k data]]
+  (case k
+    :gain-resources (resources-str data)
+    :choose-any-from "<<<"))
+
 (def test-actions
-  [{:wood 1}
-   {:stone 1
-    :corn 1}
-   {:gold 1
-    :corn 2}
-   {:skull 1}
-   {:gold 1
-    :stone 1
-    :corn 2}
-   :free
-   :free])
+  [[:gain-resources {:wood 1}]
+   [:gain-resources {:stone 1
+                     :corn 1}]
+   [:gain-resources {:gold 1
+                     :corn 2}]
+   [:gain-resources {:skull 1}]
+   [:gain-resources {:gold 1
+                     :stone 1
+                     :corn 2}]
+   [:choose-any-from :yax]
+   [:choose-any-from :yax]])
 
 (defn corn-cost-labels
   [cx cy r teeth]
@@ -38,29 +56,34 @@
     (let [spacing (/ 360 teeth)
           deg (* index spacing)
           offset (/ spacing 2)
-          text-x (+ cx (* r 0.05))
+          text-x cx
           text-y (+ cy (* r 1.15))
           transform1 (str "rotate(" (+ deg offset) " " cx " " cy ")")
           transform2 (str transform1 " rotate(180 " text-x " " text-y ")")]
-      ^{:key index}
+      ^{:key (str "corn-cost" index)}
       [:g
-        [:circle {:style {:fill "yellow"}
-                  :r (/ r 7)
-                  :cx cx
-                  :cy (+ cy (* r 1.2))
-                  :transform transform1}]
+        [:text {:x text-x
+                :y text-y
+                :style {:stroke "black"
+                        :fill "black"}
+                :font-size 16
+                :text-anchor "middle"
+                :transform transform2}
+          "🌽"]
+        ;; TODO: some kind of white outline for readability
         [:text {:x text-x
                 :y text-y
                 :style {:stroke "black"
                         :fill "black"}
                 :font-size 11
+                :text-anchor "middle"
                 :transform transform2}
          (str index)]])))
 
 (defn action-labels
   [cx cy r teeth actions]
   [:g
-    [:circle {:style {:fill "green"}
+    [:circle {:style {:fill "pink"}
               :r (* r 1.85)
               :cx cx
               :cy cy}]
@@ -101,12 +124,13 @@
                          first-transform (str "rotate(" deg " " cx " " cy ")")
                          second-transform (str "rotate(" 180 " " x " " y ")")
                          transform (str first-transform " " second-transform)]
+                     ^{:key index}
                      [:text {:x x
                              :y y
-                             :font-size 12
+                             :font-size 14
                              :text-anchor "middle"
                              :transform transform}
-                       "poops"]))
+                       (action-str action)]))
       actions)])
 
 (defn worker-slots
@@ -118,7 +142,7 @@
               deg (* index spacing)
               offset (/ spacing 2)
               transform (str "rotate(" (+ deg offset) " " cx " " cy ")")
-              color (or (get color-names worker) "white")]
+              color (or (get color-strings worker) "white")]
           ^{:key index}
           [:circle {:style {:fill color}
                     :on-click #(on-click index)
