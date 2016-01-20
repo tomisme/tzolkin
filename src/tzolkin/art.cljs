@@ -3,13 +3,13 @@
    [reagent.core :as rg]
    [timothypratley.reanimated.core :as anim])
   (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
+   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
+   [cljs.test :refer [testing is]]))
 
 (defcard-doc
-  "##Gears
-  The spinning gears are a one of the coolest mechanics in Tzolk'in.
+  "#Art
 
-  Let's make them out of svg elements!")
+  The game board is made up HTML svg elements, we'll need helpers!")
 
 (defn e->val
   [event]
@@ -24,39 +24,50 @@
                      (:deg data)
                      (if (and (:x data) (:y data))
                        (str " " (:x data) " " (:y data)))
-                     ") ")))))
+                     ")")))))
 
-(defcard-doc
-  ;; TODO: tests!
-  "`transform-str` takes any number of tranform tuples and returns a string
-
-   ```
-   (transform-str [:rotate {:deg 90 :x 10 :y 10}])
-     => \"rotate(90 10 10)\"
-   ```
-   ")
+(deftest transform-str-test
+  "`transform-str` takes any number of (supported) svg transform definitiions
+   and returns a string for use as an svg's `transform` attribute (docs at
+   [mdn](https://developer.mozilla.org/en/docs/Web/SVG/Attribute/transform))."
+  (testing
+    "rotate"
+    (is (= (transform-str [:rotate {:deg 90}]) "rotate(90)"))
+    (is (= (transform-str [:rotate {:deg 55 :x 10 :y 10}]
+                          [:rotate {:deg 10 :x 1 :y 1}])
+           "rotate(55 10 10)rotate(10 1 1)"))))
 
 (def color-strings
   {:red "red"
    :blue "blue"})
 
-(def resource-symbols
+(def symbols
   {:wood "🌲"
    :stone "🗿"
-   :gold "🏅"
+   :gold "🌕"
    :corn "🌽"
-   :skull "💀"})
+   :skull "💀"
+   :choose-prev "⏪"})
 
 (defn resources-str
   [resources]
   (apply str (for [[resource amount] resources]
-               (apply str (repeat amount (get resource-symbols resource))))))
+               (apply str (repeat amount (get symbols resource))))))
+
+;; TODO
+(deftest resources-str-test
+  "`resources-str` takes a...")
+
+(defcard-doc
+  "##Gears
+   The spinning gears are a one of the coolest mechanics in Tzolk'in. They're
+   also the main way that players interact with the game.")
 
 (defn action-label
   [[k data]]
   (case k
     :gain-resources  (resources-str data)
-    :choose-any-from "<<<"))
+    :choose-any-from (get symbols :choose-prev)))
 
 (def test-actions
   [[:gain-resources {:wood 1}]
@@ -150,8 +161,9 @@
                          spacing (/ 360 teeth)
                          offset (/ spacing 2)
                          deg (+ (* (+ index 1) spacing) offset)
-                         transform (transform-str [:rotate {:deg deg :x cx :y cy}]
-                                                  [:rotate {:deg 180 :x x :y y}])]
+                         transform (transform-str
+                                     [:rotate {:deg deg :x cx :y cy}]
+                                     [:rotate {:deg 180 :x x :y y}])]
                      ^{:key index}
                      [:text {:x x
                              :y y
