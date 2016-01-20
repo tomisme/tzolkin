@@ -31,7 +31,7 @@
   (apply str (for [[resource amount] resources]
                (apply str (repeat amount (get resource-symbols resource))))))
 
-(defn action-str
+(defn action-label
   [[k data]]
   (case k
     :gain-resources (resources-str data)
@@ -70,12 +70,13 @@
                 :text-anchor "middle"
                 :transform transform2}
           "🌽"]
-        ;; TODO: some kind of white outline for readability
         [:text {:x text-x
                 :y text-y
-                :style {:stroke "black"
+                :style {:stroke "white"
+                        :stroke-width 2
+                        :paint-order "stroke"
                         :fill "black"}
-                :font-size 11
+                :font-size 14
                 :text-anchor "middle"
                 :transform transform2}
          (str index)]])))
@@ -102,7 +103,7 @@
               :height (* r 1.6)
               :style {:fill "white"}
               :transform (str "rotate(" deg " " cx " " cy ")")}])
-    ;; BLOCK OFF FINAL 3 LABELS
+    ;; BLOCK OFF FINAL 3 LABELS WITH LOTS OF LITTLE WHITE SEPARATORS (SO UGLY)
     (for [tooth (range 3)
           :let [width (* r 0.15)
                 space (/ 360 teeth)
@@ -130,7 +131,7 @@
                              :font-size 14
                              :text-anchor "middle"
                              :transform transform}
-                       (action-str action)]))
+                       (action-label action)]))
       actions)])
 
 (defn worker-slots
