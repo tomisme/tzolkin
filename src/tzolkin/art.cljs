@@ -15,16 +15,37 @@
   [event]
   (-> event .-target .-value))
 
+(defn transform-str
+  [& args]
+  (apply str
+    (for [[type data] args]
+      (case type
+        :rotate (str "rotate("
+                     (:deg data)
+                     (if (and (:x data) (:y data))
+                       (str " " (:x data) " " (:y data)))
+                     ") ")))))
+
+(defcard-doc
+  ;; TODO: tests!
+  "`transform-str` takes any number of tranform tuples and returns a string
+
+   ```
+   (transform-str [:rotate {:deg 90 :x 10 :y 10}])
+     => \"rotate(90 10 10)\"
+   ```
+   ")
+
 (def color-strings
   {:red "red"
    :blue "blue"})
 
 (def resource-symbols
   {:wood "🌲"
-   :stone "🐚"
-   :gold "🍋"
+   :stone "🗿"
+   :gold "🏅"
    :corn "🌽"
-   :skull "💎"})
+   :skull "💀"})
 
 (defn resources-str
   [resources]
@@ -34,7 +55,7 @@
 (defn action-label
   [[k data]]
   (case k
-    :gain-resources (resources-str data)
+    :gain-resources  (resources-str data)
     :choose-any-from "<<<"))
 
 (def test-actions
@@ -58,8 +79,12 @@
           offset (/ spacing 2)
           text-x cx
           text-y (+ cy (* r 1.15))
-          transform1 (str "rotate(" (+ deg offset) " " cx " " cy ")")
-          transform2 (str transform1 " rotate(180 " text-x " " text-y ")")]
+          transform (transform-str [:rotate {:deg (+ deg offset)
+                                             :x cx
+                                             :y cy}]
+                                   [:rotate {:deg 180
+                                             :x text-x
+                                             :y text-y}])]
       ^{:key (str "corn-cost" index)}
       [:g
         [:text {:x text-x
@@ -68,7 +93,7 @@
                         :fill "black"}
                 :font-size 16
                 :text-anchor "middle"
-                :transform transform2}
+                :transform transform}
           "🌽"]
         [:text {:x text-x
                 :y text-y
@@ -78,7 +103,7 @@
                         :fill "black"}
                 :font-size 14
                 :text-anchor "middle"
-                :transform transform2}
+                :transform transform}
          (str index)]])))
 
 (defn action-labels
@@ -102,7 +127,7 @@
               :width width
               :height (* r 1.6)
               :style {:fill "white"}
-              :transform (str "rotate(" deg " " cx " " cy ")")}])
+              :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
     ;; BLOCK OFF FINAL 3 LABELS WITH LOTS OF LITTLE WHITE SEPARATORS (SO UGLY)
     (for [tooth (range 3)
           :let [width (* r 0.15)
@@ -115,16 +140,18 @@
                 :width width
                 :height (* r 1.6)
                 :style {:fill "white"}
-                :transform (str "rotate(" (+ deg (* block-num 3.5)) " " cx " " cy ")")}]))
+                :transform (transform-str
+                             [:rotate {:deg (+ deg (* block-num 3.5))
+                                       :x cx
+                                       :y cy}])}]))
     (map-indexed (fn [index action]
                    (let [x cx
                          y (+ cy (* r 1.56))
                          spacing (/ 360 teeth)
                          offset (/ spacing 2)
                          deg (+ (* (+ index 1) spacing) offset)
-                         first-transform (str "rotate(" deg " " cx " " cy ")")
-                         second-transform (str "rotate(" 180 " " x " " y ")")
-                         transform (str first-transform " " second-transform)]
+                         transform (transform-str [:rotate {:deg deg :x cx :y cy}]
+                                                  [:rotate {:deg 180 :x x :y y}])]
                      ^{:key index}
                      [:text {:x x
                              :y y
@@ -142,7 +169,9 @@
         (let [spacing (/ 360 teeth)
               deg (* index spacing)
               offset (/ spacing 2)
-              transform (str "rotate(" (+ deg offset) " " cx " " cy ")")
+              transform (transform-str [:rotate {:deg (+ deg offset)
+                                                 :x cx
+                                                 :y cy}])
               color (or (get color-strings worker) "white")]
           ^{:key index}
           [:circle {:style {:fill color}
@@ -159,7 +188,9 @@
   [:g
     (action-labels cx cy r teeth test-actions)
     (corn-cost-labels cx cy r teeth)
-    [:g {:transform (str "rotate(" (if rotation rotation 0) " " cx " " cy ")")}
+    [:g {:transform (transform-str [:rotate {:deg (if rotation rotation 0)
+                                             :x cx
+                                             :y cy}])}
       [:circle {:cx cx
                 :cy cy
                 :r r}]
@@ -173,7 +204,7 @@
                 :ry (/ width 4)
                 :width width
                 :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
-                :transform (str "rotate(" deg " " cx " " cy ")")}])
+                :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
       (if workers
         (worker-slots cx cy r teeth workers on-worker-click))]])
 
@@ -181,6 +212,7 @@
   (fn [data _]
     (let [{:keys [size teeth tooth-width-factor tooth-height-factor]} @data
           set #(swap! data assoc %1 %2)]
+      ;; TODO: try using dot syntax for div classes
       [:div {:class "ui segment"}
        [:div {:class "ui grid"}
         [:div {:class "six wide column"}
@@ -260,4 +292,5 @@
                     :on-worker-click on-worker-click}]]])))
 
 (defcard-rg worker-gear-spin-test
-  [worker-gear-spin-test {:workers [:blue nil :blue :red nil nil :red nil nil nil]}])
+  [worker-gear-spin-test
+    {:workers [:blue nil :blue :red nil nil :red nil nil nil]}])
