@@ -1,9 +1,4 @@
-(ns tzolkin.logic
-  (:require
-   [reagent.core :as rg]
-   [tzolkin.art :as art])
-  (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
+(ns tzolkin.logic)
 
 (def game-spec
   {:gears
@@ -90,7 +85,7 @@
                             {:points 9}
                             {:points 10}]}}})
 
-; TODO: Generate from game-spec
+;; TODO: Generate from game-spec
 (def initial-game-state
   {:turn 0
    :skulls 13
@@ -114,25 +109,6 @@
           :theology 0}
    :tiles {:corn 0
            :wood 0}})
-
-(defn new-test-game
-  [{:keys [players]}]
-  (cond-> initial-game-state
-   (> players 0) (update-in [:players] conj (-> new-player-state
-                                              (assoc :name "Elisa")
-                                              (assoc :color :red)))
-   (> players 1) (update-in [:players] conj (-> new-player-state
-                                              (assoc :name "Tom")
-                                              (assoc :color :blue)))))
-
-(defcard-doc
-  "## Game Spec
-  ###Gears
-
-  * `:location` defines the gear's location on the 26 hour clockface of the calendar
-  * `:teeth` also defines the number of worker spaces on the gear: `teeth - 2`
-  "
-  game-spec)
 
 (defn indexed
   "Returns a lazy sequence of [index, item] pairs, where items come
@@ -183,32 +159,3 @@
   [state]
   (-> state
     (update :turn inc)))
-
-(defcard-rg gear-test
-  "Click a worker to remove it."
-  (fn [state _]
-    (let [corn (get-in @state [:players 0 :resources :corn])
-          on-worker-click (fn [slot] (swap! state remove-worker 0 :yax slot))]
-      [:div
-        [:button {:on-click #(swap! state place-worker 0 :yax)}
-          "Place a Worker on Yaxchilan (" corn " corn remaining)"]
-        [:button {:on-click #(swap! state end-turn)}
-          "End Turn"]
-        (art/worker-gear {:workers (get-in @state [:gears :yax])
-                          :on-worker-click on-worker-click})]))
-  (-> (new-test-game {:players 1})
-    (update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
-    (update-in [:players 0 :resources] assoc :corn 12))
-  {:inspect-data true :history true})
-
-(defcard-rg board-test
-  (fn [state-atom _]
-    (let [state @state-atom
-          players (:players state)]
-      [:span "Players: " (map (fn [player]
-                                ^{:key (name (:color player))}
-                                [:span {:style {:color (name (:color player))}}
-                                  (:name player) " "])
-                           players)]))
-  (new-test-game {:players 2})
-  {:inspect-data true :history true})

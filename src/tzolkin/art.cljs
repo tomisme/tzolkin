@@ -1,14 +1,4 @@
-(ns tzolkin.art
-  (:require
-   [reagent.core :as rg]
-   [timothypratley.reanimated.core :as anim])
-  (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is]]))
-
-(defcard-doc
-  "#Art
-   The game board is made up HTML and SVG elements.")
+(ns tzolkin.art)
 
 (defn e->val
   [event]
@@ -25,18 +15,6 @@
                        (str " " (:x data) " " (:y data)))
                      ")")))))
 
-(deftest transform-str-test
-  "`transform-str` takes any number of (supported) svg transform definitions
-   and returns a string for use as an svg element's `transform` attribute
-   (docs at
-   [mdn](https://developer.mozilla.org/en/docs/Web/SVG/Attribute/transform))."
-  (testing
-    "rotate"
-    (is (= (transform-str [:rotate {:deg 90}]) "rotate(90)"))
-    (is (= (transform-str [:rotate {:deg 55 :x 10 :y 10}]
-                          [:rotate {:deg 10 :x 1 :y 1}])
-           "rotate(55 10 10)rotate(10 1 1)"))))
-
 (def color-strings
   {:red "red"
    :blue "blue"})
@@ -47,24 +25,24 @@
    :gold "🌕"
    :corn "🌽"
    :skull "💀"
+   :chac "🐷"
+   :quet "🦁"
+   :kuku "🐵"
+   :yax "Yax"
+   :tik "Tik"
+   :uxe "Uxe"
+   :chi "Chi"
+   :pal "Pal"
+   :agriculture "Agri"
+   :extraction "Extr"
+   :architecture "Arch"
+   :theology "Theo"
    :choose-prev "⏪"})
 
 (defn resources-str
   [resources]
   (apply str (for [[resource amount] resources]
                (apply str (repeat amount (get symbols resource))))))
-
-(deftest resources-str-test
-  "`resources-str` takes a map of resources and the amount of each and returns
-   a string of symbols."
-   (testing
-     (is (= (resources-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
-            "🌲🗿🌕🌕🌽🌽🌽💀"))))
-
-(defcard-doc
-  "##Gears
-   The spinning gears are a one of the coolest mechanics in Tzolk'in. They're
-   also the main way that players interact with the game.")
 
 (defn action-label
   [[k data]]
@@ -223,56 +201,6 @@
       (if workers
         (worker-slots cx cy r teeth workers on-worker-click))]])
 
-(defcard-rg gear-creator
-  (fn [data _]
-    (let [{:keys [size teeth tooth-width-factor tooth-height-factor]} @data
-          set #(swap! data assoc %1 %2)]
-      ;; TODO: try using dot syntax for div classes
-      [:div {:class "ui segment"}
-       [:div {:class "ui grid"}
-        [:div {:class "six wide column"}
-         [:div {:class "ui form"}
-          [:div {:class "field"}
-           [:div {:class "label"} "Size"]
-           [:input {:type "range"
-                    :value size
-                    :min 100, :max 200
-                    :on-change #(set :size (e->val %))}]]
-          [:div {:class "field"}
-           [:div {:class "label"} "Teeth"]
-           [:input {:type "range"
-                    :value teeth
-                    :min 10, :max 26
-                    :on-change #(set :teeth (e->val %))}]]
-          [:div {:class "field"}
-           [:div {:class "label"} "Tooth Width Factor"]
-           [:input {:type "range"
-                    :value tooth-width-factor
-                    :min 0.1, :max 2
-                    :step 0.1
-                    :on-change #(set :tooth-width-factor (e->val %))}]]
-          [:div {:class "field"}
-           [:div {:class "label"} "Tooth Height Factor"]
-           [:input {:type "range"
-                    :value tooth-height-factor
-                    :min 0.1, :max 2
-                    :step 0.1
-                    :on-change #(set :tooth-height-factor (e->val %))}]]]]
-        [:div {:class "ten wide colum"}
-         [:svg {:width (* size 5)
-                :height (* size 5)}
-          [gear-el {:cx (* size 2)
-                    :cy (* size 2)
-                    :r size
-                    :teeth teeth
-                    :tooth-width-factor tooth-width-factor
-                    :tooth-height-factor tooth-height-factor}]]]]]))
-  (rg/atom {:size 75
-            :teeth 12
-            :tooth-width-factor 1
-            :tooth-height-factor 1.1})
-  {:inspect-data true})
-
 (defn worker-gear
   [{:keys [workers on-worker-click]}]
   [:center
@@ -285,27 +213,3 @@
                 :tooth-width-factor 0.75
                 :workers workers
                 :on-worker-click on-worker-click}]]])
-
-(def gear-rotation-atom (rg/atom 0))
-
-(defn worker-gear-spin-test
-  [{:keys [workers actions on-worker-click]}]
-  (let [rotation-spring (anim/spring gear-rotation-atom)]
-    (fn []
-      [:center
-        [:button {:on-click #(swap! gear-rotation-atom + (/ 360 10))}
-          "Spin the gear! (turn: " (str (/ @gear-rotation-atom 36)) ")"]
-        [:svg {:width 300 :height 300}
-          [gear-el {:cx 150
-                    :cy 150
-                    :r 75
-                    :teeth 10
-                    :tooth-height-factor 1.15
-                    :tooth-width-factor 0.75
-                    :workers workers
-                    :rotation @rotation-spring
-                    :on-worker-click on-worker-click}]]])))
-
-(defcard-rg worker-gear-spin-test
-  [worker-gear-spin-test
-    {:workers [:blue nil :blue :red nil nil :red nil nil nil]}])
