@@ -3,7 +3,10 @@
    [reagent.core :as rg]
    [tzolkin.art :as art]
    [tzolkin.logic :as logic]
-   [tzolkin.tests :as tests])
+   [tzolkin.tests :as tests]
+   [tzolkin.devcards.art]   ;; conditionally?
+   [tzolkin.devcards.logic] ;; conditionally?
+   )
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-doc deftest]]))
 
