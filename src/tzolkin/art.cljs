@@ -8,8 +8,7 @@
 
 (defcard-doc
   "#Art
-
-  The game board is made up HTML svg elements, we'll need helpers!")
+   The game board is made up HTML and SVG elements.")
 
 (defn e->val
   [event]
@@ -27,8 +26,9 @@
                      ")")))))
 
 (deftest transform-str-test
-  "`transform-str` takes any number of (supported) svg transform definitiions
-   and returns a string for use as an svg's `transform` attribute (docs at
+  "`transform-str` takes any number of (supported) svg transform definitions
+   and returns a string for use as an svg element's `transform` attribute
+   (docs at
    [mdn](https://developer.mozilla.org/en/docs/Web/SVG/Attribute/transform))."
   (testing
     "rotate"
@@ -54,9 +54,12 @@
   (apply str (for [[resource amount] resources]
                (apply str (repeat amount (get symbols resource))))))
 
-;; TODO
 (deftest resources-str-test
-  "`resources-str` takes a...")
+  "`resources-str` takes a map of resources and the amount of each and returns
+   a string of symbols."
+   (testing
+     (is (= (resources-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
+            "🌲🗿🌕🌕🌽🌽🌽💀"))))
 
 (defcard-doc
   "##Gears
