@@ -131,7 +131,7 @@
               :r (* r 1.4)
               :cx cx
               :cy cy}]
-    ;; WHITE SEPARATORS
+    ;; Separators
     (for [tooth (range teeth)
           :let [width (* r 0.1)
                 deg (* tooth (/ 360 teeth))]]
@@ -142,12 +142,12 @@
               :height (* r 1.6)
               :style {:fill "white"}
               :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
-    ;; BLOCK OFF FINAL 3 LABELS WITH LOTS OF LITTLE WHITE SEPARATORS (SO UGLY)
+    ;; Cover the final three labels with lots of ugly little white rectangles
     (for [tooth (range 3)
-          :let [width (* r 0.15)
+          :let [width (* r 0.085)
                 space (/ 360 teeth)
                 deg (- (* tooth space) (* 2 space))]]
-      (for [block-num (range 10)]
+      (for [block-num (range (- 27 teeth))]
         ^{:key (str tooth "-" block-num)}
         [:rect {:x (- cx width)
                 :y (+ cy (/ r 3))
@@ -155,7 +155,7 @@
                 :height (* r 1.6)
                 :style {:fill "white"}
                 :transform (transform-str
-                             [:rotate {:deg (+ deg (* block-num 3.5))
+                             [:rotate {:deg (+ deg (* block-num 2))
                                        :x cx
                                        :y cy}])}]))
     (map-indexed (fn [index action]
@@ -170,7 +170,7 @@
                      ^{:key index}
                      [:text {:x x
                              :y y
-                             :font-size 14
+                             :font-size 16
                              :text-anchor "middle"
                              :transform transform}
                        (action-label action)]))
