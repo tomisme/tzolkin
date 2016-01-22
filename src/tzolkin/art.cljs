@@ -175,39 +175,45 @@
                     :transform transform}]))
       workers)])
 
+(defn gear-actions
+  [gear]
+  test-actions)
+
 (defn gear-el
-  [{:keys [cx cy r teeth rotation workers on-worker-click
+  [{:keys [cx cy r teeth rotation workers on-worker-click on-center-click
            tooth-height-factor tooth-width-factor gear]}]
-  [:g
-    (action-labels cx cy r teeth test-actions)
-    (corn-cost-labels cx cy r teeth)
-    [:g {:transform (transform-str [:rotate {:deg (if rotation rotation 0)
-                                             :x cx
-                                             :y cy}])}
-      [:circle {:cx cx
-                :cy cy
-                :r r}]
-      (for [tooth (range teeth)
-            :let [width (* r 0.35 tooth-width-factor)
-                  deg (* tooth (/ 360 teeth))]]
-        ^{:key tooth}
-        [:rect {:x (- cx (/ width 2))
-                :y cy
-                :rx (/ width 4)
-                :ry (/ width 4)
-                :width width
-                :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
-                :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
-      [:text {:x cx
-              :y (* cy 1.15)
-              :font-size 60
-              :text-anchor "middle"}
-        (get symbols gear)]
-      (if workers
-        (worker-slots cx cy r teeth workers on-worker-click))]])
+  (let [actions (gear-actions gear)]
+    [:g
+      (action-labels cx cy r teeth actions)
+      (corn-cost-labels cx cy r teeth)
+      [:g {:transform (transform-str [:rotate {:deg (if rotation rotation 0)
+                                               :x cx
+                                               :y cy}])}
+        [:circle {:cx cx
+                  :cy cy
+                  :r r}]
+        (for [tooth (range teeth)
+              :let [width (* r 0.35 tooth-width-factor)
+                    deg (* tooth (/ 360 teeth))]]
+          ^{:key tooth}
+          [:rect {:x (- cx (/ width 2))
+                  :y cy
+                  :rx (/ width 4)
+                  :ry (/ width 4)
+                  :width width
+                  :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
+                  :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
+        [:text {:x cx
+                :y (* cy 1.15)
+                :font-size 60
+                :on-click on-center-click
+                :text-anchor "middle"}
+          (get symbols gear)]
+        (if workers
+          (worker-slots cx cy r teeth workers on-worker-click))]]))
 
 (defn worker-gear
-  [{:keys [gear workers on-worker-click]}]
+  [{:keys [gear workers on-worker-click on-center-click]}]
   [:center
     [:svg {:width 300 :height 300}
       [gear-el {:cx 150
@@ -218,4 +224,5 @@
                 :tooth-width-factor 0.75
                 :workers workers
                 :gear gear
+                :on-center-click on-center-click
                 :on-worker-click on-worker-click}]]])

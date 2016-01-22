@@ -26,17 +26,20 @@
   game-spec)
 
 (defcard-rg gear-test
-  "Click a worker to remove it."
+  "Click a worker to remove it, click on the fruit to place on this gear."
   (fn [state _]
     (let [corn (get-in @state [:players 0 :resources :corn])
-          on-worker-click (fn [slot] (swap! state remove-worker 0 :yax slot))]
+          resources (get-in @state [:players 0 :resources])
+          on-worker-click (fn [slot] (swap! state remove-worker 0 :yax slot))
+          on-center-click #(swap! state place-worker 0 :yax)]
       [:div
-        [:button {:on-click #(swap! state place-worker 0 :yax)}
-          "Place a Worker on Yaxchilan (" corn " corn remaining)"]
+        [:span (for [[k v] resources]
+                 (str v " " (get art/symbols k)))]
         [:button {:on-click #(swap! state end-turn)}
           "End Turn"]
         (art/worker-gear {:workers (get-in @state [:gears :yax])
                           :gear :yax
+                          :on-center-click on-center-click
                           :on-worker-click on-worker-click})]))
   (-> (new-test-game {:players 1})
     (update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
