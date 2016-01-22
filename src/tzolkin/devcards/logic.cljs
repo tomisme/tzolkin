@@ -19,11 +19,10 @@
 
 (defcard-doc
   "## Game Spec
-  ###Gears
+   ###Gears
 
-  * `:location` defines the gear's location on the 26 hour clockface of the calendar
-  * `:teeth` also defines the number of worker spaces on the gear: `teeth - 2`
-  "
+    * `:location` defines the gear's location on the 26 hour clockface of the calendar
+    * `:teeth` also defines the number of worker spaces on the gear: `teeth - 2`"
   game-spec)
 
 (defcard-rg gear-test
@@ -37,6 +36,7 @@
         [:button {:on-click #(swap! state end-turn)}
           "End Turn"]
         (art/worker-gear {:workers (get-in @state [:gears :yax])
+                          :gear :yax
                           :on-worker-click on-worker-click})]))
   (-> (new-test-game {:players 1})
     (update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
@@ -56,7 +56,8 @@
   {:inspect-data true :history true})
 
 
-  (defcard "##Other Tests
+(defcard-doc
+  "##Other Tests
 
     - If the bank does not have enough crystal skulls to reward all the
       players who should get one, then no one gets a crystal skull.")

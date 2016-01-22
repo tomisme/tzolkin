@@ -28,15 +28,15 @@
    :chac "🐷"
    :quet "🦁"
    :kuku "🐵"
-   :yax "Yax"
-   :tik "Tik"
-   :uxe "Uxe"
-   :chi "Chi"
-   :pal "Pal"
-   :agriculture "Agri"
-   :extraction "Extr"
-   :architecture "Arch"
-   :theology "Theo"
+   :yax "🍈"
+   :tik "🍑"
+   :uxe "🍋"
+   :chi "🍇"
+   :pal "🍏"
+;;   :agriculture "Agri"  | Do theses guys need a symbol?
+;;   :extraction "Extr"   |
+;;   :architecture "Arch" |
+;;   :theology "Theo"     |
    :choose-prev "⏪"})
 
 (defn resources-str
@@ -177,7 +177,7 @@
 
 (defn gear-el
   [{:keys [cx cy r teeth rotation workers on-worker-click
-           tooth-height-factor tooth-width-factor]}]
+           tooth-height-factor tooth-width-factor gear]}]
   [:g
     (action-labels cx cy r teeth test-actions)
     (corn-cost-labels cx cy r teeth)
@@ -198,11 +198,16 @@
                 :width width
                 :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
                 :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
+      [:text {:x cx
+              :y (* cy 1.15)
+              :font-size 60
+              :text-anchor "middle"}
+        (get symbols gear)]
       (if workers
         (worker-slots cx cy r teeth workers on-worker-click))]])
 
 (defn worker-gear
-  [{:keys [workers on-worker-click]}]
+  [{:keys [gear workers on-worker-click]}]
   [:center
     [:svg {:width 300 :height 300}
       [gear-el {:cx 150
@@ -212,4 +217,5 @@
                 :tooth-height-factor 1.15
                 :tooth-width-factor 0.75
                 :workers workers
+                :gear gear
                 :on-worker-click on-worker-click}]]])
