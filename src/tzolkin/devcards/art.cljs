@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as rg]
    [timothypratley.reanimated.core :as anim]
-   [tzolkin.art :as art :refer [e->val transform-str resources-str gear-el]]
+   [tzolkin.art :as art]
    [tzolkin.logic :as logic])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
@@ -19,16 +19,22 @@
    [mdn](https://developer.mozilla.org/en/docs/Web/SVG/Attribute/transform))."
   (testing
     "rotate"
-    (is (= (transform-str [:rotate {:deg 90}]) "rotate(90)"))
-    (is (= (transform-str [:rotate {:deg 55 :x 10 :y 10}]
+    (is (= (art/transform-str [:rotate {:deg 90}]) "rotate(90)"))
+    (is (= (art/transform-str [:rotate {:deg 55 :x 10 :y 10}]
                           [:rotate {:deg 10 :x 1 :y 1}])
            "rotate(55 10 10)rotate(10 1 1)"))))
+
+(defcard-rg symbols-examples
+  [:div (for [size '(16)]
+          [:div {:style {:font-size size}}
+            (for [[k v] art/symbols]
+              (str (name k) ": " v ", "))])])
 
 (deftest resources-str-test
   "`resources-str` takes a map of resources and the amount of each and returns
    a string of symbols."
    (testing
-     (is (= (resources-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
+     (is (= (art/resources-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
             "🌲🗿🌕🌕🌽🌽🌽💀"))))
 
 (defcard-doc
@@ -50,31 +56,31 @@
             [:input {:type "range"
                      :value size
                      :min 100, :max 200
-                     :on-change #(set :size (e->val %))}]]
+                     :on-change #(set :size (art/e->val %))}]]
            [:div {:class "field"}
             [:div {:class "label"} "Teeth"]
             [:input {:type "range"
                      :value teeth
                      :min 10, :max 26
-                     :on-change #(set :teeth (e->val %))}]]
+                     :on-change #(set :teeth (art/e->val %))}]]
            [:div {:class "field"}
             [:div {:class "label"} "Tooth Width Factor"]
             [:input {:type "range"
                      :value tooth-width-factor
                      :min 0.1, :max 2
                      :step 0.1
-                     :on-change #(set :tooth-width-factor (e->val %))}]]
+                     :on-change #(set :tooth-width-factor (art/e->val %))}]]
            [:div {:class "field"}
             [:div {:class "label"} "Tooth Height Factor"]
             [:input {:type "range"
                      :value tooth-height-factor
                      :min 0.1, :max 2
                      :step 0.1
-                     :on-change #(set :tooth-height-factor (e->val %))}]]]]
+                     :on-change #(set :tooth-height-factor (art/e->val %))}]]]]
          [:div {:class "ten wide colum"}
           [:svg {:width (* size 5)
                  :height (* size 5)}
-           [gear-el {:cx (* size 2)
+           [art/gear-el {:cx (* size 2)
                      :cy (* size 2)
                      :r size
                      :teeth teeth
@@ -96,7 +102,7 @@
          [:button {:on-click #(swap! gear-rotation-atom + (/ 360 10))}
            "Spin the gear! (turn: " (str (/ @gear-rotation-atom 36)) ")"]
          [:svg {:width 300 :height 300}
-           [gear-el {:cx 150
+           [art/gear-el {:cx 150
                      :cy 150
                      :r 75
                      :teeth 10
