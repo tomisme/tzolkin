@@ -5,15 +5,18 @@
     {:yax {:name "Yaxchilan"
            :teeth 10
            :location 1
-           :spaces [{:wood 1}
-                    {:stone 1
-                     :corn 1}
-                    {:gold 1
-                     :corn 2}
-                    {:skull 1}
-                    {:gold 1
-                     :stone 1
-                     :corn 2}]}
+           :spaces [[:gain-resources {:wood 1}]
+                    [:gain-resources {:stone 1
+                                      :corn 1}]
+                    [:gain-resources {:gold 1
+                                      :corn 2}]
+                    [:gain-resources {:skull 1}]
+                    [:gain-resources {:gold 1
+                                      :stone 1
+                                      :corn 2}]
+                    [:choose-any-from :yax]
+                    [:choose-any-from :yax]]}
+
      :tik {:name "Tikal"
            :teeth 10
            :location 6

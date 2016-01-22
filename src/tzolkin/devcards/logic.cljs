@@ -7,6 +7,14 @@
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
 
+(defcard-doc
+  "## Game Spec
+   ###Gears
+
+    * `:location` defines the gear's location on the 26 hour clockface of the calendar
+    * `:teeth` also defines the number of worker spaces on the gear: `teeth - 2`"
+ game-spec)
+
 (defn new-test-game
   [{:keys [players]}]
   (cond-> initial-game-state
@@ -17,13 +25,21 @@
                                               (assoc :name "Tom")
                                               (assoc :color :blue)))))
 
-(defcard-doc
-  "## Game Spec
-   ###Gears
-
-    * `:location` defines the gear's location on the 26 hour clockface of the calendar
-    * `:teeth` also defines the number of worker spaces on the gear: `teeth - 2`"
-  game-spec)
+(defn worker-gear
+  [{:keys [gear workers on-worker-click on-center-click actions]}]
+  [:center
+    [:svg {:width 300 :height 300}
+      [art/gear-el {:cx 150
+                    :cy 150
+                    :r 75
+                    :teeth 10
+                    :tooth-height-factor 1.15
+                    :tooth-width-factor 0.75
+                    :workers workers
+                    :gear gear
+                    :actions actions
+                    :on-center-click on-center-click
+                    :on-worker-click on-worker-click}]]])
 
 (defcard-rg gear-test
   "Click a worker to remove it, click on the fruit to place on this gear."
@@ -37,10 +53,11 @@
                  (str v " " (get art/symbols k)))]
         [:button {:on-click #(swap! state end-turn)}
           "End Turn"]
-        (art/worker-gear {:workers (get-in @state [:gears :yax])
-                          :gear :yax
-                          :on-center-click on-center-click
-                          :on-worker-click on-worker-click})]))
+        (worker-gear {:workers (get-in @state [:gears :yax])
+                      :gear :yax
+                      :actions (get-in logic/game-spec [:gears :yax :spaces])
+                      :on-center-click on-center-click
+                      :on-worker-click on-worker-click})]))
   (-> (new-test-game {:players 1})
     (update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
     (update-in [:players 0 :resources] assoc :corn 12))
