@@ -5,41 +5,63 @@
     {:yax {:name "Yaxchilan"
            :teeth 10
            :location 1
-           :spaces [[:gain-resources {:wood 1}]
-                    [:gain-resources {:stone 1
-                                      :corn 1}]
-                    [:gain-resources {:gold 1
-                                      :corn 2}]
-                    [:gain-resources {:skull 1}]
-                    [:gain-resources {:gold 1
-                                      :stone 1
-                                      :corn 2}]
-                    [:choose-any-from :yax]
-                    [:choose-any-from :yax]]}
+           :actions [[:gain-resources {:wood 1}]
+                     [:gain-resources {:stone 1
+                                       :corn 1}]
+                     [:gain-resources {:gold 1
+                                       :corn 2}]
+                     [:gain-resources {:skull 1}]
+                     [:gain-resources {:gold 1
+                                       :stone 1
+                                       :corn 2}]
+                     [:choose-any-from :yax]
+                     [:choose-any-from :yax]]}
 
      :tik {:name "Tikal"
            :teeth 10
            :location 6
-           :spaces []}
+           :actions [[:tech-step :single]
+                     [:build :single]
+                     [:tech-step :double]
+                     [:build :double]
+                     [:god-track {:cost {:any-resource 1}
+                                  :track :choose-two-different}]
+                     [:choose-any-from :tik]
+                     [:choose-any-from :tik]]}
+
      :uxe {:name "Uxmal"
            :teeth 10
            :location 11
-           :spaces []}
+           :actions [[:god-track {:cost {:corn 3}
+                                  :track :choose-one}]
+                     [:trade nil]
+                     [:gain-worker nil]
+                     [:build :with-corn]
+                     [:choose-any-from-all {:cost {:corn 1}}]
+                     [:choose-any-from :uxe]
+                     [:choose-any-from :uxe]]}
      :chi {:name "Chichen Itza"
            :teeth 13
            :location 16
-           :spaces []}
+           :actions [[:pay-skull {:points 4
+                                  :track :chac}]
+                     [:pay-skull {:points 5
+                                  :track :chac}]]}
+
      :pal {:name "Palenque"
            :teeth 10
            :location 22
-           :spaces [{:corn 3}
-                    {:corn 4}
-                    {:corn 5
-                     :wood 2}
-                    {:corn 7
-                     :wood 3}
-                    {:corn 9
-                     :wood 4}]}}
+           :actions [[:gain-resources {:corn 3}]
+                     [:gain-resources {:corn 4}]
+                     [:choose-resources [{:corn 5}
+                                         {:wood 2}]]
+                     [:choose-resources [{:corn 7}
+                                         {:wood 3}]]
+                     [:choose-resources [{:corn 9}
+                                         {:wood 4}]]
+                     [:choose-any-from :pal]
+                     [:choose-any-from :pal]]}}
+
    :trades {:wood 2
             :sone 3
             :gold 4}

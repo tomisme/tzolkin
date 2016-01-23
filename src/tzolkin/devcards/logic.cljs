@@ -42,20 +42,23 @@
                     :on-worker-click on-worker-click}]]])
 
 (defcard-rg gear-test
-  "Click a worker to remove it, click on the fruit to place on this gear."
+  "Click a worker to remove it, click on a fruit to place a worker on
+   a specific gear."
   (fn [state _]
     (let [corn (get-in @state [:players 0 :resources :corn])
+          workers (get-in @state [:players 0 :workers])
           resources (get-in @state [:players 0 :resources])
           on-worker-click (fn [slot] (swap! state remove-worker 0 :yax slot))
           on-center-click #(swap! state place-worker 0 :yax)]
       [:div
+        [:span workers " workers remaining | "]
         [:span (for [[k v] resources]
                  (str v " " (get art/symbols k)))]
         [:button {:on-click #(swap! state end-turn)}
           "End Turn"]
         (worker-gear {:workers (get-in @state [:gears :yax])
                       :gear :yax
-                      :actions (get-in logic/game-spec [:gears :yax :spaces])
+                      :actions (get-in logic/game-spec [:gears :yax :actions])
                       :on-center-click on-center-click
                       :on-worker-click on-worker-click})]))
   (-> (new-test-game {:players 1})
@@ -81,3 +84,19 @@
 
     - If the bank does not have enough crystal skulls to reward all the
       players who should get one, then no one gets a crystal skull.")
+
+(defcard-doc
+  "##Ideas
+   Users construct a turn, made up of a sequence of moves, that is published to firebase.
+
+   Other users confirm that the move is valid on their clients.
+
+   Tournaments could involve a third party bot in an umpire slot.
+
+   ```
+   [[:place :yax]
+    [:place :yax]]
+
+   [[:pick [:yax 1]]
+    [:choose :agri]]
+    ```")
