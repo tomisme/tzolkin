@@ -48,7 +48,7 @@
   [[k data]]
   (case k
     :gain-resources  (resources-str data)
-    :choose-any-from (get symbols :choose-prev)))
+    :choose-action-from (get symbols :choose-prev)))
 
 (defn corn-cost-labels
   [cx cy r teeth]

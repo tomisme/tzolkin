@@ -46,12 +46,12 @@
    a specific gear."
   (fn [state _]
     (let [corn (get-in @state [:players 0 :resources :corn])
-          workers (get-in @state [:players 0 :workers])
+          remaining-workers (get-in @state [:players 0 :workers])
           resources (get-in @state [:players 0 :resources])
           on-worker-click (fn [slot] (swap! state remove-worker 0 :yax slot))
           on-center-click #(swap! state place-worker 0 :yax)]
       [:div
-        [:span workers " workers remaining | "]
+        [:span remaining-workers " workers remaining | "]
         [:span (for [[k v] resources]
                  (str v " " (get art/symbols k)))]
         [:button {:on-click #(swap! state end-turn)}
