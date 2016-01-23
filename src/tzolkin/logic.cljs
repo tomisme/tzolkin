@@ -178,24 +178,51 @@
   (let [gear-slots (get-in state [:gears gear])
         slot (first-nil gear-slots)
         position (gear-position state gear slot)
+        max-position (- (get-in game-spec [:gears gear :teeth]) 2)
         player-color (get-in state [:players player-id :color])
         remaining-workers (get-in state [:players player-id :workers])
         remaining-corn (get-in state [:players player-id :resources :corn])]
-    (if (and (> remaining-workers 0) (>= remaining-corn position))
+    (if (and (> remaining-workers 0)
+             (>= remaining-corn position)
+             (< position max-position))
       (-> state
         (update-in [:players player-id :workers] dec)
         (update-in [:gears gear] assoc position player-color)
         (update-in [:players player-id :resources :corn] - position))
       state)))
 
+;; TODO: This should be way simpler
+(defn give-resources
+  [state resources player-id]
+  (let [corn (get resources :corn)
+        wood (get resources :wood)
+        stone (get resources :stone)
+        gold (get resources :gold)
+        skull (get resources :skull)]
+    (-> state
+      (update-in [:players player-id :resources :corn] + corn)
+      (update-in [:players player-id :resources :wood] + wood)
+      (update-in [:players player-id :resources :stone] + stone)
+      (update-in [:players player-id :resources :gold] + gold)
+      (update-in [:players player-id :resources :skull] + skull))))
+
+(defn handle-action
+  [state [k v] player-id]
+  (case k
+    :gain-resources (give-resources state v player-id)
+    state))
+
 (defn remove-worker
   [state player-id gear gear-location]
   (let [player-color (get-in state [:players player-id :color])
-        target-color (get-in state [:gears gear gear-location])]
+        target-color (get-in state [:gears gear gear-location])
+        action-location (- gear-location 1)
+        action (get-in game-spec [:gears gear :actions action-location])]
     (if (= player-color target-color)
       (-> state
         (update-in [:players player-id :workers] inc)
-        (update-in [:gears gear] assoc gear-location nil))
+        (update-in [:gears gear] assoc gear-location nil)
+        (handle-action action player-id))
       state)))
 
 (defn end-turn

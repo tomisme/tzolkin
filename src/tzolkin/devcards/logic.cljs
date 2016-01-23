@@ -62,8 +62,9 @@
                       :on-center-click on-center-click
                       :on-worker-click on-worker-click})]))
   (-> (new-test-game {:players 1})
-    (update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
-    (update-in [:players 0 :resources] assoc :corn 12))
+    #_(update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
+    (update-in [:players 0 :resources] assoc :corn 50)
+    (update-in [:players 0] assoc :workers 10))
   {:inspect-data true :history true})
 
 (defcard-rg board-test
