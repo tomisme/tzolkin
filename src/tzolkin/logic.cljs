@@ -191,6 +191,13 @@
         (update-in [:players player-id :resources :corn] - position))
       state)))
 
+(defn apply-to-inventory
+  [f inventory changes-map]
+  (reduce
+    (fn [m [k v]] (update m k #(f % v)))
+    inventory
+    (for [[k v] changes-map] [k v])))
+
 ;; TODO: This should be way simpler
 (defn give-resources
   [state resources player-id]

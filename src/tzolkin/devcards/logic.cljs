@@ -5,7 +5,8 @@
                                     game-spec remove-worker place-worker
                                     end-turn]])
   (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
+   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
+   [cljs.test :refer [testing is]]))
 
 (defcard-doc
   "## Game Spec
@@ -14,6 +15,13 @@
     * `:location` defines the gear's location on the 26 hour clockface of the calendar
     * `:teeth` also defines the number of worker spaces on the gear: `teeth - 2`"
  game-spec)
+
+(deftest inventory-changes
+  (testing
+    (is (= (logic/apply-to-inventory + {:wood 1 :gold 2 :skull 1} {:wood 2 :gold 2})
+           {:wood 3 :gold 4 :skull 1}))
+    (is (= (logic/apply-to-inventory - {:stone 1 :gold 1 :corn 9} {:corn 7 :gold 1})
+           {:stone 1 :gold 0 :corn 2}))))
 
 (defn new-test-game
   [{:keys [players]}]
