@@ -198,20 +198,12 @@
     inventory
     (for [[k v] changes-map] [k v])))
 
-;; TODO: This should be way simpler
 (defn give-resources
-  [state resources player-id]
-  (let [corn (get resources :corn)
-        wood (get resources :wood)
-        stone (get resources :stone)
-        gold (get resources :gold)
-        skull (get resources :skull)]
-    (-> state
-      (update-in [:players player-id :resources :corn] + corn)
-      (update-in [:players player-id :resources :wood] + wood)
-      (update-in [:players player-id :resources :stone] + stone)
-      (update-in [:players player-id :resources :gold] + gold)
-      (update-in [:players player-id :resources :skull] + skull))))
+  [state resource-changes player-id]
+  (let [current-resources (get-in [:players player-id :resources])
+        updated-resources (apply-to-inventory + current-resources resource-changes)])
+  (-> state
+    (assoc-in [:players player-id :resources] updated-resources)))
 
 (defn handle-action
   [state [k v] player-id]
