@@ -2,8 +2,7 @@
   (:require
    [reagent.core :as rg]
    [tzolkin.devcards.art]   ;; conditionally?
-   [tzolkin.devcards.logic] ;; conditionally?
-   ))
+   [tzolkin.devcards.logic])) ;; conditionally?
 
 (defn app-container
   []
