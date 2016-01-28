@@ -20,7 +20,8 @@
    :blue "blue"})
 
 (def symbols
-  {:wood "🌲"
+  {:resource "🎁"
+   :wood "🌲"
    :stone "🗿"
    :gold "🌕"
    :corn "🌽"
@@ -42,14 +43,26 @@
 (defn resources-str
   [resources]
   (apply str (for [[resource amount] resources]
-               (apply str (repeat amount (get symbols resource))))))
+               (if (< amount 3)
+                 (apply str (repeat amount (get symbols resource)))
+                 (str amount (get symbols resource))))))
 
 (defn action-label
   [[k data]]
   (case k
     :gain-resources  (resources-str data)
-    :choose-action-from (get symbols :choose-prev)
-    "?"))
+    :choose-resources (str (resources-str (first data)) "/" (resources-str (second data)))
+    :choose-action-from (str (:choose-prev symbols) (get symbols data))
+    :choose-action-from-all "any"
+    :tech-step "+tech"
+    :build "build"
+    :god-track "+god"
+    :trade "trade"
+    :gain-worker "+worker"
+    :pay-skull (str (get symbols (:god data))
+                    (:points data) "p"
+                    (when (:resource data) (:resource symbols)))
+    "WHAT"))
 
 (defn corn-cost-labels
   [cx cy r teeth]
@@ -169,12 +182,8 @@
   [:g
     (action-labels cx cy r teeth actions)
     (corn-cost-labels cx cy r teeth)
-    [:g {:transform (transform-str [:rotate {:deg (if rotation rotation 0)
-                                             :x cx
-                                             :y cy}])}
-      [:circle {:cx cx
-                :cy cy
-                :r r}]
+    [:g {:transform (transform-str [:rotate {:deg (if rotation rotation 0) :x cx :y cy}])}
+      [:circle {:cx cx :cy cy :r r}]
       (for [tooth (range teeth)
             :let [width (* r 0.35 tooth-width-factor)
                   deg (* tooth (/ 360 teeth))]]
@@ -186,8 +195,12 @@
                 :width width
                 :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
                 :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
+      [:circle {:style {:fill "white"}
+                :cx cx
+                :cy cy
+                :r (/ r 2.1)}]
       [:text {:x cx
-              :y (* cy 1.15)
+              :y (* cy 1.11)
               :font-size 60
               :on-click on-center-click
               :text-anchor "middle"}

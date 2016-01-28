@@ -39,7 +39,7 @@
     [art/gear-el {:cx 150
                   :cy 150
                   :r 75
-                  :teeth 10
+                  :teeth (get-in game-spec [:gears gear :teeth])
                   :tooth-height-factor 1.15
                   :tooth-width-factor 0.75
                   :workers workers
@@ -66,11 +66,12 @@
           remaining-workers (get-in @state [:players 0 :workers])
           resources (get-in @state [:players 0 :resources])]
       [:div
-        [:span remaining-workers " workers remaining | "]
-        [:span (for [[k v] resources]
-                 (str v " " (get art/symbols k)))]
-        [:button {:on-click #(swap! state end-turn)}
-          "End Turn"]
+        [:p
+          [:span remaining-workers " workers remaining | "]
+          [:span (for [[k v] resources]
+                   (str v " " (get art/symbols k) " | "))]
+          [:button {:on-click #(swap! state end-turn)}
+            "End Turn"]]
         (for [[k v] (get logic/game-spec :gears)]
           (worker-gear-wrapper state k))]))
   (-> (new-test-game {:players 1})
