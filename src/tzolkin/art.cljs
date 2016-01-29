@@ -195,15 +195,15 @@
                 :width width
                 :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
                 :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
-      [:circle {:style {:fill "white"}
-                :cx cx
-                :cy cy
-                :r (/ r 2.1)}]
-      [:text {:x cx
-              :y (* cy 1.11)
-              :font-size 60
-              :on-click on-center-click
-              :text-anchor "middle"}
-        (get symbols gear)]
       (if workers
-        (worker-slots cx cy r teeth workers on-worker-click))]])
+        (worker-slots cx cy r teeth workers on-worker-click))]
+    [:circle {:style {:fill "white"}
+              :cx cx
+              :cy cy
+              :r (/ r 2.1)}]
+    [:text {:x cx
+            :y (* cy 1.11)
+            :font-size 60
+            :on-click on-center-click
+            :text-anchor "middle"}
+      (get symbols gear)]])
