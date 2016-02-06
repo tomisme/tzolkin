@@ -58,7 +58,7 @@
                   :on-center-click on-center-click
                   :on-worker-click on-worker-click})))
 
-(defcard-rg gear-test
+(defcard-rg game-test
   "Click a worker to remove it, click on a fruit to place a worker on
    a specific gear."
   (fn [state _]
@@ -79,19 +79,6 @@
     (update-in [:players 0 :resources] assoc :corn 50)
     (update-in [:players 0] assoc :workers 10))
   {:inspect-data true :history true})
-
-(defcard-rg board-test
-  (fn [state-atom _]
-    (let [state @state-atom
-          players (:players state)]
-      [:span "Players: " (map (fn [player]
-                                ^{:key (name (:color player))}
-                                [:span {:style {:color (name (:color player))}}
-                                  (:name player) " "])
-                           players)]))
-  (new-test-game {:players 2})
-  {:inspect-data true :history true})
-
 
 (defcard-doc
   "##Other Tests
