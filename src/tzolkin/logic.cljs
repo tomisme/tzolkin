@@ -1,17 +1,18 @@
 (ns tzolkin.logic)
 
 (def game-spec
-  {:gears
+  {:turn-steps [:beg :place :pickup :spin]
+   :gears
     {:yax {:name "Yaxchilan"
            :teeth 10
            :location 1
-           :actions [[:gain-resources {:wood 1}]
-                     [:gain-resources {:stone 1
+           :actions [[:gain-materials {:wood 1}]
+                     [:gain-materials {:stone 1
                                        :corn 1}]
-                     [:gain-resources {:gold 1
+                     [:gain-materials {:gold 1
                                        :corn 2}]
-                     [:gain-resources {:skull 1}]
-                     [:gain-resources {:gold 1
+                     [:gain-materials {:skull 1}]
+                     [:gain-materials {:gold 1
                                        :stone 1
                                        :corn 2}]
                      [:choose-action-from :yax]
@@ -69,13 +70,13 @@
      :pal {:name "Palenque"
            :teeth 10
            :location 22
-           :actions [[:gain-resources {:corn 3}]
-                     [:gain-resources {:corn 4}]
-                     [:choose-resources [{:corn 5}
+           :actions [[:gain-materials {:corn 3}]
+                     [:gain-materials {:corn 4}]
+                     [:choose-materials [{:corn 5}
                                          {:wood 2}]]
-                     [:choose-resources [{:corn 7}
+                     [:choose-materials [{:corn 7}
                                          {:wood 3}]]
-                     [:choose-resources [{:corn 9}
+                     [:choose-materials [{:corn 9}
                                          {:wood 4}]]
                      [:choose-action-from :pal]
                      [:choose-action-from :pal]]}}
@@ -93,10 +94,10 @@
                     :steps [{:points -1}
                             {:points 0}
                             {:points 2
-                             :resource :stone}
+                             :material :stone}
                             {:points 4}
                             {:points 6
-                             :resource :stone}
+                             :material :stone}
                             {:points 7}
                             {:points 8}]}
              :quet {:name "Quetzalcoatl"
@@ -106,10 +107,10 @@
                             {:points 0}
                             {:points 1}
                             {:points 2
-                             :resource :gold}
+                             :material :gold}
                             {:points 4}
                             {:points 6
-                             :resource :gold}
+                             :material :gold}
                             {:points 9}
                             {:points 12}
                             {:points 13}]}
@@ -119,18 +120,20 @@
                     :steps [{:points -3}
                             {:points 0}
                             {:points 1
-                             :resource :wood}
+                             :material :wood}
                             {:points 3}
                             {:points 5
-                             :resource :wood}
+                             :material :wood}
                             {:points 7
-                             :resource :skull}
+                             :material :skull}
                             {:points 9}
                             {:points 10}]}}})
 
 ;; TODO: Generate from game-spec
 (def initial-game-state
   {:turn 0
+   :active {:player-id 0
+            :placing true}
    :skulls 13
    :players []
    :gears {:yax [nil nil nil nil nil nil nil nil nil nil]
@@ -140,7 +143,7 @@
            :pal [nil nil nil nil nil nil nil nil nil nil]}})
 
 (def new-player-state
-  {:resources {:corn 0
+  {:materials {:corn 0
                :wood 0
                :stone 0
                :gold 0
@@ -181,14 +184,14 @@
         max-position (- (get-in game-spec [:gears gear :teeth]) 2)
         player-color (get-in state [:players player-id :color])
         remaining-workers (get-in state [:players player-id :workers])
-        remaining-corn (get-in state [:players player-id :resources :corn])]
+        remaining-corn (get-in state [:players player-id :materials :corn])]
     (if (and (> remaining-workers 0)
              (>= remaining-corn position)
              (< position max-position))
       (-> state
         (update-in [:players player-id :workers] dec)
         (update-in [:gears gear] assoc position player-color)
-        (update-in [:players player-id :resources :corn] - position))
+        (update-in [:players player-id :materials :corn] - position))
       state)))
 
 (defn apply-to-inventory
@@ -198,17 +201,17 @@
     inventory
     (for [[k v] changes-map] [k v])))
 
-(defn give-resources
-  [state resource-changes player-id]
-  (let [current-resources (get-in [:players player-id :resources])
-        updated-resources (apply-to-inventory + current-resources resource-changes)])
-  (-> state
-    (assoc-in [:players player-id :resources] updated-resources)))
+(defn give-materials
+  [state material-changes player-id]
+  (let [current-materials (get-in state [:players player-id :materials])
+        updated-materials (apply-to-inventory + current-materials material-changes)]
+    (-> state
+      (assoc-in [:players player-id :materials] updated-materials))))
 
 (defn handle-action
   [state [k v] player-id]
   (case k
-    :gain-resources (give-resources state v player-id)
+    :gain-materials (give-materials state v player-id)
     state))
 
 (defn remove-worker
@@ -228,3 +231,9 @@
   [state]
   (-> state
     (update :turn inc)))
+
+(defn active-player
+  [state]
+  (let [id (get-in state [:active :player-id])]
+    (.log js/console id)
+    (get-in state [:players id])))

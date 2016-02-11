@@ -59,13 +59,16 @@
                   :on-worker-click on-worker-click})))
 
 (defcard-rg game-test
-  "Click a worker to remove it, click on a fruit to place a worker on
-   a specific gear."
   (fn [state _]
-    (let [corn (get-in @state [:players 0 :resources :corn])
+    (let [player (logic/active-player @state)
+          player-name (:name player)
+          corn (get-in @state [:players 0 :materials :corn])
           remaining-workers (get-in @state [:players 0 :workers])
-          resources (get-in @state [:players 0 :resources])]
+          resources (get-in @state [:players 0 :materials])]
       [:div
+        [:p player-name " is currently placing/picking up workers."]
+        [:p "Click a worker to remove it, click on a fruit to place a worker
+             on a specific gear."]
         [:p
           [:span remaining-workers " workers remaining | "]
           [:span (for [[k v] resources]
@@ -76,7 +79,7 @@
           (worker-gear-wrapper state k))]))
   (-> (new-test-game {:players 1})
     #_(update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
-    (update-in [:players 0 :resources] assoc :corn 50)
+    (update-in [:players 0 :materials] assoc :corn 50)
     (update-in [:players 0] assoc :workers 10))
   {:inspect-data true :history true})
 

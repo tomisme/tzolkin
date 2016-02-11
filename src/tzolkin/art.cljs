@@ -40,9 +40,9 @@
 ;;   :theology "Theo"     |
    :choose-prev "⏪"})
 
-(defn resources-str
-  [resources]
-  (apply str (for [[resource amount] resources]
+(defn materials-str
+  [materials]
+  (apply str (for [[resource amount] materials]
                (if (< amount 3)
                  (apply str (repeat amount (get symbols resource)))
                  (str amount (get symbols resource))))))
@@ -50,8 +50,8 @@
 (defn action-label
   [[k data]]
   (case k
-    :gain-resources  (resources-str data)
-    :choose-resources (str (resources-str (first data)) "/" (resources-str (second data)))
+    :gain-materials  (materials-str data)
+    :choose-materials (str (materials-str (first data)) "/" (materials-str (second data)))
     :choose-action-from (str (:choose-prev symbols) (get symbols data))
     :choose-action-from-all "any"
     :tech-step "+tech"

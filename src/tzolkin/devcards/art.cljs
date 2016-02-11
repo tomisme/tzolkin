@@ -30,11 +30,11 @@
             (for [[k v] art/symbols]
               (str (name k) ": " v ", "))])])
 
-(deftest resources-str-test
-  "`resources-str` takes a map of resources and the amount of each and returns
+(deftest materials-str-test
+  "`materials-str` takes a map of resources and the amount of each and returns
    a string of symbols."
    (testing
-     (is (= (art/resources-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
+     (is (= (art/materials-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
             "🌲🗿🌕🌕🌽🌽🌽💀"))))
 
 (defcard-doc
