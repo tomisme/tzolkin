@@ -1,20 +1,23 @@
 (ns tzolkin.devcards.logic
   (:require
    [tzolkin.art :as art]
-   [tzolkin.logic :as logic :refer [initial-game-state new-player-state
-                                    game-spec remove-worker place-worker
-                                    end-turn]])
+   [tzolkin.logic :as logic])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is]]))
 
 (defcard-doc
-  "## Game Spec
-   ###Gears
+  "## Terminology
+   * `slot` refers to an index in a gear's vector of workers.
+             Slots rotate as the gear spins.
+   * `position` refers to the actual board position of a slot. Remain static
+     throughout the game (e.g. position 1 on `:yax` is always 1 wood)
 
+   ## Game Spec
+   ###Gears
     * `:location` defines the gear's location on the 26 hour clockface of the calendar
     * `:teeth` also defines the number of worker spaces on the gear: `teeth - 2`"
- game-spec)
+ logic/game-spec)
 
 (deftest inventory-changes
   (testing
@@ -25,11 +28,11 @@
 
 (defn new-test-game
   [{:keys [players]}]
-  (cond-> initial-game-state
-   (> players 0) (update-in [:players] conj (-> new-player-state
+  (cond-> logic/initial-game-state
+   (> players 0) (update-in [:players] conj (-> logic/new-player-state
                                               (assoc :name "Elisa")
                                               (assoc :color :red)))
-   (> players 1) (update-in [:players] conj (-> new-player-state
+   (> players 1) (update-in [:players] conj (-> logic/new-player-state
                                               (assoc :name "Tom")
                                               (assoc :color :blue)))))
 
@@ -41,7 +44,7 @@
                   :cy 150
                   :r 75
                   :rotation rotation
-                  :teeth (get-in game-spec [:gears gear :teeth])
+                  :teeth (get-in logic/game-spec [:gears gear :teeth])
                   :tooth-height-factor 1.15
                   :tooth-width-factor 0.75
                   :workers workers
@@ -54,9 +57,9 @@
   [state gear]
   (let [player-id (get-in @state [:active :player-id])
         on-worker-click (fn [slot]
-                          (swap! state remove-worker player-id gear slot))
+                          (swap! state logic/remove-worker player-id gear slot))
         on-center-click (fn []
-                          (swap! state place-worker player-id gear))
+                          (swap! state logic/place-worker player-id gear))
         teeth (get-in logic/game-spec [:gears gear :teeth])]
     (worker-gear {:workers (get-in @state [:gears gear])
                   :gear gear
@@ -70,12 +73,12 @@
     [:div
       [art/status-bar @state]
       [:p
-        [:button {:on-click #(swap! state end-turn)}
+        [:button {:on-click #(swap! state logic/end-turn)}
           "End Turn"]]
       (for [[gear _] (get logic/game-spec :gears)]
         (worker-gear-wrapper state gear))])
   (-> (new-test-game {:players 1})
-    #_(update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
+    (update-in [:gears] assoc :yax [:blue :blue nil :blue nil nil :red :red nil nil])
     (update-in [:players 0 :materials] assoc :corn 50)
     (update-in [:players 0] assoc :workers 10))
   {:inspect-data true :history true})

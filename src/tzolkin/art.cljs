@@ -195,12 +195,16 @@
                                                  :y cy}])
               color (or (get color-strings worker) "white")]
           ^{:key index}
-          [:circle {:style {:fill color}
-                    :on-click #(on-click index)
-                    :r (/ r 5)
-                    :cx (+ cx 0)
-                    :cy (+ cy (* r 0.75))
-                    :transform transform}]))
+          [:g
+            [:circle {:style {:fill color}
+                      :on-click #(on-click index)
+                      :r (/ r 5)
+                      :cx (+ cx 0)
+                      :cy (+ cy (* r 0.75))
+                      :transform transform}]
+            [:text {:style {:pointer-events "none"}
+                    :x cx :y (+ cy (* r 0.8)) :text-anchor "middle" :transform transform}
+              index]]))
       workers)])
 
 (defn gear-el

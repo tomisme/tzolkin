@@ -171,27 +171,47 @@
 
 (defn gear-position
   "Returns the current board position of a gear slot"
-  [state gear slot]
-  (let [turn (get state :turn)
-        teeth (get-in game-spec [:gears gear :teeth])]
+  [gear slot turn]
+  (let [teeth (get-in game-spec [:gears gear :teeth])]
     (mod (+ slot turn) teeth)))
+
+(defn gear-slot
+  "Return the gear slot index of a board position after 'turn' spins"
+  [gear position turn]
+  (let [teeth (get-in game-spec [:gears gear :teeth])]
+    (mod (+ position (- teeth turn)) teeth)))
+
+(defn rotate-vec
+  "Circularly shifts items in a vector forward 'num' times.
+
+  (rotate-vec ['a 'b 'c 'd 'e] 2)  =>  ['d 'e 'a 'b 'c]"
+  [vec num]
+  (let [break (- (count vec) num)]
+    (into (subvec vec break) (subvec vec 0 break))))
 
 (defn place-worker
   [state player-id gear]
   (let [worker-option (get-in state [:active :worker-option])
         gear-slots (get-in state [:gears gear])
-        slot (first-nil gear-slots)
-        position (gear-position state gear slot)
+        turn (:turn state)
+        position (first-nil (rotate-vec gear-slots turn))
+        slot (gear-slot gear position turn)
         max-position (- (get-in game-spec [:gears gear :teeth]) 2)
         player-color (get-in state [:players player-id :color])
         remaining-workers (get-in state [:players player-id :workers])
         remaining-corn (get-in state [:players player-id :materials :corn])]
+    ; (.log js.console "Gear Slots:")
+    ; (.log js.console (clj->js gear-slots))
+    ; (.log js.console "Rotated Gear Slots:")
+    ; (.log js.console (clj->js (rotate-vec gear-slots turn)))
+    ; (.log js/console "placing in position" position ", slot " slot)
+    ; (.log js.console "------------------------")
     (if (and (> remaining-workers 0)
              (>= remaining-corn position)
              (< position max-position))
       (-> state
         (update-in [:players player-id :workers] dec)
-        (update-in [:gears gear] assoc position player-color)
+        (update-in [:gears gear] assoc slot player-color)
         (update-in [:players player-id :materials :corn] - position))
       state)))
 
@@ -216,15 +236,19 @@
     state))
 
 (defn remove-worker
-  [state player-id gear gear-location]
-  (let [player-color (get-in state [:players player-id :color])
-        target-color (get-in state [:gears gear gear-location])
-        action-location (- gear-location 1)
-        action (get-in game-spec [:gears gear :actions action-location])]
+  [state player-id gear slot]
+  (let [turn (:turn state)
+        position (gear-position gear slot turn)
+        player-color (get-in state [:players player-id :color])
+        target-color (get-in state [:gears gear slot])
+        action-position (- position 1)
+        action (get-in game-spec [:gears gear :actions action-position])]
+    ; (.log js/console "picking from position" position ", slot " slot)
+    ; (.log js.console "------------------------")
     (if (= player-color target-color)
       (-> state
         (update-in [:players player-id :workers] inc)
-        (update-in [:gears gear] assoc gear-location nil)
+        (update-in [:gears gear] assoc slot nil)
         (handle-action action player-id))
       state)))
 
