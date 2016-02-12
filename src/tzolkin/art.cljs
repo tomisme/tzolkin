@@ -47,6 +47,33 @@
                  (apply str (repeat amount (get symbols resource)))
                  (str amount (get symbols resource))))))
 
+(defn worker-option-str
+  [option]
+  (case option
+    :none " has not yet chosen to pick or place."
+    :place " is placing workers."
+    :pick " is picking up workers."))
+
+(defn status-bar
+  [dstate]
+  (let [turn (:turn dstate)
+        worker-option (get-in dstate [:active :worker-option])
+        player-id (get-in dstate [:active :player-id])
+        player (get-in dstate [:players player-id])
+        player-name (:name player)
+        materials (:materials player)
+        corn (:corn materials)
+        remaining-workers (:workers player)]
+    [:div
+      [:p "Turn " turn "/26"]
+      [:p player-name (worker-option-str worker-option)]
+      [:p "Click a worker to remove it, click on a fruit to place a worker
+           on a specific gear."]
+      [:p
+        [:span remaining-workers " workers remaining | "]
+        [:span (for [[k v] materials]
+                 (str v " " (get symbols k) " | "))]]]))
+
 (defn action-label
   [[k data]]
   (case k

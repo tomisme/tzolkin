@@ -133,7 +133,7 @@
 (def initial-game-state
   {:turn 0
    :active {:player-id 0
-            :placing true}
+            :worker-option :none}
    :skulls 13
    :players []
    :gears {:yax [nil nil nil nil nil nil nil nil nil nil]
@@ -178,7 +178,8 @@
 
 (defn place-worker
   [state player-id gear]
-  (let [gear-slots (get-in state [:gears gear])
+  (let [worker-option (get-in state [:active :worker-option])
+        gear-slots (get-in state [:gears gear])
         slot (first-nil gear-slots)
         position (gear-position state gear slot)
         max-position (- (get-in game-spec [:gears gear :teeth]) 2)
@@ -231,9 +232,3 @@
   [state]
   (-> state
     (update :turn inc)))
-
-(defn active-player
-  [state]
-  (let [id (get-in state [:active :player-id])]
-    (.log js/console id)
-    (get-in state [:players id])))

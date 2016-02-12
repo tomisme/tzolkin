@@ -34,11 +34,13 @@
                                               (assoc :color :blue)))))
 
 (defn worker-gear
-  [{:keys [gear workers on-worker-click on-center-click actions]}]
+  [{:keys [gear workers on-worker-click on-center-click actions rotation]}]
+  ^{:key gear}
   [:svg {:width 300 :height 300}
     [art/gear-el {:cx 150
                   :cy 150
                   :r 75
+                  :rotation rotation
                   :teeth (get-in game-spec [:gears gear :teeth])
                   :tooth-height-factor 1.15
                   :tooth-width-factor 0.75
@@ -50,33 +52,28 @@
 
 (defn worker-gear-wrapper
   [state gear]
-  (let [on-worker-click (fn [slot] (swap! state remove-worker 0 gear slot))
-        on-center-click #(swap! state place-worker 0 gear)]
+  (let [player-id (get-in @state [:active :player-id])
+        on-worker-click (fn [slot]
+                          (swap! state remove-worker player-id gear slot))
+        on-center-click (fn []
+                          (swap! state place-worker player-id gear))
+        teeth (get-in logic/game-spec [:gears gear :teeth])]
     (worker-gear {:workers (get-in @state [:gears gear])
                   :gear gear
+                  :rotation (* (/ 360 teeth) (:turn @state))
                   :actions (get-in logic/game-spec [:gears gear :actions])
                   :on-center-click on-center-click
                   :on-worker-click on-worker-click})))
 
 (defcard-rg game-test
   (fn [state _]
-    (let [player (logic/active-player @state)
-          player-name (:name player)
-          corn (get-in @state [:players 0 :materials :corn])
-          remaining-workers (get-in @state [:players 0 :workers])
-          resources (get-in @state [:players 0 :materials])]
-      [:div
-        [:p player-name " is currently placing/picking up workers."]
-        [:p "Click a worker to remove it, click on a fruit to place a worker
-             on a specific gear."]
-        [:p
-          [:span remaining-workers " workers remaining | "]
-          [:span (for [[k v] resources]
-                   (str v " " (get art/symbols k) " | "))]
-          [:button {:on-click #(swap! state end-turn)}
-            "End Turn"]]
-        (for [[k v] (get logic/game-spec :gears)]
-          (worker-gear-wrapper state k))]))
+    [:div
+      [art/status-bar @state]
+      [:p
+        [:button {:on-click #(swap! state end-turn)}
+          "End Turn"]]
+      (for [[gear _] (get logic/game-spec :gears)]
+        (worker-gear-wrapper state gear))])
   (-> (new-test-game {:players 1})
     #_(update-in [:gears] assoc :yax [:blue nil nil :blue nil nil :red nil nil nil])
     (update-in [:players 0 :materials] assoc :corn 50)
