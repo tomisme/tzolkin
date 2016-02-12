@@ -39,10 +39,10 @@
 (defn worker-gear
   [{:keys [gear workers on-worker-click on-center-click actions rotation]}]
   ^{:key gear}
-  [:svg {:width 300 :height 300}
-    [art/gear-el {:cx 150
-                  :cy 150
-                  :r 75
+  [:svg {:width 340 :height 340}
+    [art/gear-el {:cx 170
+                  :cy 170
+                  :r 85
                   :rotation rotation
                   :teeth (get-in logic/game-spec [:gears gear :teeth])
                   :tooth-height-factor 1.15
@@ -76,7 +76,8 @@
         [:button {:on-click #(swap! state logic/end-turn)}
           "End Turn"]]
       (for [[gear _] (get logic/game-spec :gears)]
-        (worker-gear-wrapper state gear))])
+        (when (not= :chi gear) (worker-gear-wrapper state gear)))
+      (worker-gear-wrapper state :chi)])
   (-> (new-test-game {:players 1})
     (update-in [:gears] assoc :yax [:blue :blue nil :blue nil nil :red :red nil nil])
     (update-in [:players 0 :materials] assoc :corn 50)

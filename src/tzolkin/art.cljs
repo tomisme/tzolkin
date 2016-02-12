@@ -16,8 +16,15 @@
                      ")")))))
 
 (def color-strings
-  {:red "red"
-   :blue "blue"})
+  {:red "#CC333F"
+   :blue "#69D2E7"
+   :orange "#EB6841"
+   :yellow "#EDC951"
+   :yax "#E2DF9A"
+   :tik "#F23A65"
+   :uxe "#EBE54D"
+   :chi "#9061C2"
+   :pal "#7FAF1B"})
 
 (def symbols
   {:resource "🎁"
@@ -26,26 +33,22 @@
    :gold "🌕"
    :corn "🌽"
    :skull "💀"
-   :chac "🐷"
-   :quet "🦁"
-   :kuku "🐵"
+   :chac "🐎"
+   :quet "🐢"
+   :kuku "🐒"
    :yax "🍈"
-   :tik "🍑"
+   :tik "🍓"
    :uxe "🍋"
    :chi "🍇"
    :pal "🍏"
-;;   :agriculture "Agri"  | Do theses guys need a symbol?
-;;   :extraction "Extr"   |
-;;   :architecture "Arch" |
-;;   :theology "Theo"     |
    :choose-prev "⏪"})
 
 (defn materials-str
   [materials]
-  (apply str (for [[resource amount] materials]
+  (apply str (for [[material amount] materials]
                (if (< amount 3)
-                 (apply str (repeat amount (get symbols resource)))
-                 (str amount (get symbols resource))))))
+                 (apply str (repeat amount (get symbols material)))
+                 (str amount (get symbols material))))))
 
 (defn worker-option-str
   [option]
@@ -127,9 +130,9 @@
          (str index)]])))
 
 (defn action-labels
-  [cx cy r teeth actions]
+  [cx cy r teeth actions gear]
   [:g
-    [:circle {:style {:fill "pink"}
+    [:circle {:style {:fill (get color-strings gear)}
               :r (* r 1.85)
               :cx cx
               :cy cy}]
@@ -164,6 +167,7 @@
                              [:rotate {:deg (+ deg (* block-num 2))
                                        :x cx
                                        :y cy}])}]))
+    ;; Labels
     (map-indexed (fn [index action]
                    (let [x cx
                          y (+ cy (* r 1.56))
@@ -201,17 +205,18 @@
                       :r (/ r 5)
                       :cx (+ cx 0)
                       :cy (+ cy (* r 0.75))
-                      :transform transform}]
-            [:text {:style {:pointer-events "none"}
-                    :x cx :y (+ cy (* r 0.8)) :text-anchor "middle" :transform transform}
-              index]]))
+                      :transform transform}]]))
+            ;; slot indexes for testing
+            ; [:text {:style {:pointer-events "none"}
+            ;         :x cx :y (+ cy (* r 0.8)) :text-anchor "middle" :transform transform}
+            ;   index]]))
       workers)])
 
 (defn gear-el
   [{:keys [cx cy r teeth rotation workers on-worker-click on-center-click
            tooth-height-factor tooth-width-factor gear actions]}]
   [:g
-    (action-labels cx cy r teeth actions)
+    (action-labels cx cy r teeth actions gear)
     (corn-cost-labels cx cy r teeth)
     [:g {:transform (transform-str [:rotate {:deg (if rotation rotation 0) :x cx :y cy}])}
       [:circle {:cx cx :cy cy :r r}]
@@ -228,13 +233,14 @@
                 :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
       (if workers
         (worker-slots cx cy r teeth workers on-worker-click))]
-    [:circle {:style {:fill "white"}
+    [:circle {:style {:fill (get color-strings gear)}
               :cx cx
               :cy cy
-              :r (/ r 2.1)}]
-    [:text {:x cx
+              :r (/ r 2.1)
+              :on-click on-center-click}]
+    [:text {:style {:pointer-events "none"}
+            :x cx
             :y (* cy 1.11)
-            :font-size 60
-            :on-click on-center-click
+            :font-size (* r 0.65)
             :text-anchor "middle"}
       (get symbols gear)]])
