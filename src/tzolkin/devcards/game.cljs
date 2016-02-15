@@ -1,10 +1,16 @@
 (ns tzolkin.devcards.game
+  (:require
+   [tzolkin.logic :as logic]
+   [tzolkin.spec  :as spec]
+   [tzolkin.game  :as game]
+   [tzolkin.art   :as art])
   (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
+   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
+   [cljs.test :refer [testing is]]))
 
-(defcard-doc
-  "
-  #PLAYER TURNS
+(defcard-doc "#Tzolk'in
+  ##Rules
+  ###PLAYER TURNS
 
   Begin with the starting player and proceed clockwise. Your turn proceeds in the following order:
 
@@ -20,7 +26,7 @@
     c. If you constructed any buildings, deal out new buildings from the current age into the emptied spaces.
     d. If you placed a worker on the Starting Player Space, take all the corn that has accumulated on the teeth of the Tzolk'in gear.
 
-  #FEED WORKERS AND GET REWARDS.
+  ###FEED WORKERS AND GET REWARDS.
 
   This phase of the round only occurs on Food Days.
 
@@ -49,8 +55,8 @@
   end of Age 2. If players are tied for highest,
   all tied players get half the bonus.
 
-  #ADVANCE THE TZOLK'IN CALENDAR:
-  
+  ###ADVANCE THE TZOLK'IN CALENDAR:
+
   a. If no worker is on the Starting Player Space, do
   the following:
    I. Put 1 corn on the current tooth of the
@@ -70,4 +76,62 @@
   Flip your player board to the darker side if you
   use this privilege. Any workers pushed off the
   gears return to their players.
-  ")
+
+  ## Dev Terminology
+  * `slot` refers to an index in a gear's vector of workers.
+           Slots rotate as the gear spins.
+  * `position` refers to the actual board position of a slot. Remain static
+   throughout the game (e.g. position 1 on `:yax` is always 1 wood)
+
+  ## Game Spec
+  "
+  spec/game)
+
+(deftest inventory-changes
+  (testing
+    (is (= (logic/apply-to-inventory + {:wood 1 :gold 2 :skull 1} {:wood 2 :gold 2})
+           {:wood 3 :gold 4 :skull 1}))
+    (is (= (logic/apply-to-inventory - {:stone 1 :gold 1 :corn 9} {:corn 7 :gold 1})
+           {:stone 1 :gold 0 :corn 2})))
+  "##Other Tests
+
+    - If the bank does not have enough crystal skulls to reward all the
+      players who should get one, then no one gets a crystal skull.")
+
+(defn new-test-game
+  [{:keys [players]}]
+  (cond-> logic/initial-game-state
+   (> players 0) (update-in [:players] conj (-> logic/new-player-state
+                                              (assoc :name "Elisa")
+                                              (assoc :color :red)))
+   (> players 1) (update-in [:players] conj (-> logic/new-player-state
+                                              (assoc :name "Tom")
+                                              (assoc :color :blue)))))
+
+(defcard-rg game-test
+  (fn [state _]
+    [:div
+      [art/status-bar @state]
+      [:p
+        [:button {:on-click #(swap! state logic/end-turn)}
+          "End Turn"]]
+      (for [[gear _] (get spec/game :gears)]
+        (game/worker-gear-wrapper state gear))])
+  (-> (new-test-game {:players 2}))
+  {:inspect-data true :history true})
+
+(defcard-doc
+  "##Ideas
+   Users construct a turn, made up of a sequence of moves, that is published to firebase.
+
+   Other users confirm that the move is valid on their clients.
+
+   Tournaments could involve a third party bot in an umpire slot.
+
+   ```
+   [[:place :yax]
+    [:place :yax]]
+
+   [[:pick [:yax 1]]
+    [:choose :agri]]
+    ```")

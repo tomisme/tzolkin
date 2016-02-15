@@ -1,4 +1,5 @@
-(ns tzolkin.art)
+(ns tzolkin.art
+  (:require [tzolkin.spec :as spec]))
 
 (defn e->val
   [event]
@@ -51,16 +52,20 @@
                  (str amount (get symbols material))))))
 
 (defn worker-option-str
-  [option]
-  (case option
-    :none " has not yet chosen to pick or place."
-    :place " is placing workers."
-    :pick " is picking up workers."))
+  [active]
+  (let [option (:worker-option active)
+        placed (:placed active)]
+    (case option
+      :none " has not yet chosen to pick or place."
+      :place (str " has placed " placed " worker(s).")
+      :pick " is picking up workers.")))
 
 (defn status-bar
   [dstate]
-  (let [turn (:turn dstate)
-        worker-option (get-in dstate [:active :worker-option])
+  (let [turn (inc (:turn dstate))
+        turns (:total-turns spec/game)
+        active (:active dstate)
+        next-food-day (mod (+ 3 (- turns turn)) 7)
         player-id (get-in dstate [:active :player-id])
         player (get-in dstate [:players player-id])
         player-name (:name player)
@@ -68,8 +73,8 @@
         corn (:corn materials)
         remaining-workers (:workers player)]
     [:div
-      [:p "Turn " turn "/26"]
-      [:p player-name (worker-option-str worker-option)]
+      [:p "Turn " turn "/" turns ", that's " next-food-day " spins until Food Day!"]
+      [:p [:b player-name (worker-option-str active)]]
       [:p "Click a worker to remove it, click on a fruit to place a worker
            on a specific gear."]
       [:p
@@ -114,17 +119,17 @@
                 :y text-y
                 :style {:stroke "black"
                         :fill "black"}
-                :font-size 16
+                :font-size 20
                 :text-anchor "middle"
                 :transform transform}
           "🌽"]
         [:text {:x text-x
                 :y text-y
                 :style {:stroke "white"
-                        :stroke-width 2
+                        :stroke-width 4
                         :paint-order "stroke"
                         :fill "black"}
-                :font-size 14
+                :font-size 20
                 :text-anchor "middle"
                 :transform transform}
          (str index)]])))
