@@ -189,6 +189,12 @@
   (let [break (- (count vec) num)]
     (into (subvec vec break) (subvec vec 0 break))))
 
+(defn set-placing
+  [state worker-option]
+  (if (= :none worker-option)
+    (update state :active assoc :worker-option :place)
+    state))
+
 (defn place-worker
   [state player-id gear]
   (let [worker-option (get-in state [:active :worker-option])
@@ -200,19 +206,15 @@
         player-color (get-in state [:players player-id :color])
         remaining-workers (get-in state [:players player-id :workers])
         remaining-corn (get-in state [:players player-id :materials :corn])]
-    ; (.log js.console "Gear Slots:")
-    ; (.log js.console (clj->js gear-slots))
-    ; (.log js.console "Rotated Gear Slots:")
-    ; (.log js.console (clj->js (rotate-vec gear-slots turn)))
-    ; (.log js/console "placing in position" position ", slot " slot)
-    ; (.log js.console "------------------------")
     (if (and (> remaining-workers 0)
              (>= remaining-corn position)
-             (< position max-position))
+             (< position max-position)
+             (or (= :place worker-option) (= :none worker-option)))
       (-> state
         (update-in [:players player-id :workers] dec)
         (update-in [:gears gear] assoc slot player-color)
-        (update-in [:players player-id :materials :corn] - position))
+        (update-in [:players player-id :materials :corn] - position)
+        (update :active assoc :worker-option :place))
       state)))
 
 (defn apply-to-inventory
@@ -238,17 +240,18 @@
 (defn remove-worker
   [state player-id gear slot]
   (let [turn (:turn state)
+        worker-option (get-in state [:active :worker-option])
         position (gear-position gear slot turn)
         player-color (get-in state [:players player-id :color])
         target-color (get-in state [:gears gear slot])
         action-position (- position 1)
         action (get-in game-spec [:gears gear :actions action-position])]
-    ; (.log js/console "picking from position" position ", slot " slot)
-    ; (.log js.console "------------------------")
-    (if (= player-color target-color)
+    (if (and (= player-color target-color)
+             (or (= :pick worker-option) (= :none worker-option)))
       (-> state
         (update-in [:players player-id :workers] inc)
         (update-in [:gears gear] assoc slot nil)
+        (update :active assoc :worker-option :pick)
         (handle-action action player-id))
       state)))
 
