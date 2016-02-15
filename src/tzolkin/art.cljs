@@ -60,12 +60,18 @@
       :place (str " has placed " placed " worker(s).")
       :pick " is picking up workers.")))
 
+(defn food-day-str
+  [until-food-day]
+  [:span (if (= 0 until-food-day)
+           [:b "it's Food Day!"]
+           (str "that's " until-food-day " spins until Food Day!"))])
+
 (defn status-bar
   [dstate]
   (let [turn (inc (:turn dstate))
         turns (:total-turns spec/game)
         active (:active dstate)
-        next-food-day (mod (+ 3 (- turns turn)) 7)
+        until-food-day (mod (+ 3 (- turns turn)) 7)
         player-id (get-in dstate [:active :player-id])
         player (get-in dstate [:players player-id])
         player-name (:name player)
@@ -73,7 +79,7 @@
         corn (:corn materials)
         remaining-workers (:workers player)]
     [:div
-      [:p "Turn " turn "/" turns ", that's " next-food-day " spins until Food Day!"]
+      [:p "Turn " turn "/" turns ", " (food-day-str until-food-day)]
       [:p [:b player-name (worker-option-str active)]]
       [:p "Click a worker to remove it, click on a fruit to place a worker
            on a specific gear."]
