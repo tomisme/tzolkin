@@ -3,7 +3,6 @@
 (def game
   {:total-turns 26
    :turn-steps [:beg :place :pickup :spin]
-   :worker-cost [0 1 3 6 10 15]
    :gears
     {:yax {:name "Yaxchilan"
            :teeth 10

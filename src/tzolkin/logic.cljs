@@ -67,17 +67,22 @@
     (update state :active assoc :worker-option :place)
     state))
 
+;; SUBVEC ERROR WHEN TRYING TO PLACE
+
 (defn place-worker
   [state player-id gear]
   (let [worker-option (get-in state [:active :worker-option])
         gear-slots (get-in state [:gears gear])
+        max-position (- (get-in spec/game [:gears gear :teeth]) 2)
         turn (:turn state)
         position (first-nil (rotate-vec gear-slots turn))
         slot (gear-slot gear position turn)
-        max-position (- (get-in spec/game [:gears gear :teeth]) 2)
-        player-color (get-in state [:players player-id :color])
-        remaining-workers (get-in state [:players player-id :workers])
-        remaining-corn (get-in state [:players player-id :materials :corn])]
+        player (get-in state [:players player-id])
+        player-color (:color player)
+        remaining-workers (:workers player)
+        remaining-corn (get-in state [:players player-id :materials :corn])
+        placed (get-in state [:active :placed])
+        corn-cost (+ position placed)]
     (if (and (> remaining-workers 0)
              (>= remaining-corn position)
              (< position max-position)
@@ -85,7 +90,8 @@
       (-> state
         (update-in [:players player-id :workers] dec)
         (update-in [:gears gear] assoc slot player-color)
-        (update-in [:players player-id :materials :corn] - position)
+        (update-in [:players player-id :materials :corn] - corn-cost)
+        (update-in [:active :placed] inc)
         (update :active assoc :worker-option :place))
       state)))
 
@@ -130,4 +136,6 @@
 (defn end-turn
   [state]
   (-> state
-    (update :turn inc)))
+    (update :turn inc)
+    (update :active assoc :placed 0)
+    (update :active assoc :worker-option :none)))
