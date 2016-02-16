@@ -1,6 +1,9 @@
 # Tzolk'in
-WIP Tzolk'in boardgame in clojurescript using vanilla reagent.
+WIP Tzolk'in boardgame in clojurescript using vanilla reagent (just passing full state around).
 
 If you want to have a poke around run `lein figwheel`, open
-`localhost:3449` in your browser and behold the magic of
+`localhost:3449/cards.html` in your browser and behold the magic of
 [devcards](https://github.com/bhauman/devcards).
+
+##TODO
+ - [ ] make todo list
