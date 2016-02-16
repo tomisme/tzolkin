@@ -6,4 +6,13 @@ If you want to have a poke around run `lein figwheel`, open
 [devcards](https://github.com/bhauman/devcards).
 
 ##TODO
- - [ ] make todo list
+ - [x] picking/placing
+ - [x] Yaxchilan (🍈)
+ - [ ] Palenque (🍏)
+ - [ ] god tracks
+ - [ ] Chichen Itza (🍇)
+ - [ ] buildings
+ - [ ] tech tracks
+ - [ ] Tikal (🍓)
+ - [ ] Uxmal (🍋)
+ - [ ] monuments
