@@ -64,16 +64,16 @@
   [until-food-day]
   [:span (if (= 0 until-food-day)
            [:b "it's Food Day!"]
-           (str "that's " until-food-day " spins until Food Day!"))])
+           (str until-food-day " spins until Food Day!"))])
 
 (defn status-bar
-  [dstate]
-  (let [turn (inc (:turn dstate))
+  [state]
+  (let [turn (:turn state)
         turns (:total-turns spec/game)
-        active (:active dstate)
-        until-food-day (mod (+ 3 (- turns turn)) 7)
-        player-id (get-in dstate [:active :player-id])
-        player (get-in dstate [:players player-id])
+        active (:active state)
+        until-food-day (get-in spec/game [:until-food-day turn])
+        player-id (get-in state [:active :player-id])
+        player (get-in state [:players player-id])
         player-name (:name player)
         materials (:materials player)
         corn (:corn materials)
@@ -103,7 +103,7 @@
     :pay-skull (str (get symbols (:god data))
                     (:points data) "p"
                     (when (:resource data) (:resource symbols)))
-    "WHAT"))
+    "WHAT?"))
 
 (defn corn-cost-labels
   [cx cy r teeth]

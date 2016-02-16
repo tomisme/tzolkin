@@ -30,19 +30,29 @@
 
 (defn indexed
   "Returns a lazy sequence of [index, item] pairs, where items come
-  from 'sequence' and indexes count up from zero.
+  from 'seq' and indexes count up from zero.
 
   (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
-  [sequence]
-  (map vector (iterate inc 0) sequence))
+  [seq]
+  (map vector (iterate inc 0) seq))
 
 (defn first-nil
-  "Returns the index of the first instance of nil in a collection"
-  [collection]
-  (first (for [[index element] (indexed collection) :when (= element nil)] index)))
+  "Returns the index of the first instance of nil in 'coll'"
+  [coll]
+  (first (for [[index element] (indexed coll) :when (= element nil)] index)))
+
+(defn rotate-vec
+  "Circularly shifts items in a vector forward 'num' times.
+
+  (rotate-vec [:a :b :c :d :e] 2)  =>  [:d :e :a :b :c]"
+  [vec num]
+  (let [length (count vec)
+        rotations (mod num length)
+        break (- length rotations)]
+    (into (subvec vec break) (subvec vec 0 break))))
 
 (defn gear-position
-  "Returns the current board position of a gear slot"
+  "Returns the current board position of a gear slot after 'turn' spins"
   [gear slot turn]
   (let [teeth (get-in spec/game [:gears gear :teeth])]
     (mod (+ slot turn) teeth)))
@@ -52,22 +62,6 @@
   [gear position turn]
   (let [teeth (get-in spec/game [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
-
-(defn rotate-vec
-  "Circularly shifts items in a vector forward 'num' times.
-
-  (rotate-vec ['a 'b 'c 'd 'e] 2)  =>  ['d 'e 'a 'b 'c]"
-  [vec num]
-  (let [break (- (count vec) num)]
-    (into (subvec vec break) (subvec vec 0 break))))
-
-(defn set-placing
-  [state worker-option]
-  (if (= :none worker-option)
-    (update state :active assoc :worker-option :place)
-    state))
-
-;; SUBVEC ERROR WHEN TRYING TO PLACE
 
 (defn place-worker
   [state player-id gear]
@@ -135,7 +129,11 @@
 
 (defn end-turn
   [state]
-  (-> state
-    (update :turn inc)
-    (update :active assoc :placed 0)
-    (update :active assoc :worker-option :none)))
+  (let [turn (:turn state)
+        max-turn (:total-turns spec/game)]
+    (if (< turn max-turn)
+      (-> state
+        (update :turn inc)
+        (update :active assoc :placed 0)
+        (update :active assoc :worker-option :none))
+      state)))
