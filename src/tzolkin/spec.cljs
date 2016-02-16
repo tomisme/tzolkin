@@ -3,7 +3,32 @@
 (def spec
   {:total-turns 26
    :until-food-day [7 6 5 4 3 2 1 0 5 4 3 2 1 0 6 5 4 3 2 1 0 5 4 3 2 1 0]
-   :turn-steps [:beg :place :pickup :spin]
+   :buildings [{:cost {:stone 1
+                       :gold 1}
+                :points 3
+                :free-tech :agri}
+               {:cost {:wood 3}
+                :materials {:stone 1}
+                :free-tech :agri}]
+   :monuments {:cost {:wood 1
+                      :stone 3
+                      :gold 2}
+               :per :buildings-and-monuments
+               :points 2}
+   :starting [{:materials {:corn 6
+                           :wood 1
+                           :stone 1}
+               :gear :tik}
+              {:materials {:corn 6
+                           :wood 1
+                           :stone 1}}]
+   :trades {:wood 2
+            :sone 3
+            :gold 4}
+   :tech {:agri {}
+          :extr {}
+          :arch {}
+          :theo {}}
    :gears
     {:yax {:name "Yaxchilan"
            :teeth 10
@@ -82,14 +107,6 @@
                                          {:wood 4}]]
                      [:choose-action-from :pal]
                      [:choose-action-from :pal]]}}
-
-   :trades {:wood 2
-            :sone 3
-            :gold 4}
-   :tech {:agriculture {}
-          :extraction {}
-          :architecture {}
-          :theology {}}
    :temples {:chac {:name "Chaac"
                     :bonus {:age1 6
                             :age2 2}
