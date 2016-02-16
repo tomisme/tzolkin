@@ -1,5 +1,5 @@
 (ns tzolkin.logic
-  (:require [tzolkin.spec :as spec]))
+  (:require [tzolkin.spec :refer [spec]]))
 
 (def initial-game-state
   {:turn 0
@@ -54,20 +54,20 @@
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
   [gear slot turn]
-  (let [teeth (get-in spec/game [:gears gear :teeth])]
+  (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ slot turn) teeth)))
 
 (defn gear-slot
   "Return the gear slot index of a board position after 'turn' spins"
   [gear position turn]
-  (let [teeth (get-in spec/game [:gears gear :teeth])]
+  (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
 
 (defn place-worker
   [state player-id gear]
   (let [worker-option (get-in state [:active :worker-option])
         gear-slots (get-in state [:gears gear])
-        max-position (- (get-in spec/game [:gears gear :teeth]) 2)
+        max-position (- (get-in spec [:gears gear :teeth]) 2)
         turn (:turn state)
         position (first-nil (rotate-vec gear-slots turn))
         slot (gear-slot gear position turn)
@@ -117,7 +117,7 @@
         player-color (get-in state [:players player-id :color])
         target-color (get-in state [:gears gear slot])
         action-position (- position 1)
-        action (get-in spec/game [:gears gear :actions action-position])]
+        action (get-in spec [:gears gear :actions action-position])]
     (if (and (= player-color target-color)
              (or (= :pick worker-option) (= :none worker-option)))
       (-> state
@@ -130,7 +130,7 @@
 (defn end-turn
   [state]
   (let [turn (:turn state)
-        max-turn (:total-turns spec/game)]
+        max-turn (:total-turns spec)]
     (if (< turn max-turn)
       (-> state
         (update :turn inc)

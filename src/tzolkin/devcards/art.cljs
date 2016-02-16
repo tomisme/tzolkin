@@ -2,9 +2,9 @@
   (:require
    [reagent.core :as rg]
    [timothypratley.reanimated.core :as anim]
+   [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
-   [tzolkin.logic :as logic]
-   [tzolkin.spec :as spec])
+   [tzolkin.logic :as logic])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is]]))
@@ -115,7 +115,7 @@
   [:div
     [:button {:on-click #(swap! spin-test-atom + (/ 360 10))}
       "Spin the gear!"]
-    (for [[k v] (get spec/game :gears)]
+    (for [[k v] (get spec :gears)]
       [:button (:name v)])
     [spinning-worker-gear]]
   spin-test-atom

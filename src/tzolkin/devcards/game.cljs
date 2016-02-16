@@ -1,7 +1,7 @@
 (ns tzolkin.devcards.game
   (:require
+   [tzolkin.spec  :refer [spec]]
    [tzolkin.logic :as logic]
-   [tzolkin.spec  :as spec]
    [tzolkin.game  :as game]
    [tzolkin.art   :as art])
   (:require-macros
@@ -85,7 +85,7 @@
 
   ## Game Spec
   "
-  spec/game)
+  spec)
 
 (deftest inventory-changes
   (testing
@@ -110,14 +110,8 @@
 
 (defcard-rg game-test
   (fn [state _]
-    [:div
-      [art/status-bar @state]
-      [:p
-        [:button {:on-click #(swap! state logic/end-turn)}
-          "End Turn"]]
-      (for [[gear _] (get spec/game :gears)]
-        (game/worker-gear-wrapper state gear))])
-  (-> (new-test-game {:players 2}))
+    (game/board state))
+  (new-test-game {:players 2})
   {:inspect-data true :history true})
 
 (defcard-doc

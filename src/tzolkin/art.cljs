@@ -1,5 +1,5 @@
 (ns tzolkin.art
-  (:require [tzolkin.spec :as spec]))
+  (:require [tzolkin.spec :refer [spec]]))
 
 (defn e->val
   [event]
@@ -69,9 +69,9 @@
 (defn status-bar
   [state]
   (let [turn (:turn state)
-        turns (:total-turns spec/game)
+        turns (:total-turns spec)
         active (:active state)
-        until-food-day (get-in spec/game [:until-food-day turn])
+        until-food-day (get-in spec [:until-food-day turn])
         player-id (get-in state [:active :player-id])
         player (get-in state [:players player-id])
         player-name (:name player)

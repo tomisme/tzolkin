@@ -1,7 +1,7 @@
 (ns tzolkin.game
   (:require
+   [tzolkin.spec  :refer [spec]]
    [tzolkin.logic :as logic]
-   [tzolkin.spec  :as spec]
    [tzolkin.art   :as art]))
 
 (defn worker-gear
@@ -12,7 +12,7 @@
                   :cy 170
                   :r 85
                   :rotation rotation
-                  :teeth (get-in spec/game [:gears gear :teeth])
+                  :teeth (get-in spec [:gears gear :teeth])
                   :tooth-height-factor 1.15
                   :tooth-width-factor 0.75
                   :workers workers
@@ -28,10 +28,20 @@
                           (swap! state logic/remove-worker player-id gear slot))
         on-center-click (fn []
                           (swap! state logic/place-worker player-id gear))
-        teeth (get-in spec/game [:gears gear :teeth])]
+        teeth (get-in spec [:gears gear :teeth])]
     (worker-gear {:workers (get-in @state [:gears gear])
                   :gear gear
                   :rotation (* (/ 360 teeth) (:turn @state))
-                  :actions (get-in spec/game [:gears gear :actions])
+                  :actions (get-in spec [:gears gear :actions])
                   :on-center-click on-center-click
                   :on-worker-click on-worker-click})))
+
+(defn board
+  [state]
+  [:div
+    [art/status-bar @state]
+    [:p
+      [:button {:on-click #(swap! state logic/end-turn)}
+        "End Turn"]]
+    (for [[k _] (:gears spec)]
+      (worker-gear-wrapper state k))])
