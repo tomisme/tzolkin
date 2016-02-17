@@ -51,14 +51,32 @@
                  (apply str (repeat amount (get symbols material)))
                  (str amount (get symbols material))))))
 
-(defn worker-option-str
-  [active]
-  (let [option (:worker-option active)
-        placed (:placed active)]
-    (case option
-      :none " has not yet chosen to pick or place."
-      :place (str " has placed " placed " worker(s).")
-      :pick " is picking up workers.")))
+(defn decisions-el
+  [active on-decision]
+  (let [decision (:decision active)
+        type (:type decision)
+        decision-options (:options decision)]
+    [:span
+      " needs to choose between "
+      (map-indexed
+        (fn [index option]
+          (case type
+            :gain-materials ^{:key index}
+                            [:button {:on-click #(on-decision index)}
+                              (materials-str option)]))
+        decision-options)]))
+
+(defn player-status
+  [active on-decision]
+  (let [decision (:decision active)]
+    (if decision
+      (decisions-el active on-decision)
+      (let [worker-option (:worker-option active)
+            placed (:placed active)]
+        (case worker-option
+          :none " has not yet chosen to pick or place."
+          :place (str " has placed " placed " worker(s).")
+          :pick " is picking up workers.")))))
 
 (defn food-day-str
   [until-food-day]
@@ -67,12 +85,12 @@
            (str until-food-day " spins until Food Day!"))])
 
 (defn status-bar
-  [state]
+  [state on-decision]
   (let [turn (:turn state)
         turns (:total-turns spec)
         active (:active state)
         until-food-day (get-in spec [:until-food-day turn])
-        player-id (get-in state [:active :player-id])
+        player-id (:player-id active)
         player (get-in state [:players player-id])
         player-name (:name player)
         materials (:materials player)
@@ -80,7 +98,7 @@
         remaining-workers (:workers player)]
     [:div
       [:p "Turn " turn "/" turns ", " (food-day-str until-food-day)]
-      [:p [:b player-name (worker-option-str active)]]
+      [:p player-name (player-status active on-decision)]
       [:p "Click a worker to remove it, click on a fruit to place a worker
            on a specific gear."]
       [:p

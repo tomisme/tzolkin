@@ -36,10 +36,16 @@
                   :on-center-click on-center-click
                   :on-worker-click on-worker-click})))
 
+(defn status-bar-wrapper
+  [state]
+  (let [on-decision (fn [option-index]
+                      (swap! state logic/handle-decision option-index))]
+    (art/status-bar @state on-decision)))
+
 (defn board
   [state]
   [:div
-    [art/status-bar @state]
+    (status-bar-wrapper state)
     [:p
       [:button {:on-click #(swap! state logic/end-turn)}
         "End Turn"]]

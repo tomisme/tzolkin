@@ -8,7 +8,7 @@ If you want to have a poke around run `lein figwheel`, open
 ##TODO
  - [x] picking/placing
  - [x] Yaxchilan (🍈)
- - [ ] Palenque (🍏)
+ - [x] Palenque (🍏)
  - [ ] god tracks
  - [ ] Chichen Itza (🍇)
  - [ ] buildings

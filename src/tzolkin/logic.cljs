@@ -100,13 +100,39 @@
   [state material-changes player-id]
   (let [current-materials (get-in state [:players player-id :materials])
         updated-materials (apply-to-inventory + current-materials material-changes)]
+    (print ">> give-materials" material-changes player-id)
+    (print ">> from" current-materials)
+    (print ">> to" updated-materials)
     (-> state
       (assoc-in [:players player-id :materials] updated-materials))))
+
+(defn choose-materials
+  [state material-options player-id]
+  (-> state
+    (assoc-in [:active :decision :type] :gain-materials)
+    (assoc-in [:active :decision :options] material-options)))
+
+;; TODO use a conditional threading thing to handle different decision types
+;; and then dissoc the decision regardless?
+(defn handle-decision
+  [state option-index]
+  (let [active    (:active state)
+        player-id (:player-id active)
+        decision  (:decision active)
+        type      (:type decision)
+        option    (get-in decision [:options option-index])]
+    (print ">> handle-decision" type option player-id)
+    (case type
+      :gain-materials (-> state
+                        (give-materials option player-id)
+                        (update :active dissoc :decision))
+      state)))
 
 (defn handle-action
   [state [k v] player-id]
   (case k
-    :gain-materials (give-materials state v player-id)
+    :gain-materials   (give-materials state v player-id)
+    :choose-materials (choose-materials state v player-id)
     state))
 
 (defn remove-worker
