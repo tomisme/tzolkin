@@ -44,6 +44,11 @@
    :pal "🍏"
    :choose-prev "⏪"})
 
+(defn points-el
+  [num]
+  [:div.ui.label num])
+
+
 (defn materials-str
   [materials]
   (apply str (for [[material amount] materials]
@@ -273,3 +278,47 @@
             :font-size (* r 0.65)
             :text-anchor "middle"}
       (get symbols gear)]])
+
+(defn worker-gear
+  [{:keys [gear workers on-worker-click on-center-click actions rotation]}]
+  ^{:key gear}
+  [:svg {:width 340 :height 340}
+    [gear-el {:cx 170
+                  :cy 170
+                  :r 85
+                  :rotation rotation
+                  :teeth (get-in spec [:gears gear :teeth])
+                  :tooth-height-factor 1.15
+                  :tooth-width-factor 0.75
+                  :workers workers
+                  :gear gear
+                  :actions actions
+                  :on-center-click on-center-click
+                  :on-worker-click on-worker-click}]])
+
+(defn god-tracks
+  [state]
+  (let []
+    [:table {:class "ui very basic celled table"}
+      [:tbody
+        (for [[t temple] (:temples spec)]
+          ^{:key t}
+          [:tr
+            [:td (get symbols t)]
+            (map-indexed
+              (fn [index step]
+                ^{:key step}
+                [:td
+                  (points-el (:points step))
+                  (get symbols (:material step))
+                  [:br]
+                  (map-indexed
+                    (fn [player-id player]
+                      (let [track (get-in player [:temples t])
+                            color (get-in state [:players player-id :color])
+                            color-str (name color)]
+                        (when (= track index)
+                          ^{:key (str track color)}
+                          [:i {:class (str "ui " color-str " empty circular label")}])))
+                    (:players state))])
+              (get-in spec [:temples t :steps]))])]]))

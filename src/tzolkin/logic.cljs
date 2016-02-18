@@ -21,6 +21,9 @@
                :gold 0
                :skull 0}
    :workers 3
+   :temples {:chac 1
+             :quet 1
+             :kuku 1}
    :tech {:agriculture 0
           :extraction 0
           :architecture 0

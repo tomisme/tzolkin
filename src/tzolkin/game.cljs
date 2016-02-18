@@ -4,23 +4,6 @@
    [tzolkin.logic :as logic]
    [tzolkin.art   :as art]))
 
-(defn worker-gear
-  [{:keys [gear workers on-worker-click on-center-click actions rotation]}]
-  ^{:key gear}
-  [:svg {:width 340 :height 340}
-    [art/gear-el {:cx 170
-                  :cy 170
-                  :r 85
-                  :rotation rotation
-                  :teeth (get-in spec [:gears gear :teeth])
-                  :tooth-height-factor 1.15
-                  :tooth-width-factor 0.75
-                  :workers workers
-                  :gear gear
-                  :actions actions
-                  :on-center-click on-center-click
-                  :on-worker-click on-worker-click}]])
-
 (defn worker-gear-wrapper
   [state gear]
   (let [player-id (get-in @state [:active :player-id])
@@ -29,12 +12,12 @@
         on-center-click (fn []
                           (swap! state logic/place-worker player-id gear))
         teeth (get-in spec [:gears gear :teeth])]
-    (worker-gear {:workers (get-in @state [:gears gear])
-                  :gear gear
-                  :rotation (* (/ 360 teeth) (:turn @state))
-                  :actions (get-in spec [:gears gear :actions])
-                  :on-center-click on-center-click
-                  :on-worker-click on-worker-click})))
+    (art/worker-gear {:workers (get-in @state [:gears gear])
+                      :gear gear
+                      :rotation (* (/ 360 teeth) (:turn @state))
+                      :actions (get-in spec [:gears gear :actions])
+                      :on-center-click on-center-click
+                      :on-worker-click on-worker-click})))
 
 (defn status-bar-wrapper
   [state]
@@ -45,9 +28,10 @@
 (defn board
   [state]
   [:div
-    (status-bar-wrapper state)
     [:p
       [:button {:on-click #(swap! state logic/end-turn)}
         "End Turn"]]
+    (status-bar-wrapper state)
+    (art/god-tracks @state)
     (for [[k _] (:gears spec)]
       (worker-gear-wrapper state k))])
