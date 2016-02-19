@@ -152,25 +152,16 @@
                                              :x text-x
                                              :y text-y}])]
       ^{:key (str "corn-cost" index)}
-      [:g
-        [:text {:x text-x
-                :y text-y
-                :style {:stroke "black"
-                        :fill "black"}
-                :font-size 20
-                :text-anchor "middle"
-                :transform transform}
-          "🌽"]
-        [:text {:x text-x
-                :y text-y
-                :style {:stroke "white"
-                        :stroke-width 4
-                        :paint-order "stroke"
-                        :fill "black"}
-                :font-size 20
-                :text-anchor "middle"
-                :transform transform}
-         (str index)]])))
+      [:text {:x text-x
+              :y text-y
+              :style {:stroke "white"
+                      :stroke-width 4
+                      :paint-order "stroke"
+                      :fill "black"}
+              :font-size 14
+              :text-anchor "middle"
+              :transform transform}
+       (str index "🌽")])))
 
 (defn action-labels
   [cx cy r teeth actions gear]
