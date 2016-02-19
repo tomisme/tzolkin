@@ -68,6 +68,19 @@
                      [:choose-action-from-all {:cost {:corn 1}}]
                      [:choose-action-from :uxe]
                      [:choose-action-from :uxe]]}
+     :pal {:name "Palenque"
+           :teeth 10
+           :location 22
+           :actions [[:gain-materials {:corn 3}]
+                     [:gain-materials {:corn 4}]
+                     [:choose-materials [{:corn 5}
+                                         {:wood 2}]]
+                     [:choose-materials [{:corn 7}
+                                         {:wood 3}]]
+                     [:choose-materials [{:corn 9}
+                                         {:wood 4}]]
+                     [:choose-action-from :pal]
+                     [:choose-action-from :pal]]}
      :chi {:name "Chichen Itza"
            :teeth 13
            :location 16
@@ -92,21 +105,7 @@
                      [:pay-skull {:points 13
                                   :god :quet
                                   :resource true}]
-                     [:choose-action-from :chi]]}
-
-     :pal {:name "Palenque"
-           :teeth 10
-           :location 22
-           :actions [[:gain-materials {:corn 3}]
-                     [:gain-materials {:corn 4}]
-                     [:choose-materials [{:corn 5}
-                                         {:wood 2}]]
-                     [:choose-materials [{:corn 7}
-                                         {:wood 3}]]
-                     [:choose-materials [{:corn 9}
-                                         {:wood 4}]]
-                     [:choose-action-from :pal]
-                     [:choose-action-from :pal]]}}
+                     [:choose-action-from :chi]]}}
    :temples {:chac {:name "Chaac"
                     :bonus {:age1 6
                             :age2 2}
