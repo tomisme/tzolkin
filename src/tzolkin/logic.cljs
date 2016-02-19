@@ -8,6 +8,8 @@
             :placed 0}
    :skulls 13
    :players []
+   ;; TODO generate building list
+   :buildings [(:buildings spec)]
    :gears {:yax [nil nil nil nil nil nil nil nil nil nil]
            :tik [nil nil nil nil nil nil nil nil nil nil]
            :uxe [nil nil nil nil nil nil nil nil nil nil]

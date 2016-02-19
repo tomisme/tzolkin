@@ -6,10 +6,10 @@
    :buildings [{:cost {:stone 1
                        :gold 1}
                 :points 3
-                :free-tech :agri}
+                :color :green}
                {:cost {:wood 3}
                 :materials {:stone 1}
-                :free-tech :agri}]
+                :color :blue}]
    :monuments {:cost {:wood 1
                       :stone 3
                       :gold 2}

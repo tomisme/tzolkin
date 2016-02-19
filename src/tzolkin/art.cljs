@@ -106,19 +106,43 @@
            [:b "it's Food Day!"]
            (str until-food-day " spins until Food Day!"))])
 
+(defn building-card
+  [building]
+  (let [cost (:cost building)
+        materials (:materials building)
+        points (:points building)]
+    [:div.ui.segments
+      [:div.ui.top.attached.button
+        (materials-str cost)]
+      [:div.ui.center.aligned.segment
+        (when materials (materials-str materials))
+        (when points (points-el points))]]))
+
+(defn available-buildings
+  [buildings]
+  [:div.ui.horizontal.list
+    (map-indexed
+      (fn [index building]
+        ^{:key index}
+        [:div.item
+          [building-card building]])
+      buildings)])
+
 (defn status-bar
   [state on-decision]
   (let [turn (:turn state)
         turns (:total-turns spec)
-        active (:active state)
         until-food-day (get-in spec [:until-food-day turn])
+        buildings (:buildings spec)
+        active (:active state)
         active-player-id (:player-id active)
         active-player (get-in state [:players active-player-id])
         active-player-name (:name active-player)]
     [:div
       [:p "Turn " turn "/" turns ", " (food-day-str until-food-day)]
       [:p active-player-name (active-player-status active on-decision)]
-      (map-indexed player-stats (:players state))]))
+      (map-indexed player-stats (:players state))
+      (available-buildings buildings)]))
 
 (defn action-label
   [[k data]]
