@@ -10,7 +10,7 @@ If you want to have a poke around run `lein figwheel`, open
  - [x] Yaxchilan (🍈)
  - [x] Palenque (🍏)
  - [x] god tracks
- - [ ] Chichen Itza (🍇)
+ - [x] Chichen Itza (🍇)
  - [ ] buildings
  - [ ] tech tracks
  - [ ] Tikal (🍓)

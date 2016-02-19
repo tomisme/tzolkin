@@ -21,6 +21,7 @@
                :gold 0
                :skull 0}
    :workers 3
+   :points 0
    :temples {:chac 1
              :quet 1
              :kuku 1}
@@ -66,6 +67,75 @@
   (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
 
+(defn apply-to-inventory
+  [f inventory changes-map]
+  (reduce
+    (fn [m [k v]] (update m k #(f % v)))
+    inventory
+    (for [[k v] changes-map] [k v])))
+
+(defn give-materials
+  [state player-id material-changes]
+  (let [current-materials (get-in state [:players player-id :materials])
+        updated-materials (apply-to-inventory + current-materials material-changes)]
+    (-> state
+      (assoc-in [:players player-id :materials] updated-materials))))
+
+(defn give-points
+  [state player-id points]
+  (-> state
+    (update-in [:players player-id :points] + points)))
+
+(defn move-temple
+  [state player-id temple amount]
+  (-> state
+    (update-in [:players player-id :temples temple] + amount)))
+
+(defn choose-materials
+  [state material-options]
+  (-> state
+    (assoc-in [:active :decision :type] :gain-materials)
+    (assoc-in [:active :decision :options] material-options)))
+
+(defn choose-any-resource
+  [state]
+  (choose-materials state [{:wood 1} {:stone 1} {:gold 1}]))
+
+(defn pay-skull
+  [state player-id details]
+  (let [resource (:resource details)
+        points (:points details)
+        god (:god details)]
+    (-> (cond-> state
+          resource (choose-any-resource)
+          points   (give-points player-id points)
+          god      (move-temple player-id god 1))
+      (update-in [:players player-id :materials :skull] dec))))
+
+(defn handle-action
+  [state [k v] player-id]
+  (case k
+    :gain-materials   (give-materials state player-id v)
+    :choose-materials (choose-materials state v)
+    :pay-skull        (pay-skull state player-id v)
+    state))
+
+;; TODO use a conditional threading thing to handle different decision types
+;; and then dissoc the decision regardless?
+(defn handle-decision
+  [state option-index]
+  (let [active    (:active state)
+        player-id (:player-id active)
+        decision  (:decision active)
+        type      (:type decision)
+        options   (:options decision)
+        option    (get options option-index)]
+    (case type
+      :gain-materials (-> state
+                        (give-materials player-id option)
+                        (update :active dissoc :decision))
+      state)))
+
 (defn place-worker
   [state player-id gear]
   (let [worker-option (get-in state [:active :worker-option])
@@ -92,63 +162,20 @@
         (update :active assoc :worker-option :place))
       state)))
 
-(defn apply-to-inventory
-  [f inventory changes-map]
-  (reduce
-    (fn [m [k v]] (update m k #(f % v)))
-    inventory
-    (for [[k v] changes-map] [k v])))
-
-(defn give-materials
-  [state material-changes player-id]
-  (let [current-materials (get-in state [:players player-id :materials])
-        updated-materials (apply-to-inventory + current-materials material-changes)]
-    (print ">> give-materials" material-changes player-id)
-    (print ">> from" current-materials)
-    (print ">> to" updated-materials)
-    (-> state
-      (assoc-in [:players player-id :materials] updated-materials))))
-
-(defn choose-materials
-  [state material-options player-id]
-  (-> state
-    (assoc-in [:active :decision :type] :gain-materials)
-    (assoc-in [:active :decision :options] material-options)))
-
-;; TODO use a conditional threading thing to handle different decision types
-;; and then dissoc the decision regardless?
-(defn handle-decision
-  [state option-index]
-  (let [active    (:active state)
-        player-id (:player-id active)
-        decision  (:decision active)
-        type      (:type decision)
-        option    (get-in decision [:options option-index])]
-    (print ">> handle-decision" type option player-id)
-    (case type
-      :gain-materials (-> state
-                        (give-materials option player-id)
-                        (update :active dissoc :decision))
-      state)))
-
-(defn handle-action
-  [state [k v] player-id]
-  (case k
-    :gain-materials   (give-materials state v player-id)
-    :choose-materials (choose-materials state v player-id)
-    state))
-
 (defn remove-worker
   [state player-id gear slot]
   (let [turn (:turn state)
         worker-option (get-in state [:active :worker-option])
         position (gear-position gear slot turn)
-        player-color (get-in state [:players player-id :color])
+        player (get-in state [:players player-id])
+        skulls (get-in player [:materials :skull])
+        player-color (:color player)
         target-color (get-in state [:gears gear slot])
         action-position (- position 1)
         action (get-in spec [:gears gear :actions action-position])]
     (if (and (= player-color target-color)
-             (or (= :pick worker-option) (= :none worker-option)))
+             (or (= :pick worker-option) (= :none worker-option))
+             (or (not= :chi gear) (> skulls 0)))
       (-> state
         (update-in [:players player-id :workers] inc)
         (update-in [:gears gear] assoc slot nil)

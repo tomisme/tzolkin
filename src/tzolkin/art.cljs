@@ -71,7 +71,7 @@
                               (materials-str option)]))
         decision-options)]))
 
-(defn player-status
+(defn active-player-status
   [active on-decision]
   (let [decision (:decision active)]
     (if decision
@@ -82,6 +82,23 @@
           :none " has not yet chosen to pick or place."
           :place (str " has placed " placed " worker(s).")
           :pick " is picking up workers.")))))
+
+(defn player-stats
+  [player-id player]
+  (let [player-name (:name player)
+        player-color (:color player)
+        materials (:materials player)
+        points (:points player)
+        remaining-workers (:workers player)]
+    ^{:key player-id}
+    [:p
+      [:span player-name " ("
+        [:i {:class (str "ui " (name player-color) " empty circular label")}]
+        ")"]
+      [:span " | " remaining-workers " workers remaining | "]
+      [:span (for [[k v] materials]
+               (str v " " (get symbols k) " | "))]
+      [:span points " victory points"]]))
 
 (defn food-day-str
   [until-food-day]
@@ -95,21 +112,13 @@
         turns (:total-turns spec)
         active (:active state)
         until-food-day (get-in spec [:until-food-day turn])
-        player-id (:player-id active)
-        player (get-in state [:players player-id])
-        player-name (:name player)
-        materials (:materials player)
-        corn (:corn materials)
-        remaining-workers (:workers player)]
+        active-player-id (:player-id active)
+        active-player (get-in state [:players active-player-id])
+        active-player-name (:name active-player)]
     [:div
       [:p "Turn " turn "/" turns ", " (food-day-str until-food-day)]
-      [:p player-name (player-status active on-decision)]
-      [:p "Click a worker to remove it, click on a fruit to place a worker
-           on a specific gear."]
-      [:p
-        [:span remaining-workers " workers remaining | "]
-        [:span (for [[k v] materials]
-                 (str v " " (get symbols k) " | "))]]]))
+      [:p active-player-name (active-player-status active on-decision)]
+      (map-indexed player-stats (:players state))]))
 
 (defn action-label
   [[k data]]
