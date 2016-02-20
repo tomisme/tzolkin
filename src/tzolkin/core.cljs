@@ -3,7 +3,8 @@
    [reagent.core :as rg]
    [tzolkin.game :as game]
    [tzolkin.devcards.art]
-   [tzolkin.devcards.game]))
+   [tzolkin.devcards.game]
+   [tzolkin.devcards.buildings]))
 
 (defn app-container
   []
