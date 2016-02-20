@@ -124,16 +124,15 @@
     (map-indexed
       (fn [index building]
         ^{:key index}
-        [:div.item
-          [building-card building]])
-      buildings)])
+        [:div.item (building-card building)])
+      (take 5 buildings))])
 
 (defn status-bar
   [state on-decision]
   (let [turn (:turn state)
         turns (:total-turns spec)
         until-food-day (get-in spec [:until-food-day turn])
-        buildings (:buildings spec)
+        buildings (:buildings state)
         active (:active state)
         active-player-id (:player-id active)
         active-player (get-in state [:players active-player-id])
@@ -153,10 +152,10 @@
     :choose-action-from-all "any"
     :tech-step "+tech"
     :build "build"
-    :god-track "+god"
+    :temple "+temple"
     :trade "trade"
     :gain-worker "+worker"
-    :pay-skull (str (get symbols (:god data))
+    :pay-skull (str (get symbols (:temple data))
                     (:points data) "p"
                     (when (:resource data) (:resource symbols)))
     "WHAT?"))

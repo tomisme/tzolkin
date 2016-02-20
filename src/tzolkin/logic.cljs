@@ -8,8 +8,8 @@
             :placed 0}
    :skulls 13
    :players []
-   ;; TODO generate building list
-   :buildings [(:buildings spec)]
+   :buildings (shuffle (:buildings spec))
+   :monuments (shuffle (:monuments spec))
    :gears {:yax [nil nil nil nil nil nil nil nil nil nil]
            :tik [nil nil nil nil nil nil nil nil nil nil]
            :uxe [nil nil nil nil nil nil nil nil nil nil]
@@ -32,7 +32,8 @@
           :architecture 0
           :theology 0}
    :tiles {:corn 0
-           :wood 0}})
+           :wood 0}
+   :starters (take 3 (shuffle (:starters spec)))})
 
 (defn indexed
   "Returns a lazy sequence of [index, item] pairs, where items come
@@ -107,11 +108,11 @@
   [state player-id details]
   (let [resource (:resource details)
         points (:points details)
-        god (:god details)]
+        temple (:temple details)]
     (-> (cond-> state
           resource (choose-any-resource)
           points   (give-points player-id points)
-          god      (move-temple player-id god 1))
+          temple   (move-temple player-id temple 1))
       (update-in [:players player-id :materials :skull] dec))))
 
 (defn handle-action
