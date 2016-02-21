@@ -5,33 +5,33 @@
    [tzolkin.art   :as art]))
 
 (defn worker-gear-wrapper
-  [state gear]
-  (let [player-id (get-in @state [:active :player-id])
+  [state-atom gear]
+  (let [player-id (get-in @state-atom [:active :player-id])
         on-worker-click (fn [slot]
-                          (swap! state logic/remove-worker player-id gear slot))
+                          (swap! state-atom logic/remove-worker player-id gear slot))
         on-center-click (fn []
-                          (swap! state logic/place-worker player-id gear))
+                          (swap! state-atom logic/place-worker player-id gear))
         teeth (get-in spec [:gears gear :teeth])]
-    (art/worker-gear {:workers (get-in @state [:gears gear])
+    (art/worker-gear {:workers (get-in @state-atom [:gears gear])
                       :gear gear
-                      :rotation (* (/ 360 teeth) (:turn @state))
+                      :rotation (* (/ 360 teeth) (:turn @state-atom))
                       :actions (get-in spec [:gears gear :actions])
                       :on-center-click on-center-click
                       :on-worker-click on-worker-click})))
 
 (defn status-bar-wrapper
-  [state]
+  [state-atom]
   (let [on-decision (fn [option-index]
-                      (swap! state logic/handle-decision option-index))]
-    (art/status-bar @state on-decision)))
+                      (swap! state-atom logic/handle-decision option-index))]
+    (art/status-bar @state-atom on-decision)))
 
 (defn board
-  [state]
+  [state-atom]
   [:div
     [:p
-      [:button {:on-click #(swap! state logic/end-turn)}
+      [:button {:on-click #(swap! state-atom logic/end-turn)}
         "End Turn"]]
-    (status-bar-wrapper state)
-    (art/god-tracks @state)
+    (status-bar-wrapper state-atom)
+    (art/god-tracks @state-atom)
     (for [[k _] (:gears spec)]
-      (worker-gear-wrapper state k))])
+      (worker-gear-wrapper state-atom k))])
