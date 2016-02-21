@@ -61,7 +61,7 @@
     (into (subvec vec break) (subvec vec 0 break))))
 
 (defn remove-from-vec
-  "Returns a new vector with the element at 'index' removed from vector 'v'.
+  "Returns a new vector with the element at 'index' removed.
 
   (remove-from-vec [:a :b :c] 1  =>  [:a :c])"
   [v index]
@@ -108,12 +108,6 @@
   (-> state
     (update-in [:players player-id :temples temple] + amount)))
 
-(defn choose-materials
-  [state material-options]
-  (-> state
-    (assoc-in [:active :decision :type] :gain-materials)
-    (assoc-in [:active :decision :options] material-options)))
-
 (defn choose-building
   [state _]
   (let [num (:num-available-buildings spec)
@@ -121,6 +115,12 @@
     (-> state
       (assoc-in [:active :decision :type] :build-building)
       (assoc-in [:active :decision :options] buildings))))
+
+(defn choose-materials
+  [state material-options]
+  (-> state
+    (assoc-in [:active :decision :type] :gain-materials)
+    (assoc-in [:active :decision :options] material-options)))
 
 (defn choose-any-resource
   [state]
@@ -146,8 +146,6 @@
     :build            (choose-building state v)
     state))
 
-;; TODO use a conditional threading thing to handle different decision types
-;; and then dissoc the decision regardless?
 (defn handle-decision
   [state option-index]
   (let [active    (:active state)

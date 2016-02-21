@@ -11,8 +11,8 @@ If you want to have a poke around run `lein figwheel`, open
  - [x] Palenque (🍏)
  - [x] god tracks
  - [x] Chichen Itza (🍇)
- - [ ] buildings
  - [ ] tech tracks
+ - [ ] buildings
  - [ ] Tikal (🍓)
  - [ ] Uxmal (🍋)
  - [ ] monuments
