@@ -74,22 +74,59 @@
   [farms]
   (if (= :all farms)
     [:p "(🌽✔)"]
-    (repeat farms [:p "(🌽🌽✔)"])))
+    (map-indexed (fn [index _] ^{:key index} [:p "(🌽🌽✔)"]) (range farms))))
+
+;; TODO share rendering with action-label
+(defn building-card
+  [building on-click choosing?]
+  (let [{:keys [cost color materials points tech farm temples gain-worker
+                free-action-for-corn build]} building]
+    [:div {:class (str (name color) " ui card")
+           :style {:width 124
+                   :margin 5}}
+      [:div.content {:style {:height 50}}
+        [:div {:class (str "ui " (name color) " corner label")}]
+        (if choosing?
+          [:a {:on-click on-click}
+            (materials-str cost)]
+          (materials-str cost))]
+      [:div.center.aligned.content {:style {:height 110}}
+        [:div.description
+          (when farm (farm-el farm))
+          (when tech [:p (tech-str tech)])
+          (when gain-worker [:p "+worker"])
+          (when free-action-for-corn [:p (get symbols :corn) ": free!"])
+          (when build [:p "build " (name build)])
+          (when temples [:p (temples-str temples)])
+          (when materials [:p (materials-str materials)])
+          (when points [:p (points-el points)])]]]))
+
+(defn available-buildings
+  [buildings on-decision choosing?]
+  [:div.ui.segment
+    [:div.ui.cards
+      (map-indexed
+        (fn [index building]
+          ^{:key building}
+          [:div.item (building-card building #(on-decision index) choosing?)])
+        (take (:num-available-buildings spec) buildings))]])
 
 (defn decisions-el
   [active on-decision]
   (let [decision (:decision active)
         type (:type decision)
         decision-options (:options decision)]
-    [:span
-      " needs to choose between "
-      (map-indexed
-        (fn [index option]
-          (case type
-            :gain-materials ^{:key index}
-                            [:button {:on-click #(on-decision index)}
-                              (materials-str option)]))
-        decision-options)]))
+    (if (= :build-building type)
+      [:span " needs to choose a building."]
+      [:span
+        " needs to choose between "
+        (map-indexed
+          (fn [index option]
+            (case type
+              :gain-materials ^{:key index}
+                              [:button {:on-click #(on-decision index)}
+                                (materials-str option)]))
+          decision-options)])))
 
 (defn active-player-status
   [active on-decision]
@@ -103,52 +140,32 @@
           :place (str " has placed " placed " worker(s).")
           :pick " is picking up workers.")))))
 
-(defn player-stats
-  [player-id player]
-  (let [player-name (:name player)
-        player-color (:color player)
-        materials (:materials player)
-        points (:points player)
-        remaining-workers (:workers player)]
-    ^{:key player-id}
-    [:p
-      [:span player-name " ("
-        [:i {:class (str "ui " (name player-color) " empty circular label")}]
-        ")"]
-      [:span " | " remaining-workers " workers remaining | "]
-      [:span (for [[k v] materials]
-               (str v " " (get symbols k) " | "))]
-      [:span points " victory points"]]))
-
-;; TODO share rendering with action-label
-(defn building-card
-  [{:keys [cost color materials points tech farm temples gain-worker
-           free-action-for-corn build]}]
-  [:div {:class (str (name color) " ui card")
-         :style {:width 130
-                 :margin 5}}
-    [:div.content {:style {:height 50}}
-      [:div {:class (str "ui " (name color) " corner label")}]
-      (materials-str cost)]
-    [:div.center.aligned.content {:style {:height 110}}
-      [:div.description
-        (when farm (farm-el farm))
-        (when tech [:p (tech-str tech)])
-        (when gain-worker [:p "+worker"])
-        (when free-action-for-corn [:p (get symbols :corn) ": free!"])
-        (when build [:p "build " (name build)])
-        (when temples [:p (temples-str temples)])
-        (when materials [:p (materials-str materials)])
-        (when points [:p (points-el points)])]]])
-
-(defn available-buildings
+(defn player-buildings
   [buildings]
   [:div.ui.cards
     (map-indexed
       (fn [index building]
         ^{:key index}
-        [:div.item (building-card building)])
-      (take 5 buildings))])
+        [:div.item (building-card building nil false)])
+      buildings)])
+
+(defn player-stats
+  [player-id player]
+  (let [{:keys [color materials points workers buildings]} player
+        player-name (:name player)]
+    ^{:key player-id}
+    [:div.ui.segment
+      [:p
+        [:a {:class (str "ui " (name color) " ribbon label")}
+          player-name]
+        [:span workers " workers remaining | "]
+        [:span (for [[k v] materials]
+                 (str v " " (get symbols k) " | "))]
+        [:span points " victory points"]]
+      (if (seq buildings)
+        (player-buildings buildings)
+        [:p "No buildings."])]))
+
 
 (defn status-bar
   [state on-decision]
@@ -157,6 +174,7 @@
         until-food-day (get-in spec [:until-food-day turn])
         buildings (:buildings state)
         active (:active state)
+        choosing-building? (= :build-building (get-in active [:decision :type]))
         active-player-id (:player-id active)
         active-player (get-in state [:players active-player-id])
         active-player-name (:name active-player)]
@@ -164,7 +182,7 @@
       [:p "Turn " turn "/" turns ", " (food-day-str until-food-day)]
       [:p active-player-name (active-player-status active on-decision)]
       (map-indexed player-stats (:players state))
-      (available-buildings buildings)]))
+      (available-buildings buildings on-decision choosing-building?)]))
 
 (defn action-label
   [[k data]]
@@ -342,10 +360,10 @@
                   :on-center-click on-center-click
                   :on-worker-click on-worker-click}]])
 
-(defn god-tracks
+(defn temples-el
   [state]
-  (let []
-    [:table {:class "ui very basic celled table"}
+  [:div.ui.segment
+    [:table.ui.very.basic.celled.table
       [:tbody
         (for [[t temple] (:temples spec)]
           ^{:key t}
@@ -367,4 +385,4 @@
                           ^{:key (str track color)}
                           [:i {:class (str "ui " color-str " empty circular label")}])))
                     (:players state))])
-              (get-in spec [:temples t :steps]))])]]))
+              (get-in spec [:temples t :steps]))])]]])

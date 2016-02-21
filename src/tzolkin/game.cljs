@@ -32,6 +32,6 @@
       [:button {:on-click #(swap! state-atom logic/end-turn)}
         "End Turn"]]
     (status-bar-wrapper state-atom)
-    (art/god-tracks @state-atom)
+    (art/temples-el @state-atom)
     (for [[k _] (:gears spec)]
       (worker-gear-wrapper state-atom k))])

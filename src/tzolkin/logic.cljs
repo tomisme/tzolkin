@@ -8,7 +8,7 @@
             :placed 0}
    :skulls 13
    :players []
-   ;; TODO filter only age 1 buildings
+   ;; TODO filter only age 1 buildings at start
    :buildings (shuffle (:buildings spec))
    :monuments (shuffle (:monuments spec))
    :gears {:yax [nil nil nil nil nil nil nil nil nil nil]
@@ -25,6 +25,7 @@
                :skull 0}
    :workers 3
    :points 0
+   :buildings []
    :temples {:chac 1
              :quet 1
              :kuku 1}
@@ -59,6 +60,13 @@
         break (- length rotations)]
     (into (subvec vec break) (subvec vec 0 break))))
 
+(defn remove-from-vec
+  "Returns a new vector with the element at 'index' removed from vector 'v'.
+
+  (remove-from-vec [:a :b :c] 1  =>  [:a :c])"
+  [v index]
+  (vec (concat (subvec v 0 index) (subvec v (inc index)))))
+
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
   [gear slot turn]
@@ -90,6 +98,11 @@
   (-> state
     (update-in [:players player-id :points] + points)))
 
+(defn give-building
+  [state player-id building]
+  (-> state
+    (update-in [:players player-id :buildings] conj building)))
+
 (defn move-temple
   [state player-id temple amount]
   (-> state
@@ -100,6 +113,14 @@
   (-> state
     (assoc-in [:active :decision :type] :gain-materials)
     (assoc-in [:active :decision :options] material-options)))
+
+(defn choose-building
+  [state _]
+  (let [num (:num-available-buildings spec)
+        buildings (vec (take num (:buildings state)))]
+    (-> state
+      (assoc-in [:active :decision :type] :build-building)
+      (assoc-in [:active :decision :options] buildings))))
 
 (defn choose-any-resource
   [state]
@@ -122,6 +143,7 @@
     :gain-materials   (give-materials state player-id v)
     :choose-materials (choose-materials state v)
     :pay-skull        (pay-skull state player-id v)
+    :build            (choose-building state v)
     state))
 
 ;; TODO use a conditional threading thing to handle different decision types
@@ -137,6 +159,10 @@
     (case type
       :gain-materials (-> state
                         (give-materials player-id option)
+                        (update :active dissoc :decision))
+      :build-building (-> state
+                        (give-building player-id option)
+                        (update :buildings remove-from-vec option-index)
                         (update :active dissoc :decision))
       state)))
 
@@ -155,7 +181,8 @@
         placed (get-in state [:active :placed])
         corn-cost (+ position placed)]
     (if (and (> remaining-workers 0)
-             (>= remaining-corn position)
+             (not (get-in state [:active :decision]))
+             (>= remaining-corn corn-cost)
              (< position max-position)
              (or (= :place worker-option) (= :none worker-option)))
       (-> state
@@ -178,6 +205,7 @@
         action-position (- position 1)
         action (get-in spec [:gears gear :actions action-position])]
     (if (and (= player-color target-color)
+             (not (get-in state [:active :decision]))
              (or (= :pick worker-option) (= :none worker-option))
              (or (not= :chi gear) (> skulls 0)))
       (-> state

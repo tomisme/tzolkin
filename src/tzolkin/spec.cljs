@@ -378,6 +378,7 @@
   {:total-turns 26
    :until-food-day [7 6 5 4 3 2 1 0 5 4 3 2 1 0 6 5 4 3 2 1 0 5 4 3 2 1 0]
    :trades {:wood 2 :stone 3 :gold 4}
+   :num-available-buildings 4
    :tech tech
    :gears gears
    :temples temples
