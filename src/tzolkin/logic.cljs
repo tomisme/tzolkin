@@ -8,6 +8,7 @@
             :placed 0}
    :skulls 13
    :players []
+   ;; TODO filter only age 1 buildings
    :buildings (shuffle (:buildings spec))
    :monuments (shuffle (:monuments spec))
    :gears {:yax [nil nil nil nil nil nil nil nil nil nil]

@@ -27,14 +27,12 @@
     :farm 1
     :color :yellow
     :age 1}
-   {:cost {:wood 1
-           :stone 1}
+   {:cost {:wood 1 :stone 1}
     :tech :extr
     :materials {:corn 1}
     :color :green
     :age 1}
-   {:cost {:wood 2
-           :stone 1}
+   {:cost {:wood 2 :stone 1}
     :tech :extr
     :materials {:gold 1}
     :color :green
@@ -83,7 +81,7 @@
     :color :yellow
     :age 2}
    {:cost {:wood 2}
-    :corn 8
+    :materials {:corn 8}
     :color :yellow
     :age 2}
    {:cost {:wood 3 :stone 1}
@@ -203,82 +201,62 @@
     :color :brown}])
 
 (def starters
-  [{:materials {:corn 5
-                :stone 1}
+  [{:materials {:corn 5 :stone 1}
     :tech :theo
     :chi 3}
-   {:materials {:corn 3
-                :wood 1}
+   {:materials {:corn 3 :wood 1}
     :farm 1
     :uxe 3}
-   {:materials {:corn 9
-                :stone 1}
+   {:materials {:corn 9 :stone 1}
     :pal 7}
-   {:materials {:corn 8
-                :gold 1}
+   {:materials {:corn 8 :gold 1}
     :uxe 7}
-   {:materials {:corn 6
-                :wood 1
-                :stone 1}
+   {:materials {:corn 6 :wood 1 :stone 1}
     :tik 7}
    {:materials {:corn 2}
     :temple :chac
     :track :arch
     :tik 1}
-   {:materials {:corn 5
-                :stone 1}
+   {:materials {:corn 5 :stone 1}
     :temple :chac
     :uxe 1}
-   {:materials {:corn 5
-                :gold 1}
+   {:materials {:corn 5 :gold 1}
     :temple :quet
     :pal 3}
-   {:materials {:corn 2
-                :wood 2}
+   {:materials {:corn 2 :wood 2}
     :tech :theo
     :chi 7}
-   {:materials {:corn 4
-                :wood 1}
+   {:materials {:corn 4 :wood 1}
     :tech :extr
     :yax 5}
-   {:materials {:corn 3
-                :gold 1}
+   {:materials {:corn 3 :gold 1}
     :tech :arch
     :tik 5}
    {:materials {:corn 3}
     :temple :quet
     :tech :agri
     :pal 1}
-   {:materials {:corn 6
-                :stone 2}
+   {:materials {:corn 6 :stone 2}
     :tik 3}
-   {:materials {:corn 3
-                :wood 2
-                :stone 1}
+   {:materials {:corn 3 :wood 2 :stone 1}
     :yax 7}
-   {:materials {:stone 1
-                :gold 1}
+   {:materials {:stone 1 :gold 1}
     :tech :agri
     :pal 5}
    {:materials {:wood 1}
     :temple :kuku
     :tech :extr
     :yax 1}
-   {:materials {:corn 4
-                :wood 1
-                :skulls 1}
+   {:materials {:corn 4 :wood 1 :skulls 1}
     :chi 0}
-   {:materials {:corn 4
-                :wood 3}
+   {:materials {:corn 4 :wood 3}
     :chi 5}
-   {:materials {:corn 2
-                :wood 2}
+   {:materials {:corn 2 :wood 2}
     :temple :kuku
     :yax 3}
    {:gain-worker true
     :uxe 5}
-   {:materials {:corn 7
-                :wood 2}
+   {:materials {:corn 7 :wood 2}
     :chi 10}])
 
 (def gears
@@ -399,9 +377,7 @@
 (def spec
   {:total-turns 26
    :until-food-day [7 6 5 4 3 2 1 0 5 4 3 2 1 0 6 5 4 3 2 1 0 5 4 3 2 1 0]
-   :trades {:wood 2
-            :stone 3
-            :gold 4}
+   :trades {:wood 2 :stone 3 :gold 4}
    :tech tech
    :gears gears
    :temples temples

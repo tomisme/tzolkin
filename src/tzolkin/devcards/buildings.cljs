@@ -16,12 +16,14 @@
   (first (shuffle (:buildings spec))))
 
 (defcard-rg single-building
-  (art/building-card random-building))
+  (art/building-card random-building)
+  random-building
+  {:inspect-data true})
 
 (defcard-rg all-buildings
-  [:div
+  [:div.ui.cards
     (map-indexed
       (fn [index building]
         ^{:key index}
-        [:div.item (art/building-card building)])
+        [:div (art/building-card building)])
       (:buildings spec))])

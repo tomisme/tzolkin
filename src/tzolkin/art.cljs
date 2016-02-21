@@ -44,17 +44,37 @@
    :pal "🍏"
    :choose-prev "⏪"})
 
-(defn points-el
-  [num]
-  [:div.ui.label num])
-
-
 (defn materials-str
   [materials]
   (apply str (for [[material amount] materials]
                (if (< amount 3)
                  (apply str (repeat amount (get symbols material)))
                  (str amount (get symbols material))))))
+
+(defn temples-str
+  [temples]
+  (apply str (for [[temple amount] temples]
+               (apply str (repeat amount (get symbols temple))))))
+
+(defn tech-str
+  [tech]
+  (str "› " (name tech)))
+
+(defn food-day-str
+  [until-food-day]
+  [:span (if (= 0 until-food-day)
+           [:b "it's Food Day!"]
+           (str until-food-day " spins until Food Day!"))])
+
+(defn points-el
+  [num]
+  [:div.ui.label num])
+
+(defn farm-el
+  [farms]
+  (if (= :all farms)
+    [:p "(🌽✔)"]
+    (repeat farms [:p "(🌽🌽✔)"])))
 
 (defn decisions-el
   [active on-decision]
@@ -100,27 +120,30 @@
                (str v " " (get symbols k) " | "))]
       [:span points " victory points"]]))
 
-(defn food-day-str
-  [until-food-day]
-  [:span (if (= 0 until-food-day)
-           [:b "it's Food Day!"]
-           (str until-food-day " spins until Food Day!"))])
-
+;; TODO share rendering with action-label
 (defn building-card
-  [building]
-  (let [cost (:cost building)
-        materials (:materials building)
-        points (:points building)]
-    [:div.ui.segments
-      [:div.ui.top.attached.button
-        (materials-str cost)]
-      [:div.ui.center.aligned.segment
-        (when materials (materials-str materials))
-        (when points (points-el points))]]))
+  [{:keys [cost color materials points tech farm temples gain-worker
+           free-action-for-corn build]}]
+  [:div {:class (str (name color) " ui card")
+         :style {:width 130
+                 :margin 5}}
+    [:div.content {:style {:height 50}}
+      [:div {:class (str "ui " (name color) " corner label")}]
+      (materials-str cost)]
+    [:div.center.aligned.content {:style {:height 110}}
+      [:div.description
+        (when farm (farm-el farm))
+        (when tech [:p (tech-str tech)])
+        (when gain-worker [:p "+worker"])
+        (when free-action-for-corn [:p (get symbols :corn) ": free!"])
+        (when build [:p "build " (name build)])
+        (when temples [:p (temples-str temples)])
+        (when materials [:p (materials-str materials)])
+        (when points [:p (points-el points)])]]])
 
 (defn available-buildings
   [buildings]
-  [:div.ui.horizontal.list
+  [:div.ui.cards
     (map-indexed
       (fn [index building]
         ^{:key index}
