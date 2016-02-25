@@ -87,11 +87,11 @@
   "
   spec)
 
-(deftest inventory-changes
+(deftest apply-changes-to-map
   (testing
-    (is (= (logic/apply-to-inventory + {:wood 1 :gold 2 :skull 1} {:wood 2 :gold 2})
+    (is (= (logic/apply-changes-to-map + {:wood 1 :gold 2 :skull 1} {:wood 2 :gold 2})
            {:wood 3 :gold 4 :skull 1}))
-    (is (= (logic/apply-to-inventory - {:stone 1 :gold 1 :corn 9} {:corn 7 :gold 1})
+    (is (= (logic/apply-changes-to-map - {:stone 1 :gold 1 :corn 9} {:corn 7 :gold 1})
            {:stone 1 :gold 0 :corn 2})))
   "##Other Tests
 

@@ -1,7 +1,5 @@
 (ns tzolkin.devcards.buildings
   (:require
-   [reagent.core :as rg]
-   [timothypratley.reanimated.core :as anim]
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
    [tzolkin.logic :as logic])
@@ -16,7 +14,7 @@
   (first (shuffle (:buildings spec))))
 
 (defcard-rg single-building
-  (art/building-card random-building)
+  (art/building-card random-building nil false)
   random-building
   {:inspect-data true})
 
@@ -25,5 +23,5 @@
     (map-indexed
       (fn [index building]
         ^{:key index}
-        [:div (art/building-card building)])
+        [:div (art/building-card building nil false)])
       (:buildings spec))])

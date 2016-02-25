@@ -79,34 +79,36 @@
   (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
 
-(defn apply-to-inventory
+(defn apply-changes-to-map
   [f inventory changes-map]
   (reduce
     (fn [m [k v]] (update m k #(f % v)))
     inventory
     (for [[k v] changes-map] [k v])))
 
-(defn give-materials
+(defn adjust-materials
   [state player-id material-changes]
-  (let [current-materials (get-in state [:players player-id :materials])
-        updated-materials (apply-to-inventory + current-materials material-changes)]
+  (let [current (get-in state [:players player-id :materials])
+        updated (apply-changes-to-map + current material-changes)]
     (-> state
-      (assoc-in [:players player-id :materials] updated-materials))))
+      (assoc-in [:players player-id :materials] updated))))
 
 (defn give-points
   [state player-id points]
   (-> state
     (update-in [:players player-id :points] + points)))
 
-(defn give-building
-  [state player-id building]
-  (-> state
-    (update-in [:players player-id :buildings] conj building)))
-
 (defn move-temple
   [state player-id temple amount]
   (-> state
     (update-in [:players player-id :temples temple] + amount)))
+
+(defn move-temples
+  [state player-id {:keys [chac quet kuku]}]
+  (cond-> state
+    chac (move-temple player-id :chac chac)
+    quet (move-temple player-id :quet quet)
+    kuku (move-temple player-id :kuku kuku)))
 
 (defn choose-building
   [state _]
@@ -126,6 +128,17 @@
   [state]
   (choose-materials state [{:wood 1} {:stone 1} {:gold 1}]))
 
+;;PROGRESS working on handling buying a building
+(defn give-building
+  [state player-id building]
+  (let [{:keys [cost #_tech temples materials #_trade build points
+                #_gain-worker #_free-action-for-corn]} building]
+    (-> (cond-> state
+          temples (move-temples player-id temples)
+          materials (adjust-materials player-id materials))
+      (update-in [:players player-id :buildings] conj building))))
+      ; (adjust-materials player-id cost-times-by-neg-one))))
+
 (defn pay-skull
   [state player-id details]
   (let [resource (:resource details)
@@ -140,7 +153,7 @@
 (defn handle-action
   [state [k v] player-id]
   (case k
-    :gain-materials   (give-materials state player-id v)
+    :gain-materials   (adjust-materials state player-id v)
     :choose-materials (choose-materials state v)
     :pay-skull        (pay-skull state player-id v)
     :build            (choose-building state v)
@@ -156,7 +169,7 @@
         option    (get options option-index)]
     (case type
       :gain-materials (-> state
-                        (give-materials player-id option)
+                        (adjust-materials player-id option)
                         (update :active dissoc :decision))
       :build-building (-> state
                         (give-building player-id option)

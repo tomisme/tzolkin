@@ -346,43 +346,47 @@
 (defn worker-gear
   [{:keys [gear workers on-worker-click on-center-click actions rotation]}]
   ^{:key gear}
-  [:svg {:width 340 :height 340}
-    [gear-el {:cx 170
-                  :cy 170
-                  :r 85
-                  :rotation rotation
-                  :teeth (get-in spec [:gears gear :teeth])
-                  :tooth-height-factor 1.15
-                  :tooth-width-factor 0.75
-                  :workers workers
-                  :gear gear
-                  :actions actions
-                  :on-center-click on-center-click
-                  :on-worker-click on-worker-click}]])
+  [:svg {:width 400 :height 400}
+    [gear-el {:cx 200
+              :cy 200
+              :r 100
+              :rotation rotation
+              :teeth (get-in spec [:gears gear :teeth])
+              :tooth-height-factor 1.15
+              :tooth-width-factor 0.75
+              :workers workers
+              :gear gear
+              :actions actions
+              :on-center-click on-center-click
+              :on-worker-click on-worker-click}]])
+
+(defn player-circle-el
+  [color]
+  [:i {:class (str (name color) " circle icon")}])
 
 (defn temples-el
-  [state]
+  [{:keys [players]}]
   [:div.ui.segment
-    [:table.ui.very.basic.celled.table
-      [:tbody
-        (for [[t temple] (:temples spec)]
-          ^{:key t}
-          [:tr
-            [:td (get symbols t)]
-            (map-indexed
-              (fn [index step]
-                ^{:key step}
-                [:td
-                  (points-el (:points step))
-                  (get symbols (:material step))
-                  [:br]
-                  (map-indexed
-                    (fn [player-id player]
-                      (let [track (get-in player [:temples t])
-                            color (get-in state [:players player-id :color])
-                            color-str (name color)]
-                        (when (= track index)
-                          ^{:key (str track color)}
-                          [:i {:class (str "ui " color-str " empty circular label")}])))
-                    (:players state))])
-              (get-in spec [:temples t :steps]))])]]])
+    [:div.ui.equal.width.grid
+      (for [[t temple] (:temples spec)]
+        ^{:key t}
+        [:div.bottom.aligned.column
+          [:div.ui.center.aligned.segment
+            [:span {:style {:font-size 64}} (get symbols t)]
+            (reverse
+              (map-indexed
+                (fn [step-index {:keys [points material]}]
+                  ^{:key step-index}
+                  (let [color (when (= step-index 1) "secondary ")]
+                    [:div {:class (str color "ui center aligned segment")
+                           :style {:height 55}}
+                      (map-indexed
+                        (fn [player-id {:keys [temples color]}]
+                          (when (= (get temples t) step-index)
+                            (player-circle-el color)))
+                        players)
+                      [:div {:style {:float "left"}}
+                        (points-el points)]
+                      [:div {:style {:float "right"}}
+                        (get symbols material)]]))
+                (:steps temple)))]])]])
