@@ -4,26 +4,14 @@
    [timothypratley.reanimated.core :as anim]
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
-   [tzolkin.logic :as logic])
+   [tzolkin.logic :as logic]
+   [tzolkin.devcards.tests :refer [test-state]])
   (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is]]))
+   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
 
 (defcard-doc
   "#Art
-   The game board is made up HTML and SVG elements.")
-
-(deftest transform-str-test
-  "`transform-str` takes any number of (supported) svg transform definitions
-   and returns a string for use as an svg element's `transform` attribute
-   (docs at
-   [mdn](https://developer.mozilla.org/en/docs/Web/SVG/Attribute/transform))."
-  (testing
-    "rotate"
-    (is (= (art/transform-str [:rotate {:deg 90}]) "rotate(90)"))
-    (is (= (art/transform-str [:rotate {:deg 55 :x 10 :y 10}]
-                          [:rotate {:deg 10 :x 1 :y 1}])
-           "rotate(55 10 10)rotate(10 1 1)"))))
+  The game board is made up HTML and SVG elements.")
 
 (defcard-rg symbols-examples
   [:div (for [size '(16 45)]
@@ -31,54 +19,46 @@
             (for [[k v] art/symbols]
               (str (name k) ": " v ", "))])])
 
-(deftest materials-str-test
-  "`materials-str` takes a map of resources and the amount of each and returns
-   a string of symbols."
-   (testing
-     (is (= (art/materials-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
-            "🌲🗿🌕🌕🌽🌽🌽💀"))))
-
 (defcard-doc
-  "##Gears
-   The spinning gears are a one of the coolest mechanics in Tzolk'in. They're
-   also the main way that players interact with the game.")
+  "#Gears
+  The spinning gears are a one of the coolest mechanics in Tzolk'in. They're
+  also the main way that players interact with the game.")
 
 (defcard-rg gear-creator
   (fn [data _]
     (let [{:keys [size teeth tooth-width-factor tooth-height-factor]} @data
           set #(swap! data assoc %1 %2)]
-       ;; TODO: try using dot syntax for div classes
-      [:div {:class "ui segment"}
-       [:div {:class "ui grid"}
-        [:div {:class "six wide column"}
-         [:div {:class "ui form"}
-          [:div {:class "field"}
-           [:div {:class "label"} "Size"]
+      [:div.ui.segment
+       [:div.ui.grid
+        [:div.six.wide.column
+         [:div.ui.form
+          [:div.field
+           [:div.label "Size"]
            [:input {:type "range"
                     :value size
                     :min 100, :max 200
                     :on-change #(set :size (art/e->val %))}]]
-          [:div {:class "field"}
-           [:div {:class "label"} "Teeth"]
+          [:div.field
+           [:div.label "Teeth"]
            [:input {:type "range"
                     :value teeth
                     :min 10, :max 26
                     :on-change #(set :teeth (art/e->val %))}]]
-          [:div {:class "field"}
-           [:div {:class "label"} "Tooth Width Factor"]
+          [:div.field
+           [:div.label "Tooth Width Factor"]
            [:input {:type "range"
                     :value tooth-width-factor
                     :min 0.1, :max 2
                     :step 0.1
                     :on-change #(set :tooth-width-factor (art/e->val %))}]]
-          [:div {:class "field"}
-           [:div {:class "label"} "Tooth Height Factor"]
+          [:div.field
+           [:div.label "Tooth Height Factor"]
            [:input {:type "range"
                     :value tooth-height-factor
                     :min 0.1, :max 2
                     :step 0.1
                     :on-change #(set :tooth-height-factor (art/e->val %))}]]]]
-        [:div {:class "ten wide colum"}
+        [:div.ten.wide.column
          [:svg {:width (* size 5)
                 :height (* size 5)}
           [art/gear-el {:cx (* size 2)
@@ -120,3 +100,27 @@
     [spinning-worker-gear]]
   spin-test-atom
   {:inspect-data true})
+
+(defcard-doc "#Temples")
+
+(defcard-rg temple-art
+  (art/temples-el test-state))
+
+(defcard-doc
+  "#Buildings")
+
+(def random-building
+  (first (shuffle (:buildings spec))))
+
+(defcard-rg single-building
+  (art/building-card random-building nil false)
+  random-building
+  {:inspect-data true})
+
+(defcard-rg all-buildings
+  [:div.ui.cards
+    (map-indexed
+      (fn [index building]
+        ^{:key index}
+        [:div (art/building-card building nil false)])
+      (:buildings spec))])

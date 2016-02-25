@@ -18,23 +18,13 @@
            :pal [nil nil nil nil nil nil nil nil nil nil]}})
 
 (def new-player-state
-  {:materials {:corn 0
-               :wood 0
-               :stone 0
-               :gold 0
-               :skull 0}
+  {:materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
    :workers 3
    :points 0
    :buildings []
-   :temples {:chac 1
-             :quet 1
-             :kuku 1}
-   :tech {:agriculture 0
-          :extraction 0
-          :architecture 0
-          :theology 0}
-   :tiles {:corn 0
-           :wood 0}
+   :temples {:chac 1 :quet 1 :kuku 1}
+   :tech {:agri 0 :extr 0 :arch 0 :theo 0}
+   :tiles {:corn 0 :wood 0}
    :starters (take 3 (shuffle (:starters spec)))})
 
 (defn indexed
@@ -67,6 +57,18 @@
   [v index]
   (vec (concat (subvec v 0 index) (subvec v (inc index)))))
 
+(defn apply-changes-to-map
+  "Applies a function 'f' to each value in map 'original-map' that has a
+  corresponding key in 'changes', supplying the value of that key as the first
+  argument to the function.
+
+  (apply-changes-to-map + {:a 1 :b 1 :c 1} {:a 2 :b 1})  =>  {:a 3 :b 2 :c 1}"
+  [f original-map changes]
+  (reduce
+    (fn [m [k v]] (update m k #(f % v)))
+    original-map
+    (for [[k v] changes] [k v])))
+
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
   [gear slot turn]
@@ -79,20 +81,6 @@
   (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
 
-(defn apply-changes-to-map
-  [f inventory changes-map]
-  (reduce
-    (fn [m [k v]] (update m k #(f % v)))
-    inventory
-    (for [[k v] changes-map] [k v])))
-
-(defn adjust-materials
-  [state player-id material-changes]
-  (let [current (get-in state [:players player-id :materials])
-        updated (apply-changes-to-map + current material-changes)]
-    (-> state
-      (assoc-in [:players player-id :materials] updated))))
-
 (defn give-points
   [state player-id points]
   (-> state
@@ -103,15 +91,26 @@
   (-> state
     (update-in [:players player-id :temples temple] + amount)))
 
-(defn move-temples
-  [state player-id {:keys [chac quet kuku]}]
-  (cond-> state
-    chac (move-temple player-id :chac chac)
-    quet (move-temple player-id :quet quet)
-    kuku (move-temple player-id :kuku kuku)))
+(defn player-state-adjustment
+  [state player-id k changes]
+  (let [current (get-in state [:players player-id k])
+        updated (apply-changes-to-map + current changes)]
+    (-> state
+      (assoc-in [:players player-id k] updated))))
+
+(defn adjust-temples
+  [state player-id changes]
+  (player-state-adjustment state player-id :temples changes))
+
+(defn adjust-materials
+  [state player-id material-changes]
+  (let [current (get-in state [:players player-id :materials])
+        updated (apply-changes-to-map + current material-changes)]
+    (-> state
+      (assoc-in [:players player-id :materials] updated))))
 
 (defn choose-building
-  [state _]
+  [state]
   (let [num (:num-available-buildings spec)
         buildings (vec (take num (:buildings state)))]
     (-> state
@@ -128,13 +127,13 @@
   [state]
   (choose-materials state [{:wood 1} {:stone 1} {:gold 1}]))
 
-;;PROGRESS working on handling buying a building
+;; IN PROGRESS working on handling buying a building
 (defn give-building
   [state player-id building]
   (let [{:keys [cost #_tech temples materials #_trade build points
                 #_gain-worker #_free-action-for-corn]} building]
     (-> (cond-> state
-          temples (move-temples player-id temples)
+          temples (adjust-temples player-id temples)
           materials (adjust-materials player-id materials))
       (update-in [:players player-id :buildings] conj building))))
       ; (adjust-materials player-id cost-times-by-neg-one))))
@@ -156,7 +155,7 @@
     :gain-materials   (adjust-materials state player-id v)
     :choose-materials (choose-materials state v)
     :pay-skull        (pay-skull state player-id v)
-    :build            (choose-building state v)
+    :build            (choose-building state)
     state))
 
 (defn handle-decision
