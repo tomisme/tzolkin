@@ -111,7 +111,7 @@
     [:div.ui.cards
       (map-indexed
         (fn [index building]
-          ^{:key building}
+          ^{:key (str index building)}
           [:div.item (building-card building #(on-decision index) choosing?)])
         (take (:num-available-buildings spec) buildings))]])
 
@@ -366,6 +366,7 @@
 
 (defn player-circle-el
   [color]
+  ^{:key color}
   [:i {:class (str (name color) " circle icon")}])
 
 (defn temples-el
@@ -380,8 +381,8 @@
             (reverse
               (map-indexed
                 (fn [step-index {:keys [points material]}]
-                  ^{:key step-index}
                   (let [color (when (= step-index 1) "secondary ")]
+                    ^{:key (str t step-index)}
                     [:div {:class (str color "ui center aligned segment")
                            :style {:height 55}}
                       (map-indexed
