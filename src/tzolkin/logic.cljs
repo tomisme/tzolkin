@@ -86,11 +86,16 @@
   (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
 
-(defn give-points
+(defn adjust-points
   [state player-id points]
   (-> state
     (update-in [:players player-id :points] + points)))
 
+(defn adjust-workers
+  [state player-id num]
+  (update-in state [:players player-id :workers] + num))
+
+;; TODO remove (need to test pay-skull func first)
 (defn move-temple
   [state player-id temple amount]
   (-> state
@@ -129,17 +134,27 @@
   [state]
   (choose-materials state [{:wood 1} {:stone 1} {:gold 1}]))
 
-;; IN PROGRESS working on handling buying a building
+;; TODO monuments
+(defn build-something
+  [state type]
+  (case type
+    :building (choose-building state)))
+
+;; IN PROGRESS
 (defn give-building
   [state id building]
   (let [{:keys [cost #_tech temples materials #_trade build points
-                #_gain-worker #_free-action-for-corn]} building]
+                gain-worker #_free-action-for-corn]} building]
     (-> (cond-> state
-          temples (adjust-temples id temples)
-          materials (adjust-materials id materials))
+          build       (build-something build)
+          points      (adjust-points id points)
+          temples     (adjust-temples id temples)
+          materials   (adjust-materials id materials)
+          gain-worker (adjust-workers id 1))
       (update-in [:players id :buildings] conj building)
       (adjust-materials id (apply-changes-to-map cost #(* % -1))))))
 
+;; TODO deconstruct details arg (add tests first)
 (defn pay-skull
   [state player-id details]
   (let [resource (:resource details)
@@ -147,7 +162,7 @@
         temple (:temple details)]
     (-> (cond-> state
           resource (choose-any-resource)
-          points   (give-points player-id points)
+          points   (adjust-points player-id points)
           temple   (move-temple player-id temple 1))
       (update-in [:players player-id :materials :skull] dec))))
 

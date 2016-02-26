@@ -61,7 +61,58 @@
     (is (= (logic/adjust-temples test-state 0 {:chac 2 :quet 1})
            (-> test-state
              (update-in [:players 0 :temples :chac] + 2)
-             (update-in [:players 0 :temples :quet] + 1))))))
+             (update-in [:players 0 :temples :quet] + 1)))))
+  (testing "give-building"
+    (is (= (logic/give-building test-state 0 {:cost {:corn 2 :wood 1}})
+           (-> test-state
+             (update-in [:players 0 :buildings] conj {:cost {:corn 2 :wood 1}})
+             (update-in [:players 0 :materials :corn] - 2)
+             (update-in [:players 0 :materials :wood] - 1))))
+    (is (= (logic/give-building test-state 0 {:materials {:wood 2}})
+           (-> test-state
+             (update-in [:players 0 :buildings] conj {:materials {:wood 2}})
+             (update-in [:players 0 :materials :wood] + 2))))
+    (is (= (logic/give-building test-state 0 {:temples {:kuku 2 :chac 1}})
+           (-> test-state
+             (update-in [:players 0 :buildings] conj {:temples {:kuku 2 :chac 1}})
+             (update-in [:players 0 :temples :kuku] + 2)
+             (update-in [:players 0 :temples :chac] + 1))))
+    (is (= (logic/give-building test-state 0 {:gain-worker true})
+           (-> test-state
+             (update-in [:players 0 :buildings] conj {:gain-worker true})
+             (update-in [:players 0 :workers] inc))))
+    (is (= (logic/give-building test-state 0 {:points 3})
+           (-> test-state
+             (update-in [:players 0 :buildings] conj {:points 3})
+             (update-in [:players 0 :points] + 3))))
+    (is (= (logic/give-building test-state 0 {:tech :extr})
+           (-> test-state
+             (update-in [:players 0 :buildings] conj {:tech :extr})
+             (update-in [:players 0 :tech-step :extr] inc))))
+    (is (= (logic/give-building test-state 0 {:tech :any})
+           (-> test-state
+             (update-in [:players 0 :buildings] conj {:tech :any})
+             (assoc-in [:active :decision :type] :tech)
+             (assoc-in [:active :decision :options] [:agri :extr :arch :theo]))))
+    (is (= (logic/give-building test-state 0 {:tech :any-two})
+           (-> test-state
+             (update-in [:players 0 :buildings] conj {:tech :any-two})
+             (assoc-in [:active :decision :type] :tech-two)
+             (assoc-in [:active :decision :options] [:agri :extr :arch :theo]))))
+    (is (= (logic/give-building test-state 0 {:build :building})
+           (let [num (:num-available-buildings spec)
+                 buildings (vec (take num (:buildings test-state)))]
+             (-> test-state
+               (update-in [:players 0 :buildings] conj {:build :building})
+               (assoc-in [:active :decision :type] :build-building)
+               (assoc-in [:active :decision :options] buildings)))))
+    (is (= (logic/give-building test-state 0 {:build :monument})
+           (let [num (:num-available-monuments spec)
+                 monuments (vec (take num (:monuments test-state)))]
+             (-> test-state
+               (update-in [:players 0 :monuments] conj {:build :monument})
+               (assoc-in [:active :decision :type] :build-monument)
+               (assoc-in [:active :decision :options] monuments)))))))
 
 (defcard-doc
   "##Other Tests
