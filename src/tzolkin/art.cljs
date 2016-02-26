@@ -1,21 +1,6 @@
 (ns tzolkin.art
   (:require [tzolkin.spec :refer [spec]]))
 
-(defn e->val
-  [event]
-  (-> event .-target .-value))
-
-(defn transform-str
-  [& args]
-  (apply str
-    (for [[type data] args]
-      (case type
-        :rotate (str "rotate("
-                     (:deg data)
-                     (if (and (:x data) (:y data))
-                       (str " " (:x data) " " (:y data)))
-                     ")")))))
-
 (def color-strings
   {:red "#CC333F"
    :blue "#69D2E7"
@@ -44,7 +29,26 @@
    :pal "🍏"
    :choose-prev "⏪"})
 
+(defn e->val
+  [event]
+  (-> event .-target .-value))
+
+(defn transform-str
+  "Takes any number of (supported) svg transform definitions
+  and returns a string for use as an svg element's `transform` attribute"
+  [& args]
+  (apply str
+    (for [[type data] args]
+      (case type
+        :rotate (str "rotate("
+                     (:deg data)
+                     (if (and (:x data) (:y data))
+                       (str " " (:x data) " " (:y data)))
+                     ")")))))
+
 (defn materials-str
+  "Takes a map of resources and the amount of each and returns a string of
+  symbols. Amounts larger than two represented by a number and a single symbol."
   [materials]
   (apply str (for [[material amount] materials]
                (if (< amount 3)

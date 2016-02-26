@@ -10,38 +10,53 @@
 
 (def test-state (dev-game/new-test-game {:players 2}))
 
-(defcard-doc
-  "`(def test-state (dev-game/new-test-game {:players 2}))`")
-
-(deftest transform-str-test
-  "`transform-str` takes any number of (supported) svg transform definitions
-  and returns a string for use as an svg element's `transform` attribute
-  (docs at
-  [mdn](https://developer.mozilla.org/en/docs/Web/SVG/Attribute/transform))."
-  (testing
+(deftest Art
+  (testing "transform-str"
     "rotate"
     (is (= (art/transform-str [:rotate {:deg 90}]) "rotate(90)"))
     (is (= (art/transform-str [:rotate {:deg 55 :x 10 :y 10}]
                               [:rotate {:deg 10 :x 1 :y 1}])
-           "rotate(55 10 10)rotate(10 1 1)"))))
-
-(deftest materials-str-test
-  "`materials-str` takes a map of resources and the amount of each and returns
-  a string of symbols.
-
-  Amounts larger than two represented by a number and a single symbol."
-  (testing
+           "rotate(55 10 10)rotate(10 1 1)")))
+  (testing "materials-str"
     (is (= (art/materials-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
            "🌲🗿🌕🌕3🌽💀"))))
 
-(deftest apply-changes-to-map
-  (testing
-    (is (= (logic/apply-changes-to-map + {:wood 1 :gold 2 :skull 1} {:wood 2 :gold 2})
+(deftest Utils
+  (testing "indexed"
+    (is (= (logic/indexed '(a b c)) '([0 a] [1 b] [2 c])))
+    (is (= (logic/indexed [:a :b :c]) '([0 :a] [1 :b] [2 :c]))))
+  (testing "first-nil"
+    (is (= (logic/first-nil ["nil" 0 :a nil :b nil]) 3)))
+  (testing "rotate-vec"
+    (is (= (logic/rotate-vec [:a :b :c] 2) [:b :c :a]))
+    (is (= (logic/rotate-vec [:a :b :c] 4) [:c :a :b]))
+    (is (= (logic/rotate-vec [:a :b :c] -1) [:b :c :a])))
+  (testing "remove-from-vec"
+    (is (= (logic/remove-from-vec [:a :b :c] 1) [:a :c])))
+  (testing "apply-changes-to-map"
+    (is (= (logic/apply-changes-to-map {:wood 1 :gold 2 :skull 1} + {:wood 2 :gold 2})
            {:wood 3 :gold 4 :skull 1}))
-    (is (= (logic/apply-changes-to-map - {:stone 1 :gold 1 :corn 9} {:corn 7 :gold 1})
-           {:stone 1 :gold 0 :corn 2}))))
+    (is (= (logic/apply-changes-to-map {:stone 1 :gold 1 :corn 9} - {:corn 7 :gold 1})
+           {:stone 1 :gold 0 :corn 2}))
+    (is (= (logic/apply-changes-to-map {:stone 1 :gold 1} #(* % -1))
+           {:stone -1 :gold -1}))))
 
-(deftest temple-movement
+(deftest Logic
+  (testing "gear-position"
+    (is (= (logic/gear-position :yax 2 0) 2))
+    (is (= (logic/gear-position :yax 2 2) 4))
+    (is (= (logic/gear-position :yax 4 13) 7))
+    (is (= (logic/gear-position :chi 4 14) 5)))
+  (testing "gear-slot"
+    (is (= (logic/gear-slot :yax 2 0) 2))
+    (is (= (logic/gear-slot :yax 4 2) 2))
+    (is (= (logic/gear-slot :yax 7 13) 4))
+    (is (= (logic/gear-slot :chi 5 14) 4)))
+  (testing "adjust-materials"
+    (is (= (logic/adjust-materials test-state 0 {:stone 2 :gold 1})
+           (-> test-state
+             (update-in [:players 0 :materials :stone] + 2)
+             (update-in [:players 0 :materials :gold] + 1)))))
   (testing "adjust-temples"
     (is (= (logic/adjust-temples test-state 0 {:chac 2 :quet 1})
            (-> test-state

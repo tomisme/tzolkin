@@ -58,16 +58,21 @@
   (vec (concat (subvec v 0 index) (subvec v (inc index)))))
 
 (defn apply-changes-to-map
-  "Applies a function 'f' to each value in map 'original-map' that has a
+  "Applies a function 'f' to each value in  'original-map' that has a
   corresponding key in 'changes', supplying the value of that key as the first
   argument to the function.
 
-  (apply-changes-to-map + {:a 1 :b 1 :c 1} {:a 2 :b 1})  =>  {:a 3 :b 2 :c 1}"
-  [f original-map changes]
-  (reduce
-    (fn [m [k v]] (update m k #(f % v)))
-    original-map
-    (for [[k v] changes] [k v])))
+  If a map of changes is not supplied, applies 'f' to every value.
+
+  (apply-changes-to-map {:a 1 :b 1} + {:a 2})  =>  {:a 3 :b 1}
+  (apply-changes-to-map {:a 1 :b 1} inc)  =>  {:a 2 :b 2}"
+  ([original-map f]
+   (into {} (for [[k v] original-map] [k (f v)])))
+  ([original-map f changes]
+   (reduce
+     (fn [m [k v]] (update m k #(f % v)))
+     original-map
+     (for [[k v] changes] [k v]))))
 
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
@@ -91,23 +96,20 @@
   (-> state
     (update-in [:players player-id :temples temple] + amount)))
 
-(defn player-state-adjustment
+(defn player-map-adjustment
   [state player-id k changes]
   (let [current (get-in state [:players player-id k])
-        updated (apply-changes-to-map + current changes)]
+        updated (apply-changes-to-map current + changes)]
     (-> state
       (assoc-in [:players player-id k] updated))))
 
 (defn adjust-temples
   [state player-id changes]
-  (player-state-adjustment state player-id :temples changes))
+  (player-map-adjustment state player-id :temples changes))
 
 (defn adjust-materials
-  [state player-id material-changes]
-  (let [current (get-in state [:players player-id :materials])
-        updated (apply-changes-to-map + current material-changes)]
-    (-> state
-      (assoc-in [:players player-id :materials] updated))))
+  [state player-id changes]
+  (player-map-adjustment state player-id :materials changes))
 
 (defn choose-building
   [state]
@@ -129,14 +131,14 @@
 
 ;; IN PROGRESS working on handling buying a building
 (defn give-building
-  [state player-id building]
+  [state id building]
   (let [{:keys [cost #_tech temples materials #_trade build points
                 #_gain-worker #_free-action-for-corn]} building]
     (-> (cond-> state
-          temples (adjust-temples player-id temples)
-          materials (adjust-materials player-id materials))
-      (update-in [:players player-id :buildings] conj building))))
-      ; (adjust-materials player-id cost-times-by-neg-one))))
+          temples (adjust-temples id temples)
+          materials (adjust-materials id materials))
+      (update-in [:players id :buildings] conj building)
+      (adjust-materials id (apply-changes-to-map cost #(* % -1))))))
 
 (defn pay-skull
   [state player-id details]
