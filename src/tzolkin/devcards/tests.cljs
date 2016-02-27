@@ -112,7 +112,18 @@
              (-> test-state
                (update-in [:players 0 :monuments] conj {:build :monument})
                (assoc-in [:active :decision :type] :build-monument)
-               (assoc-in [:active :decision :options] monuments)))))))
+               (assoc-in [:active :decision :options] monuments))))))
+  (testing "skull-action"
+    (is (= (logic/skull-action test-state 0 {:points 2 :temple :kuku})
+           (-> test-state
+             (update-in [:players 0 :materials :skull] - 1)
+             (update-in [:players 0 :points] + 2)
+             (update-in [:players 0 :temples :kuku] + 1))))
+    (is (= (logic/skull-action test-state 0 {:resource true})
+           (-> test-state
+             (update-in [:players 0 :materials :skull] - 1)
+             (assoc-in [:active :decision :type] :gain-materials)
+             (assoc-in [:active :decision :options] [{:wood 1} {:stone 1} {:gold 1}]))))))
 
 (defcard-doc
   "##Other Tests

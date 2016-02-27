@@ -200,7 +200,7 @@
     :temple "+temple"
     :trade "trade"
     :gain-worker "+worker"
-    :pay-skull (str (get symbols (:temple data))
+    :skull-action (str (get symbols (:temple data))
                     (:points data) "p"
                     (when (:resource data) (:resource symbols)))
     "WHAT?"))

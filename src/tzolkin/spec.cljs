@@ -91,7 +91,7 @@
     :age 2}
    {:cost {:wood 2 :stone 2}
     :tech :any
-    :materials {:skulls 1}
+    :materials {:skull 1}
     :color :green
     :age 2}
    {:cost {:wood 2 :stone 1}
@@ -247,7 +247,7 @@
     :temple :kuku
     :tech :extr
     :yax 1}
-   {:materials {:corn 4 :wood 1 :skulls 1}
+   {:materials {:corn 4 :wood 1 :skull 1}
     :chi 0}
    {:materials {:corn 4 :wood 3}
     :chi 5}
@@ -312,27 +312,27 @@
    :chi {:name "Chichen Itza"
          :teeth 13
          :location 16
-         :actions [[:pay-skull {:points 4
-                                :temple :chac}]
-                   [:pay-skull {:points 5
-                                :temple :chac}]
-                   [:pay-skull {:points 6
-                                :temple :chac}]
-                   [:pay-skull {:points 7
-                                :temple :kuku}]
-                   [:pay-skull {:points 8
-                                :temple :kuku}]
-                   [:pay-skull {:points 8
-                                :temple :kuku
-                                :resource true}]
-                   [:pay-skull {:points 10
-                                :temple :quet}]
-                   [:pay-skull {:points 11
-                                :temple :quet
-                                :resource true}]
-                   [:pay-skull {:points 13
-                                :temple :quet
-                                :resource true}]
+         :actions [[:skull-action {:points 4
+                                   :temple :chac}]
+                   [:skull-action {:points 5
+                                   :temple :chac}]
+                   [:skull-action {:points 6
+                                   :temple :chac}]
+                   [:skull-action {:points 7
+                                   :temple :kuku}]
+                   [:skull-action {:points 8
+                                   :temple :kuku}]
+                   [:skull-action {:points 8
+                                   :temple :kuku
+                                   :resource true}]
+                   [:skull-action {:points 10
+                                   :temple :quet}]
+                   [:skull-action {:points 11
+                                   :temple :quet
+                                   :resource true}]
+                   [:skull-action {:points 13
+                                   :temple :quet
+                                   :resource true}]
                    [:choose-action-from :chi]]}})
 
 (def temples

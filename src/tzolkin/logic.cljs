@@ -3,10 +3,8 @@
 
 (def initial-game-state
   {:turn 0
-   :active {:player-id 0
-            :worker-option :none
-            :placed 0}
-   :skulls 13
+   :active {:player-id 0 :worker-option :none :placed 0}
+   :skull 13
    :players []
    ;; TODO filter only age 1 buildings at start
    :buildings (shuffle (:buildings spec))
@@ -95,7 +93,7 @@
   [state player-id num]
   (update-in state [:players player-id :workers] + num))
 
-;; TODO remove (need to test pay-skull func first)
+;; TODO remove (need to test skull-action func first)
 (defn move-temple
   [state player-id temple amount]
   (-> state
@@ -134,13 +132,11 @@
   [state]
   (choose-materials state [{:wood 1} {:stone 1} {:gold 1}]))
 
-;; TODO monuments
 (defn build-something
   [state type]
   (case type
     :building (choose-building state)))
 
-;; IN PROGRESS
 (defn give-building
   [state id building]
   (let [{:keys [cost #_tech temples materials #_trade build points
@@ -155,24 +151,21 @@
       (adjust-materials id (apply-changes-to-map cost #(* % -1))))))
 
 ;; TODO deconstruct details arg (add tests first)
-(defn pay-skull
-  [state player-id details]
-  (let [resource (:resource details)
-        points (:points details)
-        temple (:temple details)]
-    (-> (cond-> state
-          resource (choose-any-resource)
-          points   (adjust-points player-id points)
-          temple   (move-temple player-id temple 1))
-      (update-in [:players player-id :materials :skull] dec))))
+(defn skull-action
+  [state player-id {:keys [resource points temple]}]
+  (-> (cond-> state
+        resource (choose-any-resource)
+        points   (adjust-points player-id points)
+        temple   (move-temple player-id temple 1))
+    (update-in [:players player-id :materials :skull] dec)))
 
 (defn handle-action
   [state [k v] player-id]
   (case k
+    :build            (choose-building state)
+    :skull-action     (skull-action state player-id v)
     :gain-materials   (adjust-materials state player-id v)
     :choose-materials (choose-materials state v)
-    :pay-skull        (pay-skull state player-id v)
-    :build            (choose-building state)
     state))
 
 (defn handle-decision
