@@ -272,30 +272,31 @@
                    [:gain-materials {:gold 1
                                      :stone 1
                                      :corn 2}]
-                   [:choose-action :yax]
-                   [:choose-action :yax]]}
+                   [:choose-action {:gear :yax}]
+                   [:choose-action {:gear :yax}]]}
    :tik {:name "Tikal"
          :teeth 10
          :location 6
-         :actions [[:tech-step 1]
-                   [:build :single]
-                   [:tech-step 2]
-                   [:build :double]
-                   [:temple {:cost {:any-resource 1}
-                             :tech :choose-two-different}]
-                   [:choose-action :tik]
-                   [:choose-action :tik]]}
+         :actions [[:tech {:steps 1}]
+                   [:build {:type :single}]
+                   [:tech {:steps 2}]
+                   [:build {:type :double}]
+                   [:temples {:cost {:any-resource 1}
+                              :choose :two-different}]
+                   [:choose-action {:gear :tik}]
+                   [:choose-action {:gear :tik}]]}
    :uxe {:name "Uxmal"
          :teeth 10
          :location 11
-         :actions [[:temple {:cost {:corn 3}
-                             :tech :choose-one}]
-                   [:trade nil]
-                   [:gain-worker nil]
-                   [:build :with-corn]
-                   [:choose-any-action {:cost {:corn 1}}]
-                   [:choose-action :uxe]
-                   [:choose-action :uxe]]}
+         :actions [[:temples {:cost {:corn 3}
+                              :choose :any}]
+                   [:trade {}]
+                   [:gain-worker {}]
+                   [:build {:type :with-corn}]
+                   [:choose-action {:cost {:corn 1}
+                                    :gear :non-chi}]
+                   [:choose-action {:gear :uxe}]
+                   [:choose-action {:gear :uxe}]]}
    :pal {:name "Palenque"
          :teeth 10
          :location 22
@@ -307,8 +308,8 @@
                                        {:wood 3}]]
                    [:choose-materials [{:corn 9}
                                        {:wood 4}]]
-                   [:choose-action :pal]
-                   [:choose-action :pal]]}
+                   [:choose-action {:gear :pal}]
+                   [:choose-action {:gear :pal}]]}
    :chi {:name "Chichen Itza"
          :teeth 13
          :location 16
@@ -333,7 +334,7 @@
                    [:skull-action {:points 13
                                    :temple :quet
                                    :resource true}]
-                   [:choose-action :chi]]}})
+                   [:choose-action {:gear :chi}]]}})
 
 (def temples
   {:chac {:name "Chaac"

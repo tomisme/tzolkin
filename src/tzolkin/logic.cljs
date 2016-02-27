@@ -85,20 +85,14 @@
     (mod (+ position (- teeth turn)) teeth)))
 
 (defn adjust-points
-  [state player-id points]
+  [state player-id num]
   (-> state
-    (update-in [:players player-id :points] + points)))
+    (update-in [:players player-id :points] + num)))
 
 (defn adjust-workers
   [state player-id num]
   (-> state
     (update-in [:players player-id :workers] + num)))
-
-;; TODO remove (need to test skull-action func first)
-(defn move-temple
-  [state player-id temple amount]
-  (-> state
-    (update-in [:players player-id :temples temple] + amount)))
 
 (defn player-map-adjustment
   [state player-id k changes]
@@ -113,7 +107,8 @@
 
 (defn adjust-materials
   [state player-id changes]
-  (player-map-adjustment state player-id :materials changes))
+  (-> state
+    (player-map-adjustment player-id :materials changes)))
 
 (defn choose-building
   [state]
@@ -131,7 +126,8 @@
 
 (defn choose-any-resource
   [state]
-  (choose-materials state [{:wood 1} {:stone 1} {:gold 1}]))
+  (-> state
+    (choose-materials [{:wood 1} {:stone 1} {:gold 1}])))
 
 (defn build-something
   [state type]
@@ -151,7 +147,6 @@
       (update-in [:players id :buildings] conj building)
       (adjust-materials id (apply-changes-to-map cost #(* % -1))))))
 
-;; TODO deconstruct details arg (add tests first)
 (defn skull-action
   [state player-id {:keys [resource points temple]}]
   (-> (cond-> state
@@ -161,17 +156,17 @@
     (update-in [:players player-id :materials :skull] dec)))
 
 (defn handle-action
-  [state [k v] player-id]
+  [state player-id [k v]]
   (case k
-    :build             (choose-building state) ;; TODO handle :double build
+    :trade             state
+    :build             (choose-building state)
+    :temples           state
+    :tech-step         state
+    :gain-worker       (adjust-workers state player-id 1)
     :skull-action      (skull-action state player-id v)
+    :choose-action     state
     :gain-materials    (adjust-materials state player-id v)
-    :choose-materials  (choose-materials state v)
-    :temple            (do (js/alert "TODO!") state)
-    :choose-action     (do (js/alert "TODO!") state)
-    :choose-any-action (do (js/alert "TODO!") state)
-    :tech-step         (do (js/alert "TODO!") state)
-    :gain-worker       (do (js/alert "TODO!") state)))
+    :choose-materials  (choose-materials state v)))
 
 (defn handle-decision
   [state option-index]
@@ -237,7 +232,7 @@
         (update-in [:players player-id :workers] inc)
         (update-in [:gears gear] assoc slot nil)
         (update :active assoc :worker-option :pick)
-        (handle-action action player-id))
+        (handle-action player-id action))
       state)))
 
 (defn end-turn
