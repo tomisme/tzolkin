@@ -183,8 +183,7 @@
       :build-building (-> state
                         (give-building player-id option)
                         (update :buildings remove-from-vec option-index)
-                        (update :active dissoc :decision))
-      state)))
+                        (update :active dissoc :decision)))))
 
 (defn place-worker
   [state player-id gear]

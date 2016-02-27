@@ -183,6 +183,22 @@
              (assoc-in [:active :decision :type] :gain-materials)
              (assoc-in [:active :decision :options] [{:corn 2} {:wood 1}])))))
   "#Decisions"
+  (testing ":gain-materials"
+    (is (= (logic/handle-decision
+             (logic/handle-action s 0 [:choose-materials [{:corn 1} {:stone 1}]])
+             1)
+           (-> s
+             (update-in [:players 0 :materials :stone] + 1)))))
+  (testing ":build-building"
+    (is (= (logic/handle-decision
+             (-> s
+               (assoc :buildings [{} {:materials {:corn 1}} {}])
+               (logic/choose-building))
+             1)
+           (-> s
+             (assoc :buildings [{} {}])
+             (update-in [:players 0 :buildings] conj {:materials {:corn 1}})
+             (update-in [:players 0 :materials :corn] + 1)))))
   "#Place Worker"
   "#Remove Worker")
 
