@@ -16,14 +16,14 @@
            :pal [nil nil nil nil nil nil nil nil nil nil]}})
 
 (def new-player-state
-  {:materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
-   :workers 3
-   :points 0
-   :buildings []
+  {:starters (take 3 (shuffle (:starters spec)))
+   :materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
    :temples {:chac 1 :quet 1 :kuku 1}
    :tech {:agri 0 :extr 0 :arch 0 :theo 0}
-   :tiles {:corn 0 :wood 0}
-   :starters (take 3 (shuffle (:starters spec)))})
+   :tiles {:corn-tiles 0 :wood-tiles 0}
+   :buildings []
+   :workers 3
+   :points 0})
 
 (defn indexed
   "Returns a lazy sequence of [index, item] pairs, where items come
@@ -91,7 +91,8 @@
 
 (defn adjust-workers
   [state player-id num]
-  (update-in state [:players player-id :workers] + num))
+  (-> state
+    (update-in [:players player-id :workers] + num)))
 
 ;; TODO remove (need to test skull-action func first)
 (defn move-temple
@@ -156,17 +157,21 @@
   (-> (cond-> state
         resource (choose-any-resource)
         points   (adjust-points player-id points)
-        temple   (move-temple player-id temple 1))
+        temple   (adjust-temples player-id {temple 1}))
     (update-in [:players player-id :materials :skull] dec)))
 
 (defn handle-action
   [state [k v] player-id]
   (case k
-    :build            (choose-building state)
-    :skull-action     (skull-action state player-id v)
-    :gain-materials   (adjust-materials state player-id v)
-    :choose-materials (choose-materials state v)
-    state))
+    :build             (choose-building state) ;; TODO handle :double build
+    :skull-action      (skull-action state player-id v)
+    :gain-materials    (adjust-materials state player-id v)
+    :choose-materials  (choose-materials state v)
+    :temple            (do (js/alert "TODO!") state)
+    :choose-action     (do (js/alert "TODO!") state)
+    :choose-any-action (do (js/alert "TODO!") state)
+    :tech-step         (do (js/alert "TODO!") state)
+    :gain-worker       (do (js/alert "TODO!") state)))
 
 (defn handle-decision
   [state option-index]

@@ -272,8 +272,8 @@
                    [:gain-materials {:gold 1
                                      :stone 1
                                      :corn 2}]
-                   [:choose-action-from :yax]
-                   [:choose-action-from :yax]]}
+                   [:choose-action :yax]
+                   [:choose-action :yax]]}
    :tik {:name "Tikal"
          :teeth 10
          :location 6
@@ -282,20 +282,20 @@
                    [:tech-step 2]
                    [:build :double]
                    [:temple {:cost {:any-resource 1}
-                             :track :choose-two-different}]
-                   [:choose-action-from :tik]
-                   [:choose-action-from :tik]]}
+                             :tech :choose-two-different}]
+                   [:choose-action :tik]
+                   [:choose-action :tik]]}
    :uxe {:name "Uxmal"
          :teeth 10
          :location 11
          :actions [[:temple {:cost {:corn 3}
-                             :track :choose-one}]
+                             :tech :choose-one}]
                    [:trade nil]
                    [:gain-worker nil]
                    [:build :with-corn]
-                   [:choose-action-from-all {:cost {:corn 1}}]
-                   [:choose-action-from :uxe]
-                   [:choose-action-from :uxe]]}
+                   [:choose-any-action {:cost {:corn 1}}]
+                   [:choose-action :uxe]
+                   [:choose-action :uxe]]}
    :pal {:name "Palenque"
          :teeth 10
          :location 22
@@ -307,8 +307,8 @@
                                        {:wood 3}]]
                    [:choose-materials [{:corn 9}
                                        {:wood 4}]]
-                   [:choose-action-from :pal]
-                   [:choose-action-from :pal]]}
+                   [:choose-action :pal]
+                   [:choose-action :pal]]}
    :chi {:name "Chichen Itza"
          :teeth 13
          :location 16
@@ -333,7 +333,7 @@
                    [:skull-action {:points 13
                                    :temple :quet
                                    :resource true}]
-                   [:choose-action-from :chi]]}})
+                   [:choose-action :chi]]}})
 
 (def temples
   {:chac {:name "Chaac"

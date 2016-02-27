@@ -14,6 +14,7 @@
 
 (def symbols
   {:resource "🎁"
+   :worker "👤"
    :wood "🌲"
    :stone "🗿"
    :gold "🌕"
@@ -98,7 +99,7 @@
         [:div.description
           (when farm (farm-el farm))
           (when tech [:p (tech-str tech)])
-          (when gain-worker [:p "+worker"])
+          (when gain-worker [:p (get symbols :worker)])
           (when free-action-for-corn [:p (get symbols :corn) ": free!"])
           (when build [:p "build " (name build)])
           (when temples [:p (temples-str temples)])
@@ -193,8 +194,8 @@
   (case k
     :gain-materials  (materials-str data)
     :choose-materials (str (materials-str (first data)) "/" (materials-str (second data)))
-    :choose-action-from (str (:choose-prev symbols) (get symbols data))
-    :choose-action-from-all "any"
+    :choose-action (str (:choose-prev symbols) (get symbols data))
+    :choose-any-action "any"
     :tech-step "+tech"
     :build "build"
     :temple "+temple"
