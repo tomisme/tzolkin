@@ -226,12 +226,12 @@
         action (get-in spec [:gears gear :actions action-position])]
     (if (and (= player-color target-color)
              (not (get-in state [:active :decision]))
-             (or (= :pick worker-option) (= :none worker-option))
+             (or (= :remove worker-option) (= :none worker-option))
              (or (not= :chi gear) (> skulls 0)))
       (-> state
         (update-in [:players player-id :workers] inc)
         (update-in [:gears gear] assoc slot nil)
-        (update :active assoc :worker-option :pick)
+        (update :active assoc :worker-option :remove)
         (handle-action player-id action))
       state)))
 

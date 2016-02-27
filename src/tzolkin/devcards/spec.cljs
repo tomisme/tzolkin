@@ -23,8 +23,8 @@
       I. Place any number of workers. A worker is always placed on the lowest-numbered unoccupied action space on the gear. The amount paid for worker placement depends on:
         1. the number of workers placed, according to the table on the player boards;
         2. the action spaces where the workers are placed.
-      II. or Pick up any number of workers, one by one. For each worker picked up, do one of the following:
-        1. Perform the action depicted at the worker's action space.
+      II. or remove any number of workers, one by one. For each worker removed, do one of the following:
+        1. Perform the action depicted at the worker's current action space.
         2. Or perform a lower-numbered action on the same gear, paying 1 corn for each step back.
         3. Or perform no action.
     c. If you constructed any buildings, deal out new buildings from the current age into the emptied spaces.
@@ -100,6 +100,6 @@
   [[:place :yax]
    [:place :yax]]
 
-  [[:pick [:yax 1]]
+  [[:remove [:yax 1]]
    [:choose :agri]]
   ```")

@@ -6,7 +6,7 @@ If you want to have a poke around run `lein figwheel`, open
 [devcards](https://github.com/bhauman/devcards).
 
 ##TODO
- - [x] picking/placing
+ - [x] removing/placing workers
  - [x] Yaxchilan (🍈)
  - [x] Palenque (🍏)
  - [x] god tracks

@@ -141,9 +141,9 @@
       (let [worker-option (:worker-option active)
             placed (:placed active)]
         (case worker-option
-          :none " has not yet chosen to pick or place."
+          :none " has not yet chosen to remove or place workers."
           :place (str " has placed " placed " worker(s).")
-          :pick " is picking up workers.")))))
+          :remove " is removing workers.")))))
 
 (defn player-buildings
   [buildings]
