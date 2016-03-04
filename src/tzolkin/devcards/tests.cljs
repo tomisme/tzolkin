@@ -3,6 +3,7 @@
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
    [tzolkin.logic :as logic]
+   [tzolkin.util :as util]
    [tzolkin.devcards.game :as dev-game])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
@@ -23,35 +24,25 @@
 
 (deftest Utils
   (testing "indexed"
-    (is (= (logic/indexed '(a b c)) '([0 a] [1 b] [2 c])))
-    (is (= (logic/indexed [:a :b :c]) '([0 :a] [1 :b] [2 :c]))))
+    (is (= (util/indexed '(a b c)) '([0 a] [1 b] [2 c])))
+    (is (= (util/indexed [:a :b :c]) '([0 :a] [1 :b] [2 :c]))))
   (testing "first-nil"
-    (is (= (logic/first-nil ["nil" 0 :a nil :b nil]) 3)))
+    (is (= (util/first-nil ["nil" 0 :a nil :b nil]) 3)))
   (testing "rotate-vec"
-    (is (= (logic/rotate-vec [:a :b :c] 2) [:b :c :a]))
-    (is (= (logic/rotate-vec [:a :b :c] 4) [:c :a :b]))
-    (is (= (logic/rotate-vec [:a :b :c] -1) [:b :c :a])))
+    (is (= (util/rotate-vec [:a :b :c] 2) [:b :c :a]))
+    (is (= (util/rotate-vec [:a :b :c] 4) [:c :a :b]))
+    (is (= (util/rotate-vec [:a :b :c] -1) [:b :c :a])))
   (testing "remove-from-vec"
-    (is (= (logic/remove-from-vec [:a :b :c] 1) [:a :c])))
+    (is (= (util/remove-from-vec [:a :b :c] 1) [:a :c])))
   (testing "apply-changes-to-map"
-    (is (= (logic/apply-changes-to-map {:wood 1 :gold 2 :skull 1} + {:wood 2 :gold 2})
+    (is (= (util/apply-changes-to-map {:wood 1 :gold 2 :skull 1} + {:wood 2 :gold 2})
            {:wood 3 :gold 4 :skull 1}))
-    (is (= (logic/apply-changes-to-map {:stone 1 :gold 1 :corn 9} - {:corn 7 :gold 1})
+    (is (= (util/apply-changes-to-map {:stone 1 :gold 1 :corn 9} - {:corn 7 :gold 1})
            {:stone 1 :gold 0 :corn 2}))
-    (is (= (logic/apply-changes-to-map {:stone 1 :gold 1} #(* % -1))
+    (is (= (util/apply-changes-to-map {:stone 1 :gold 1} #(* % -1))
            {:stone -1 :gold -1}))))
 
 (deftest Logic
-  (testing "gear-position"
-    (is (= (logic/gear-position :yax 2 0) 2))
-    (is (= (logic/gear-position :yax 2 2) 4))
-    (is (= (logic/gear-position :yax 4 13) 7))
-    (is (= (logic/gear-position :chi 4 14) 5)))
-  (testing "gear-slot"
-    (is (= (logic/gear-slot :yax 2 0) 2))
-    (is (= (logic/gear-slot :yax 4 2) 2))
-    (is (= (logic/gear-slot :yax 7 13) 4))
-    (is (= (logic/gear-slot :chi 5 14) 4)))
   (testing "adjust-materials"
     (is (= (logic/adjust-materials s 0 {:stone 2 :gold 1})
            (-> s
@@ -199,8 +190,19 @@
              (assoc :buildings [{} {}])
              (update-in [:players 0 :buildings] conj {:materials {:corn 1}})
              (update-in [:players 0 :materials :corn] + 1)))))
-  "#Place Worker"
-  "#Remove Worker")
+  "#Workers"
+  (testing "gear-position"
+    (is (= (logic/gear-position :yax 2 0) 2))
+    (is (= (logic/gear-position :yax 2 2) 4))
+    (is (= (logic/gear-position :yax 4 13) 7))
+    (is (= (logic/gear-position :chi 4 14) 5)))
+  (testing "gear-slot"
+    (is (= (logic/gear-slot :yax 2 0) 2))
+    (is (= (logic/gear-slot :yax 4 2) 2))
+    (is (= (logic/gear-slot :yax 7 13) 4))
+    (is (= (logic/gear-slot :chi 5 14) 4)))
+  "##Place Worker"
+  "##Remove Worker")
 
 (defcard-doc
   "##Other Tests

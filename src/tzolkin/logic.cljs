@@ -4,6 +4,10 @@
     [tzolkin.util :refer [indexed first-nil rotate-vec remove-from-vec
                           apply-changes-to-map]]))
 
+(def initial-gears-state
+  (into {} (for [[k v] (:gears spec)]
+             [k (into [] (repeat (get-in spec [:gears k :teeth]) nil))])))
+
 (def initial-game-state
   {:turn 0
    :active {:player-id 0 :worker-option :none :placed 0}
@@ -12,11 +16,7 @@
    ;; TODO filter only age 1 buildings at start
    :buildings (shuffle (:buildings spec))
    :monuments (shuffle (:monuments spec))
-   :gears {:yax [nil nil nil nil nil nil nil nil nil nil]
-           :tik [nil nil nil nil nil nil nil nil nil nil]
-           :uxe [nil nil nil nil nil nil nil nil nil nil]
-           :chi [nil nil nil nil nil nil nil nil nil nil nil nil nil]
-           :pal [nil nil nil nil nil nil nil nil nil nil]}})
+   :gears initial-gears-state})
 
 (def new-player-state
   {:starters (take 3 (shuffle (:starters spec)))
@@ -27,18 +27,6 @@
    :buildings []
    :workers 3
    :points 0})
-
-(defn gear-position
-  "Returns the current board position of a gear slot after 'turn' spins"
-  [gear slot turn]
-  (let [teeth (get-in spec [:gears gear :teeth])]
-    (mod (+ slot turn) teeth)))
-
-(defn gear-slot
-  "Return the gear slot index of a board position after 'turn' spins"
-  [gear position turn]
-  (let [teeth (get-in spec [:gears gear :teeth])]
-    (mod (+ position (- teeth turn)) teeth)))
 
 (defn adjust-points
   [state player-id num]
@@ -140,6 +128,18 @@
                         (give-building player-id option)
                         (update :buildings remove-from-vec option-index)
                         (update :active dissoc :decision)))))
+
+(defn gear-position
+  "Returns the current board position of a gear slot after 'turn' spins"
+  [gear slot turn]
+  (let [teeth (get-in spec [:gears gear :teeth])]
+    (mod (+ slot turn) teeth)))
+
+(defn gear-slot
+  "Return the gear slot index of a board position after 'turn' spins"
+  [gear position turn]
+  (let [teeth (get-in spec [:gears gear :teeth])]
+    (mod (+ position (- teeth turn)) teeth)))
 
 (defn place-worker
   [state player-id gear]
