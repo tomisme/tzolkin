@@ -43,9 +43,7 @@
            {:stone -1 :gold -1}))))
 
 (deftest Logic
-  "#Game Init"
-  (testing "initial-game-state")
-  "#Workers"
+  "##Positions/Slots"
   (testing "gear-position"
     (is (= (logic/gear-position :yax 2 0) 2))
     (is (= (logic/gear-position :yax 2 2) 4))
@@ -56,9 +54,6 @@
     (is (= (logic/gear-slot :yax 4 2) 2))
     (is (= (logic/gear-slot :yax 7 13) 4))
     (is (= (logic/gear-slot :chi 5 14) 4)))
-  "##Place Worker"
-  "##Remove Worker"
-  "#Player State"
   "##Adjustments"
   (testing "adjust-points"
     (is (= (logic/adjust-points s 0 5)
@@ -84,7 +79,7 @@
              (update-in [:players 0 :tech :agri] + 2)
              (update-in [:players 0 :tech :arch] inc)))))
   "##Buildings"
-  (testing "give-building"
+  (testing
     (is (= (logic/give-building s 0 {:cost {:corn 2 :wood 1}})
            (-> s
              (update-in [:players 0 :buildings] conj {:cost {:corn 2 :wood 1}})
@@ -135,77 +130,297 @@
                (update-in [:players 0 :monuments] conj {:build :monument})
                (assoc-in [:active :decision :type] :build-monument)
                (assoc-in [:active :decision :options] monuments))))))
-  "##Actions"
-  (testing ":trade"
-    (is (= (logic/handle-action s 0 [:trade true])
-           (-> s)
-           false)))
-  (testing ":build"
-    (is (= (logic/handle-action s 0 [:build :single])
-           (-> s)
-           false))
-    (is (= (logic/handle-action s 0 [:build :double])
-           (-> s)
-           false))
-    (is (= (logic/handle-action s 0 [:build :with-corn])
-           (-> s)
-           false)))
-  (testing ":temples"
-    (is (= (logic/handle-action s 0 [:temples {:cost {:corn 3} :choose :any}])
-           (-> s)
-           false))
-    (is (= (logic/handle-action s 0 [:temples {:cost {:corn 3} :choose :any-two}])
-           (-> s)
-           false)))
-  (testing ":tech"
-    (is (= (logic/handle-action s 0 [:tech {:steps 1}])
-           (-> s
-             (assoc-in [:active :decision :type] :tech)
-             (assoc-in [:active :decision :options] [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]))))
-    (is (= (logic/handle-action s 0 [:tech {:steps 2}])
-           (-> s
-             (assoc-in [:active :decision :type] :tech-two)
-             (assoc-in [:active :decision :options] [{:agri 1} {:extr 1} {:arch 1} {:theo 1}])))))
-  (testing ":gain-worker"
-    (is (= (logic/handle-action s 0 [:gain-worker true])
-           (-> s
-             (update-in [:players 0 :workers] + 1)))))
-  (testing ":skull-action"
-    (is (= (logic/handle-action s 0 [:skull-action {:points 2 :temple :kuku}])
-           (-> s
-             (update-in [:players 0 :materials :skull] - 1)
-             (update-in [:players 0 :points] + 2)
-             (update-in [:players 0 :temples :kuku] + 1))))
-    (is (= (logic/handle-action s 0 [:skull-action {:points 2 :temple :kuku}])
-           (-> s
-             (update-in [:players 0 :materials :skull] - 1)
-             (update-in [:players 0 :points] + 2)
-             (update-in [:players 0 :temples :kuku] + 1))))
-    (is (= (logic/handle-action s 0 [:skull-action {:resource true}])
-           (-> s
-             (update-in [:players 0 :materials :skull] - 1)
-             (assoc-in [:active :decision :type] :gain-materials)
-             (assoc-in [:active :decision :options] [{:wood 1} {:stone 1} {:gold 1}])))))
-  (testing ":choose-action"
-    (is (= (logic/handle-action s 0 [:choose-action :non-chi])
-           (-> s
-             (assoc-in [:active :decision :type] :non-chi-action)
-             (assoc-in [:active :decision :options] []))))
-    (is (= (logic/handle-action s 0 [:choose-action :yax])
-           (-> s
-             (assoc-in [:active :decision :type] :yax-action)
-             (assoc-in [:active :decision :options] [])))))
-  (testing ":gain-materials"
-    (is (= (logic/handle-action s 0 [:gain-materials {:corn 1 :stone 1 :skull 1}])
-           (-> s
-             (update-in [:players 0 :materials :corn] + 1)
-             (update-in [:players 0 :materials :stone] + 1)
-             (update-in [:players 0 :materials :skull] + 1)))))
-  (testing ":choose-materials"
-    (is (= (logic/handle-action s 0 [:choose-materials [{:corn 2} {:wood 1}]])
-           (-> s
-             (assoc-in [:active :decision :type] :gain-materials)
-             (assoc-in [:active :decision :options] [{:corn 2} {:wood 1}])))))
+  "##Yaxchilan"
+  (let [gear :yax
+        num 0
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+              (update-in [:players 0 :materials :wood] + 1))))))
+  (let [gear :yax
+        num 1
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+              (update-in [:players 0 :materials :stone] + 1)
+              (update-in [:players 0 :materials :corn] + 1))))))
+  (let [gear :yax
+        num 2
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+              (update-in [:players 0 :materials :gold] + 1)
+              (update-in [:players 0 :materials :corn] + 2))))))
+  (let [gear :yax
+        num 3
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+              (update-in [:players 0 :materials :skull] + 1))))))
+  (let [gear :yax
+        num 4
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+              (update-in [:players 0 :materials :gold] + 1)
+              (update-in [:players 0 :materials :stone] + 1)
+              (update-in [:players 0 :materials :corn] + 2))))))
+  (let [gear :yax
+        num 5
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  (let [gear :yax
+        num 6
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  "##Tikal"
+  (let [gear :tik
+        num 0
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (assoc-in [:active :decision :type] :tech)
+               (assoc-in [:active :decision :options] [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]))))))
+  (let [gear :tik
+        num 1
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  (let [gear :tik
+        num 2
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (assoc-in [:active :decision :type] :tech-two)
+               (assoc-in [:active :decision :options] [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]))))))
+  (let [gear :tik
+        num 3
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  (let [gear :tik
+        num 4
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  (let [gear :tik
+        num 5
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  (let [gear :tik
+        num 6
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  "##Uxmal"
+  (let [gear :uxe
+        num 0
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  (let [gear :uxe
+        num 1
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  (let [gear :uxe
+        num 2
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :workers] + 1))))))
+  (let [gear :uxe
+        num 3
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  (let [gear :uxe
+        num 4
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :corn] - 1)
+               (assoc-in [:active :decision :type] :non-chi-action)
+               (assoc-in [:active :decision :options] []))))))
+  (let [gear :uxe
+        num 5
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  (let [gear :uxe
+        num 6
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  "##Palenque"
+  (let [gear :pal
+        num 0
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :corn] + 3))))))
+  (let [gear :pal
+        num 1
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :corn] + 4))))))
+  (let [gear :pal
+        num 2
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (assoc-in [:active :decision :type] :gain-materials)
+               (assoc-in [:active :decision :options] [{:corn 5} {:wood 2}]))))))
+  (let [gear :pal
+        num 3
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (assoc-in [:active :decision :type] :gain-materials)
+               (assoc-in [:active :decision :options] [{:corn 7} {:wood 3}]))))))
+  (let [gear :pal
+        num 4
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (assoc-in [:active :decision :type] :gain-materials)
+               (assoc-in [:active :decision :options] [{:corn 9} {:wood 4}]))))))
+  (let [gear :pal
+        num 5
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  (let [gear :pal
+        num 6
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
+  "##Chichen Itza"
+  (let [gear :chi
+        num 0
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :skull] - 1)
+               (update-in [:players 0 :points] + 4)
+               (update-in [:players 0 :temples :chac] + 1))))))
+  (let [gear :chi
+        num 1
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :skull] - 1)
+               (update-in [:players 0 :points] + 5)
+               (update-in [:players 0 :temples :chac] + 1))))))
+  (let [gear :chi
+        num 2
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :skull] - 1)
+               (update-in [:players 0 :points] + 6)
+               (update-in [:players 0 :temples :chac] + 1))))))
+  (let [gear :chi
+        num 3
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :skull] - 1)
+               (update-in [:players 0 :points] + 7)
+               (update-in [:players 0 :temples :kuku] + 1))))))
+  (let [gear :chi
+        num 4
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :skull] - 1)
+               (update-in [:players 0 :points] + 8)
+               (update-in [:players 0 :temples :kuku] + 1))))))
+  (let [gear :chi
+        num 5
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :skull] - 1)
+               (update-in [:players 0 :points] + 8)
+               (assoc-in [:active :decision :type] :gain-materials)
+               (assoc-in [:active :decision :options] [{:wood 1} {:stone 1} {:gold 1}])
+               (update-in [:players 0 :temples :kuku] + 1))))))
+  (let [gear :chi
+        num 6
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :skull] - 1)
+               (update-in [:players 0 :points] + 10)
+               (update-in [:players 0 :temples :quet] + 1))))))
+  (let [gear :chi
+        num 7
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :skull] - 1)
+               (update-in [:players 0 :points] + 11)
+               (assoc-in [:active :decision :type] :gain-materials)
+               (assoc-in [:active :decision :options] [{:wood 1} {:stone 1} {:gold 1}])
+               (update-in [:players 0 :temples :quet] + 1))))))
+  (let [gear :chi
+        num 8
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             (-> s
+               (update-in [:players 0 :materials :skull] - 1)
+               (update-in [:players 0 :points] + 13)
+               (assoc-in [:active :decision :type] :gain-materials)
+               (assoc-in [:active :decision :options] [{:wood 1} {:stone 1} {:gold 1}])
+               (update-in [:players 0 :temples :quet] + 1))))))
+  (let [gear :chi
+        num 9
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (is (= (logic/handle-action s 0 action)
+             false))))
   "##Decisions"
   (testing ":gain-materials"
     (is (= (logic/handle-decision
