@@ -5,7 +5,7 @@
    [tzolkin.devcards.art]
    [tzolkin.devcards.game]
    [tzolkin.devcards.spec]
-   [tzolkin.devcards.tests]))
+   [tzolkin.tests.all]))
 
 (defn app-container
   []

@@ -5,7 +5,7 @@
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
    [tzolkin.logic :as logic]
-   [tzolkin.devcards.tests :as tests])
+   [tzolkin.devcards.game :as dev-game])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
 
@@ -104,7 +104,7 @@
 (defcard-doc "#Temples")
 
 (defcard-rg temple-art
-  (art/temples-el tests/s))
+  (art/temples-el (dev-game/new-test-game {:players 2})))
 
 (defcard-doc
   "#Buildings")

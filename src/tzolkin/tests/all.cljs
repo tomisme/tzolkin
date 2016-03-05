@@ -1,4 +1,4 @@
-(ns tzolkin.devcards.tests
+(ns tzolkin.tests.all
   (:require
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
