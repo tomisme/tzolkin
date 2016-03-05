@@ -28,6 +28,10 @@
    :uxe "🍋"
    :chi "🍇"
    :pal "🍏"
+   :agri "agri"
+   :extr "extr"
+   :arch "arch"
+   :theo "theo"
    :choose-prev "⏪"})
 
 (defn e->val
@@ -56,14 +60,20 @@
                  (apply str (repeat amount (get symbols material)))
                  (str amount (get symbols material))))))
 
+(defn map-str
+  [m]
+  (apply str (for [[symbol amount] m]
+               (apply str (repeat amount (get symbols symbol))))))
+
 (defn temples-str
   [temples]
   (apply str (for [[temple amount] temples]
                (apply str (repeat amount (get symbols temple))))))
 
+;; TODO
 (defn tech-str
   [tech]
-  (str "› " (name tech)))
+  "tech")
 
 (defn food-day-str
   [until-food-day]
@@ -121,17 +131,18 @@
   (let [decision (:decision active)
         type (:type decision)
         decision-options (:options decision)]
-    (if (= :build-building type)
+    (if (= :gain-building type)
       [:span " needs to choose a building."]
-      [:span
-        " needs to choose between "
-        (map-indexed
-          (fn [index option]
-            (case type
-              :gain-materials ^{:key index}
-                              [:button {:on-click #(on-decision index)}
-                                (materials-str option)]))
-          decision-options)])))
+      [:span "HE"])))
+      ; [:span
+      ;   " needs to choose between "
+      ;   (map-indexed
+      ;     (fn [index option]
+      ;       (case type
+      ;         :gain-materials ^{:key index}
+      ;                         [:button {:on-click #(on-decision index)}
+      ;                           (materials-str option)]))
+      ;     decision-options)])))
 
 (defn active-player-status
   [active on-decision]
@@ -171,7 +182,6 @@
         (player-buildings buildings)
         [:p "No buildings."])]))
 
-
 (defn status-bar
   [state on-decision]
   (let [turn (:turn state)
@@ -179,7 +189,7 @@
         until-food-day (get-in spec [:until-food-day turn])
         buildings (:buildings state)
         active (:active state)
-        choosing-building? (= :build-building (get-in active [:decision :type]))
+        choosing-building? (= :gain-building (get-in active [:decision :type]))
         active-player-id (:player-id active)
         active-player (get-in state [:players active-player-id])
         active-player-name (:name active-player)]

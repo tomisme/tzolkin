@@ -28,22 +28,22 @@
     :color :yellow
     :age 1}
    {:cost {:wood 1 :stone 1}
-    :tech :extr
+    :tech {:extr 1}
     :materials {:corn 1}
     :color :green
     :age 1}
    {:cost {:wood 2 :stone 1}
-    :tech :extr
+    :tech {:extr 1}
     :materials {:gold 1}
     :color :green
     :age 1}
    {:cost {:wood 3}
-    :tech :agri
+    :tech {:agri 1}
     :materials {:stone 1}
     :color :green
     :age 1}
    {:cost {:wood 2}
-    :tech :agri
+    :tech {:agri 1}
     :color :green
     :age 1}
    {:cost {:wood 2 :stone 1}
@@ -60,12 +60,12 @@
     :color :brown
     :age 1}
    {:cost {:stone 1 :gold 1}
-    :tech :theo
+    :tech {:theo 1}
     :temples {:kuku 1}
     :color :blue
     :age 1}
    {:cost {:gold 1}
-    :tech :arch
+    :tech {:arch 1}
     :color :blue
     :age 1}
    {:cost {:wood 2}
@@ -138,7 +138,7 @@
     :color :blue
     :age 2}
    {:cost {:stone 2 :gold 1}
-    :tech :theo
+    :tech {:theo 1}
     :temples {:chac 1 :kuku 1}
     :color :blue
     :age 2}
@@ -158,7 +158,7 @@
     :color :blue
     :age 2}
    {:cost {:stone 1 :gold 1}
-    :tech :arch
+    :tech {:arch 1}
     :color :blue
     :age 2}])
 

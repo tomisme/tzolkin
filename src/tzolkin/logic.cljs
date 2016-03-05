@@ -13,7 +13,7 @@
    :active {:player-id 0 :worker-option :none :placed 0}
    :remaining-skulls (:skulls spec)
    :players []
-   :buildings (filter #(= 1 (:age %)) (shuffle (:buildings spec)))
+   :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec))))
    :monuments (take (:num-monuments spec) (shuffle (:monuments spec)))
    :gears initial-gears-state})
 
@@ -60,12 +60,17 @@
   (-> state
     (player-map-adjustment player-id :materials changes)))
 
+(defn adjust-tech
+  [state player-id changes]
+  (-> state
+    (player-map-adjustment player-id :tech changes)))
+
 (defn choose-building
   [state]
   (let [num (:num-available-buildings spec)
         buildings (vec (take num (:buildings state)))]
     (-> state
-      (assoc-in [:active :decision :type] :build-building)
+      (assoc-in [:active :decision :type] :gain-building)
       (assoc-in [:active :decision :options] buildings))))
 
 (defn choose-materials
@@ -74,33 +79,56 @@
     (assoc-in [:active :decision :type] :gain-materials)
     (assoc-in [:active :decision :options] material-options)))
 
-(defn choose-any-resource
+(defn choose-resource
   [state]
   (-> state
     (choose-materials [{:wood 1} {:stone 1} {:gold 1}])))
 
-(defn build-something
-  [state type]
-  (case type
+(def tech-options
+  (into [] (for [[k v] (:tech spec)] {k 1})))
+
+(defn choose-tech
+  [state]
+  (-> state
+    (assoc-in [:active :decision :type] :tech)
+    (assoc-in [:active :decision :options] tech-options)))
+
+(defn choose-tech-two
+  [state]
+  (-> state
+    (assoc-in [:active :decision :type] :tech-two)
+    (assoc-in [:active :decision :options] tech-options)))
+
+(defn build-builder-building
+  [state id build]
+  (case build
     :building (choose-building state)))
+
+(defn build-tech-building
+  [state id tech]
+  (case tech
+    :any (choose-tech state)
+    :any-two (choose-tech-two state)
+    (adjust-tech state id tech)))
 
 (defn give-building
   [state id building]
-  (let [{:keys [cost #_tech temples materials #_trade build points
+  (let [{:keys [cost tech temples materials #_trade build points
                 gain-worker #_free-action-for-corn]} building]
     (-> (cond-> state
-          build       (build-something build)
+          build       (build-builder-building id build)
           points      (adjust-points id points)
           temples     (adjust-temples id temples)
           materials   (adjust-materials id materials)
-          gain-worker (adjust-workers id 1))
+          gain-worker (adjust-workers id 1)
+          tech        (build-tech-building id tech))
       (update-in [:players id :buildings] conj building)
       (adjust-materials id (apply-changes-to-map cost #(* % -1))))))
 
 (defn skull-action
   [state player-id {:keys [resource points temple]}]
   (-> (cond-> state
-        resource (choose-any-resource)
+        resource (choose-resource)
         points   (adjust-points player-id points)
         temple   (adjust-temples player-id {temple 1}))
     (update-in [:players player-id :materials :skull] dec)))
@@ -111,7 +139,9 @@
     :trade             state
     :build             (choose-building state)
     :temples           state
-    :tech-step         state
+    :tech              (case (:steps v)
+                         1 (choose-tech state)
+                         2 (choose-tech-two state))
     :gain-worker       (adjust-workers state player-id 1)
     :skull-action      (skull-action state player-id v)
     :choose-action     state
@@ -130,10 +160,16 @@
       :gain-materials (-> state
                         (adjust-materials player-id option)
                         (update :active dissoc :decision))
-      :build-building (-> state
+      :gain-building (-> state
                         (give-building player-id option)
                         (update :buildings remove-from-vec option-index)
-                        (update :active dissoc :decision)))))
+                        (update :active dissoc :decision))
+      :tech (-> state
+              (adjust-tech player-id option)
+              (update :active dissoc :decision))
+      :tech-two (-> state
+                  (adjust-tech player-id option)
+                  (assoc-in [:active :decision :type] :tech)))))
 
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
