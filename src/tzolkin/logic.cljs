@@ -11,22 +11,28 @@
 (def initial-game-state
   {:turn 0
    :active {:player-id 0 :worker-option :none :placed 0}
-   :skull 13
+   :remaining-skulls (:skulls spec)
    :players []
-   ;; TODO filter only age 1 buildings at start
-   :buildings (shuffle (:buildings spec))
-   :monuments (shuffle (:monuments spec))
+   :buildings (filter #(= 1 (:age %)) (shuffle (:buildings spec)))
+   :monuments (take (:num-monuments spec) (shuffle (:monuments spec)))
    :gears initial-gears-state})
 
-(def new-player-state
-  {:starters (take 3 (shuffle (:starters spec)))
+(defn initial-player-state
+  [name color]
+  {:starters (take (:num-starters spec) (shuffle (:starters spec)))
    :materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
    :temples {:chac 1 :quet 1 :kuku 1}
    :tech {:agri 0 :extr 0 :arch 0 :theo 0}
-   :tiles {:corn-tiles 0 :wood-tiles 0}
    :buildings []
    :workers 3
-   :points 0})
+   :points 0
+   :name name
+   :color color})
+
+(defn add-player
+  [state name color]
+  (-> state
+    (update-in [:players] conj (initial-player-state name color))))
 
 (defn adjust-points
   [state player-id num]

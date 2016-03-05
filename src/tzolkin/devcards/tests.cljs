@@ -98,7 +98,7 @@
                (assoc-in [:active :decision :type] :build-building)
                (assoc-in [:active :decision :options] buildings)))))
     (is (= (logic/give-building s 0 {:build :monument})
-           (let [num (:num-available-monuments spec)
+           (let [num (:num-monuments spec)
                  monuments (vec (take num (:monuments s)))]
              (-> s
                (update-in [:players 0 :monuments] conj {:build :monument})

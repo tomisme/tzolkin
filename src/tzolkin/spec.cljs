@@ -377,10 +377,12 @@
 
 (def spec
   {:total-turns 26
+   :skulls 13
    :until-food-day [7 6 5 4 3 2 1 0 5 4 3 2 1 0 6 5 4 3 2 1 0 5 4 3 2 1 0]
-   :trades {:wood 2 :stone 3 :gold 4}
+   :trade-values {:wood 2 :stone 3 :gold 4}
    :num-available-buildings 4
-   :num-available-monuments 4
+   :num-monuments 4
+   :num-starters 3
    :tech tech
    :gears gears
    :temples temples

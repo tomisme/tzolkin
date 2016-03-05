@@ -11,12 +11,8 @@
 (defn new-test-game
   [{:keys [players]}]
   (cond-> logic/initial-game-state
-    (> players 0) (update-in [:players] conj (-> logic/new-player-state
-                                               (assoc :name "Elisa")
-                                               (assoc :color :red)))
-    (> players 1) (update-in [:players] conj (-> logic/new-player-state
-                                               (assoc :name "Tom")
-                                               (assoc :color :blue)))))
+    (> players 0) (logic/add-player "Elisa" :red)
+    (> players 1) (logic/add-player "Tom" :blue)))
 
 (defcard-rg game-test
   (fn [state _]
