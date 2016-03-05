@@ -100,7 +100,7 @@
           (when farm (farm-el farm))
           (when tech [:p (tech-str tech)])
           (when gain-worker [:p (get symbols :worker)])
-          (when free-action-for-corn [:p (get symbols :corn) ": free!"])
+          (when free-action-for-corn [:p (get symbols :corn) ": any"])
           (when build [:p "build " (name build)])
           (when temples [:p (temples-str temples)])
           (when materials [:p (materials-str materials)])
@@ -194,11 +194,13 @@
   (case k
     :gain-materials  (materials-str data)
     :choose-materials (str (materials-str (first data)) "/" (materials-str (second data)))
-    :choose-action (str (:choose-prev symbols) (get symbols data))
+    :choose-action (if (= (:gear data) :non-chi)
+                     (str (:corn symbols) ": any")
+                     (str (:choose-prev symbols) (get symbols (:gear data))))
     :choose-any-action "any"
-    :tech-step "+tech"
+    :tech "+tech"
     :build "build"
-    :temple "+temple"
+    :temples "+temple"
     :trade "trade"
     :gain-worker "+worker"
     :skull-action (str (get symbols (:temple data))
