@@ -196,7 +196,11 @@
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (is (= (logic/handle-action s 0 action)
-             false))))
+             (let [num (:num-available-buildings spec)
+                   buildings (vec (take num (:buildings s)))]
+               (-> s
+                 (assoc-in [:active :decision :type] :gain-building)
+                 (assoc-in [:active :decision :options] buildings)))))))
   (let [gear :tik
         num 2
         action (get-in spec [:gears gear :actions num])]

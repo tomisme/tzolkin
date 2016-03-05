@@ -137,7 +137,8 @@
   [state player-id [k v]]
   (case k
     :trade             state
-    :build             (choose-building state)
+    :build             (case (:type v)
+                         :single (choose-building state))
     :temples           state
     :tech              (case (:steps v)
                          1 (choose-tech state)

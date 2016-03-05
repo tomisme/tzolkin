@@ -280,7 +280,7 @@
          :actions [[:tech {:steps 1}]
                    [:build {:type :single}]
                    [:tech {:steps 2}]
-                   [:build {:type :double}]
+                   [:build {:type :double-or-monument}]
                    [:temples {:cost {:any-resource 1}
                               :choose :two-different}]
                    [:choose-action {:gear :tik}]
