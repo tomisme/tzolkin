@@ -2,7 +2,7 @@
   (:require
     [tzolkin.spec :refer [spec]]
     [tzolkin.util :refer [indexed first-nil rotate-vec remove-from-vec
-                          apply-changes-to-map]]))
+                          apply-changes-to-map negatise-map]]))
 
 (def initial-gears-state
   (into {} (for [[k v] (:gears spec)]
@@ -17,39 +17,32 @@
    :monuments (take (:num-monuments spec) (shuffle (:monuments spec)))
    :gears initial-gears-state})
 
-(defn initial-player-state
-  [name color]
-  {:starters (take (:num-starters spec) (shuffle (:starters spec)))
-   :materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
-   :temples {:chac 1 :quet 1 :kuku 1}
-   :tech {:agri 0 :extr 0 :arch 0 :theo 0}
-   :buildings []
-   :workers 3
-   :points 0
-   :name name
-   :color color})
-
 (defn add-player
   [state name color]
-  (-> state
-    (update-in [:players] conj (initial-player-state name color))))
+  (let [p {:starters (take (:num-starters spec) (shuffle (:starters spec)))
+           :materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
+           :temples {:chac 1 :quet 1 :kuku 1}
+           :tech {:agri 0 :extr 0 :arch 0 :theo 0}
+           :buildings []
+           :workers 3
+           :points 0
+           :name name
+           :color color}]
+    (update state :players conj p)))
 
 (defn adjust-points
   [state player-id num]
-  (-> state
-    (update-in [:players player-id :points] + num)))
+  (update-in state [:players player-id :points] + num))
 
 (defn adjust-workers
   [state player-id num]
-  (-> state
-    (update-in [:players player-id :workers] + num)))
+  (update-in state [:players player-id :workers] + num))
 
 (defn player-map-adjustment
   [state player-id k changes]
   (let [current (get-in state [:players player-id k])
         updated (apply-changes-to-map current + changes)]
-    (-> state
-      (assoc-in [:players player-id k] updated))))
+    (assoc-in state [:players player-id k] updated)))
 
 (defn adjust-temples
   [state player-id changes]
@@ -57,13 +50,11 @@
 
 (defn adjust-materials
   [state player-id changes]
-  (-> state
-    (player-map-adjustment player-id :materials changes)))
+  (player-map-adjustment state player-id :materials changes))
 
 (defn adjust-tech
   [state player-id changes]
-  (-> state
-    (player-map-adjustment player-id :tech changes)))
+  (player-map-adjustment state player-id :tech changes))
 
 (defn choose-building
   [state]
@@ -81,8 +72,7 @@
 
 (defn choose-resource
   [state]
-  (-> state
-    (choose-materials [{:wood 1} {:stone 1} {:gold 1}])))
+  (choose-materials state [{:wood 1} {:stone 1} {:gold 1}]))
 
 (def tech-options
   (into [] (for [[k v] (:tech spec)] {k 1})))
@@ -132,7 +122,7 @@
           gain-worker (adjust-workers id 1)
           tech        (build-tech-building id tech))
       (update-in [:players id :buildings] conj building)
-      (adjust-materials id (apply-changes-to-map cost #(* % -1))))))
+      (adjust-materials id (negatise-map cost)))))
 
 (defn skull-action
   [state player-id {:keys [resource points temple]}]
@@ -150,7 +140,7 @@
                          :single (choose-building state))
     :temples           (case (:choose v)
                          :any (-> state
-                                (adjust-materials id (apply-changes-to-map (:cost v) #(* % -1)))
+                                (adjust-materials id (negatise-map (:cost v)))
                                 (choose-temple)))
     :tech              (case (:steps v)
                          1 (choose-tech state)

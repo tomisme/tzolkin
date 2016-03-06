@@ -5,8 +5,8 @@
   from 'seq' and indexes count up from zero.
 
   (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
-  [seq]
-  (map vector (iterate inc 0) seq))
+  [coll]
+  (map-indexed vector coll))
 
 (defn first-nil
   "Returns the index of the first instance of nil in 'coll'"
@@ -46,3 +46,8 @@
      (fn [m [k v]] (update m k #(f % v)))
      original-map
      (for [[k v] changes] [k v]))))
+
+(defn negatise-map
+  "Multiple each value in map 'm' by -1"
+  [m]
+  (apply-changes-to-map m #(* % -1)))
