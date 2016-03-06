@@ -7,7 +7,7 @@
    [tzolkin.devcards.game :as dev-game])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is]]))
+   [cljs.test :refer [testing is run-tests]]))
 
 (def s (dev-game/new-test-game {:players 2}))
 
@@ -239,7 +239,10 @@
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (is (= (logic/handle-action s 0 action)
-             false))))
+             (-> s
+               (update-in [:players 0 :materials :corn] - 3)
+               (assoc-in [:active :decision :type] :temple)
+               (assoc-in [:active :decision :options] [{:chac 1} {:quet 1} {:kuku 1}]))))))
   (let [gear :uxe
         num 1
         action (get-in spec [:gears gear :actions num])]

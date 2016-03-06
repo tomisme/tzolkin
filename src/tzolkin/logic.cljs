@@ -99,6 +99,15 @@
     (assoc-in [:active :decision :type] :tech-two)
     (assoc-in [:active :decision :options] tech-options)))
 
+(def temple-options
+  (into [] (for [[k v] (:temples spec)] {k 1})))
+
+(defn choose-temple
+  [state]
+  (-> state
+    (assoc-in [:active :decision :type] :temple)
+    (assoc-in [:active :decision :options] temple-options)))
+
 (defn build-builder-building
   [state id build]
   (case build
@@ -134,43 +143,53 @@
     (update-in [:players player-id :materials :skull] dec)))
 
 (defn handle-action
-  [state player-id [k v]]
+  [state id [k v]]
   (case k
     :trade             state
     :build             (case (:type v)
                          :single (choose-building state))
-    :temples           state
+    :temples           (case (:choose v)
+                         :any (-> state
+                                (adjust-materials id (apply-changes-to-map (:cost v) #(* % -1)))
+                                (choose-temple)))
     :tech              (case (:steps v)
                          1 (choose-tech state)
                          2 (choose-tech-two state))
-    :gain-worker       (adjust-workers state player-id 1)
-    :skull-action      (skull-action state player-id v)
+    :gain-worker       (adjust-workers state id 1)
+    :skull-action      (skull-action state id v)
     :choose-action     state
-    :gain-materials    (adjust-materials state player-id v)
+    :gain-materials    (adjust-materials state id v)
     :choose-materials  (choose-materials state v)))
 
 (defn handle-decision
-  [state option-index]
-  (let [active    (:active state)
-        player-id (:player-id active)
+  [{:keys [active] :as state} option-index]
+  (let [id        (:player-id active)
         decision  (:decision active)
         type      (:type decision)
         options   (:options decision)
-        option    (get options option-index)]
+        choice    (get options option-index)]
     (case type
-      :gain-materials (-> state
-                        (adjust-materials player-id option)
-                        (update :active dissoc :decision))
-      :gain-building (-> state
-                        (give-building player-id option)
-                        (update :buildings remove-from-vec option-index)
-                        (update :active dissoc :decision))
-      :tech (-> state
-              (adjust-tech player-id option)
-              (update :active dissoc :decision))
-      :tech-two (-> state
-                  (adjust-tech player-id option)
-                  (assoc-in [:active :decision :type] :tech)))))
+      :gain-materials
+        (-> state
+          (adjust-materials id choice)
+          (update :active dissoc :decision))
+      :gain-building
+        (-> state
+          (give-building id choice)
+          (update :buildings remove-from-vec option-index)
+          (update :active dissoc :decision))
+      :tech
+        (-> state
+          (adjust-tech id choice)
+          (update :active dissoc :decision))
+      :tech-two
+        (-> state
+          (adjust-tech id choice)
+          (assoc-in [:active :decision :type] :tech))
+      :temple
+        (-> state
+          (adjust-temples id choice)
+          (update :active dissoc :decision)))))
 
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
