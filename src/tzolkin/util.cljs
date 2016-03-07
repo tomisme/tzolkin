@@ -1,4 +1,14 @@
-(ns tzolkin.util)
+(ns tzolkin.util
+  (:require
+   [clojure.data :as data]))
+
+(defn log
+  [& args]
+  (.log js/console args))
+
+(defn diff
+  [a b]
+  (drop-last (data/diff a b)))
 
 (defn indexed
   "Returns a lazy sequence of [index, item] pairs, where items come

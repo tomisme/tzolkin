@@ -1,8 +1,8 @@
 (ns tzolkin.devcards.main
   (:require
-   [clojure.data :as data]
    [tzolkin.logic :as logic]
    [tzolkin.spec :refer [spec]]
+   [tzolkin.util :refer [log diff]]
    [tzolkin.devcards.art]
    [tzolkin.devcards.buildings]
    [tzolkin.devcards.decisions]
@@ -15,10 +15,6 @@
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
-
-(defn diff
-  [a b]
-  (drop-last (data/diff a b)))
 
 (defcard-doc
   "##Other Tests
