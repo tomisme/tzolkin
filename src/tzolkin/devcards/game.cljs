@@ -14,8 +14,10 @@
     (> players 0) (logic/add-player "Elisa" :red)
     (> players 1) (logic/add-player "Tom" :blue)))
 
+(def s (new-test-game {:players 2}))
+
 (defcard-rg game-test
   (fn [state _]
     (game/board state))
-  (new-test-game {:players 2})
+  s
   {:inspect-data true :history true})

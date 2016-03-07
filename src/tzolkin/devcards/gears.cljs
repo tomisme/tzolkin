@@ -1,83 +1,22 @@
-(ns tzolkin.tests.core
+(ns tzolkin.devcards.gears
   (:require
    [clojure.data :refer [diff]]
+   [reagent.core :as rg]
+   [timothypratley.reanimated.core :as anim]
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
    [tzolkin.logic :as logic]
-   [tzolkin.util :as util]
-   [tzolkin.tests.util :refer [s]]
-   [tzolkin.tests.buildings])
+   [tzolkin.devcards.game :refer [s]])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is run-tests]]))
+   [cljs.test :refer [testing is]]))
 
-(deftest Art
-  (testing "transform-str"
-    "rotate"
-    (is (= (art/transform-str [:rotate {:deg 90}]) "rotate(90)"))
-    (is (= (art/transform-str [:rotate {:deg 55 :x 10 :y 10}]
-                              [:rotate {:deg 10 :x 1 :y 1}])
-           "rotate(55 10 10)rotate(10 1 1)")))
-  (testing "materials-str"
-    (is (= (art/materials-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
-           "🌲🗿🌕🌕3🌽💀"))))
+(defcard-doc
+  "#Gears
+  The spinning gears are a one of the coolest mechanics in Tzolk'in. They're
+  also the main way that players interact with the game.")
 
-(deftest Utils
-  (testing "indexed"
-    (is (= (util/indexed '(a b c)) '([0 a] [1 b] [2 c])))
-    (is (= (util/indexed [:a :b :c]) '([0 :a] [1 :b] [2 :c]))))
-  (testing "first-nil"
-    (is (= (util/first-nil ["nil" 0 :a nil :b nil]) 3)))
-  (testing "rotate-vec"
-    (is (= (util/rotate-vec [:a :b :c] 2) [:b :c :a]))
-    (is (= (util/rotate-vec [:a :b :c] 4) [:c :a :b]))
-    (is (= (util/rotate-vec [:a :b :c] -1) [:b :c :a])))
-  (testing "remove-from-vec"
-    (is (= (util/remove-from-vec [:a :b :c] 1) [:a :c])))
-  (testing "apply-changes-to-map"
-    (is (= (util/apply-changes-to-map {:wood 1 :gold 2 :skull 1} + {:wood 2 :gold 2})
-           {:wood 3 :gold 4 :skull 1}))
-    (is (= (util/apply-changes-to-map {:stone 1 :gold 1 :corn 9} - {:corn 7 :gold 1})
-           {:stone 1 :gold 0 :corn 2}))
-    (is (= (util/apply-changes-to-map {:stone 1 :gold 1} #(* % -1))
-           {:stone -1 :gold -1}))))
-
-(deftest Logic
-  "##Positions/Slots"
-  (testing "gear-position"
-    (is (= (logic/gear-position :yax 2 0) 2))
-    (is (= (logic/gear-position :yax 2 2) 4))
-    (is (= (logic/gear-position :yax 4 13) 7))
-    (is (= (logic/gear-position :chi 4 14) 5)))
-  (testing "gear-slot"
-    (is (= (logic/gear-slot :yax 2 0) 2))
-    (is (= (logic/gear-slot :yax 4 2) 2))
-    (is (= (logic/gear-slot :yax 7 13) 4))
-    (is (= (logic/gear-slot :chi 5 14) 4)))
-  "##Adjustments"
-  (testing "adjust-points"
-    (is (= (logic/adjust-points s 0 5)
-           (-> s
-             (update-in [:players 0 :points] + 5)))))
-  (testing "adjust-workers"
-    (is (= (logic/adjust-workers s 0 1)
-           (-> s
-             (update-in [:players 0 :workers] inc)))))
-  (testing "adjust-materials"
-    (is (= (logic/adjust-materials s 0 {:stone 2 :gold 1})
-           (-> s
-             (update-in [:players 0 :materials :stone] + 2)
-             (update-in [:players 0 :materials :gold] inc)))))
-  (testing "adjust-temples"
-    (is (= (logic/adjust-temples s 0 {:chac 2 :quet 1})
-           (-> s
-             (update-in [:players 0 :temples :chac] + 2)
-             (update-in [:players 0 :temples :quet] inc)))))
-  (testing "adjust-tech"
-    (is (= (logic/adjust-tech s 0 {:agri 2 :arch 1})
-           (-> s
-             (update-in [:players 0 :tech :agri] + 2)
-             (update-in [:players 0 :tech :arch] inc)))))
+(deftest gear-actions
   "##Yaxchilan"
   (let [gear :yax
         num 0
@@ -375,50 +314,81 @@
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (is (= (logic/handle-action s 0 action)
-             false))))
-  "##Decisions"
-  (testing ":gain-materials"
-    (is (= (logic/handle-decision
-             (logic/handle-action s 0 [:choose-materials [{:corn 1} {:stone 1}]])
-             1)
-           (-> s
-             (update-in [:players 0 :materials :stone] + 1)))))
-  (testing ":gain-building"
-    (is (= (logic/handle-decision
-             (-> s
-               (assoc :buildings [{} {:materials {:corn 1}} {}])
-               (logic/choose-building))
-             1)
-           (-> s
-             (assoc :buildings [{} {}])
-             (update-in [:players 0 :buildings] conj {:materials {:corn 1}})
-             (update-in [:players 0 :materials :corn] + 1)))))
-  (testing ":tech"
-    (is (= (logic/handle-decision
-             (logic/choose-tech s)
-             1)
-           (-> s
-             (update-in [:players 0 :tech :extr] inc)))))
-  (testing ":tech-two"
-    (is (= (logic/handle-decision
-             (logic/choose-tech-two s)
-             2)
-           (-> s
-             (update-in [:players 0 :tech :arch] inc)
-             (assoc-in [:active :decision :type] :tech)
-             (assoc-in [:active :decision :options] [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]))))))
+             false)))))
 
-(defcard-doc
-  "##Other Tests
+(defcard-rg gear-creator
+  (fn [data _]
+    (let [{:keys [size teeth tooth-width-factor tooth-height-factor]} @data
+          set #(swap! data assoc %1 %2)]
+      [:div.ui.segment
+       [:div.ui.grid
+        [:div.six.wide.column
+         [:div.ui.form
+          [:div.field
+           [:div.label "Size"]
+           [:input {:type "range"
+                    :value size
+                    :min 100, :max 200
+                    :on-change #(set :size (art/e->val %))}]]
+          [:div.field
+           [:div.label "Teeth"]
+           [:input {:type "range"
+                    :value teeth
+                    :min 10, :max 26
+                    :on-change #(set :teeth (art/e->val %))}]]
+          [:div.field
+           [:div.label "Tooth Width Factor"]
+           [:input {:type "range"
+                    :value tooth-width-factor
+                    :min 0.1, :max 2
+                    :step 0.1
+                    :on-change #(set :tooth-width-factor (art/e->val %))}]]
+          [:div.field
+           [:div.label "Tooth Height Factor"]
+           [:input {:type "range"
+                    :value tooth-height-factor
+                    :min 0.1, :max 2
+                    :step 0.1
+                    :on-change #(set :tooth-height-factor (art/e->val %))}]]]]
+        [:div.ten.wide.column
+         [:svg {:width (* size 5)
+                :height (* size 5)}
+          [art/gear-el {:cx (* size 2)
+                        :cy (* size 2)
+                        :r size
+                        :teeth teeth
+                        :tooth-width-factor tooth-width-factor
+                        :tooth-height-factor tooth-height-factor}]]]]]))
+  (rg/atom {:size 75
+            :teeth 12
+            :tooth-width-factor 1
+            :tooth-height-factor 1.1})
+  {:inspect-data true})
 
-    - If the bank does not have enough crystal skulls to reward all the
-      players who should get one, then no one gets a crystal skull.")
+(def spin-test-atom (rg/atom 0))
 
-(defcard-doc
-  (drop-last
-    (diff
-      (logic/give-building s 0 {:build :monument})
-      (-> s
-        (update-in [:players 0 :buildings] conj {:build :monument})
-        (assoc-in [:active :decision :type] :gain-monument)
-        (assoc-in [:active :decision :options] (:monuments s))))))
+(defn spinning-worker-gear
+  [{:keys [workers actions on-worker-click]}]
+  (let [rotation-spring (anim/spring spin-test-atom)
+        workers [:blue nil :blue :red nil nil :red nil nil nil]]
+    (fn []
+      [:svg {:width 300 :height 300}
+        [art/gear-el {:cx 150
+                      :cy 150
+                      :r 75
+                      :teeth 10
+                      :tooth-height-factor 1.15
+                      :tooth-width-factor 0.75
+                      :workers workers
+                      :gear :tik
+                      :rotation @rotation-spring}]])))
+
+(defcard-rg spinning-worker-gear-test
+  [:div
+    [:button {:on-click #(swap! spin-test-atom + (/ 360 10))}
+      "Spin the gear!"]
+    (for [[k v] (get spec :gears)]
+      [:button (:name v)])
+    [spinning-worker-gear]]
+  spin-test-atom
+  {:inspect-data true})

@@ -1,9 +1,10 @@
-(ns tzolkin.tests.buildings
+(ns tzolkin.devcards.buildings
   (:require
    [clojure.data :refer [diff]]
    [tzolkin.spec :refer [spec]]
+   [tzolkin.art :as art]
    [tzolkin.logic :as logic]
-   [tzolkin.tests.util :refer [s]])
+   [tzolkin.devcards.game :refer [s]])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is]]))
@@ -58,3 +59,19 @@
              (update-in [:players 0 :buildings] conj {:build :monument})
              (assoc-in [:active :decision :type] :gain-monument)
              (assoc-in [:active :decision :options] (:monuments s)))))))
+
+(def random-building
+  (first (shuffle (:buildings spec))))
+
+(defcard-rg single-building
+  (art/building-card random-building nil false)
+  random-building
+  {:inspect-data true})
+
+(defcard-rg all-buildings
+  [:div.ui.cards
+    (map-indexed
+      (fn [index building]
+        ^{:key index}
+        [:div (art/building-card building nil false)])
+      (:buildings spec))])

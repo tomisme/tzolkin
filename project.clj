@@ -6,6 +6,7 @@
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.145"]
+                 [binaryage/devtools "0.5.2"]
                  [devcards "0.2.0-8"]
                  [timothypratley/reanimated "0.1.1"]
                  [reagent "0.5.1"]]
@@ -21,7 +22,7 @@
   :cljsbuild {:builds [{:id "devcards"
                         :source-paths ["src"]
                         :figwheel {:devcards true}
-                        :compiler {:main       "tzolkin.core"
+                        :compiler {:main       "tzolkin.dev-core"
                                    :asset-path "js/compiled/devcards_out"
                                    :output-to  "resources/public/js/compiled/tzolkin_devcards.js"
                                    :output-dir "resources/public/js/compiled/devcards_out"
