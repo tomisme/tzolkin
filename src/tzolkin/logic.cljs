@@ -1,8 +1,8 @@
 (ns tzolkin.logic
   (:require
     [tzolkin.spec :refer [spec]]
-    [tzolkin.util :refer [indexed first-nil rotate-vec remove-from-vec
-                          apply-changes-to-map negatise-map]]))
+    [tzolkin.utils :refer [indexed first-nil rotate-vec remove-from-vec
+                           apply-changes-to-map negatise-map]]))
 
 (def initial-gears-state
   (into {} (for [[k v] (:gears spec)]

@@ -3,7 +3,7 @@
    [clojure.data :refer [diff]]
    [tzolkin.spec :refer [spec]]
    [tzolkin.logic :as logic]
-   [tzolkin.util :as util]
+   [tzolkin.utils :as utils]
    [tzolkin.devcards.game :refer [s]])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]

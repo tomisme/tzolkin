@@ -1,4 +1,4 @@
-(ns tzolkin.util
+(ns tzolkin.utils
   (:require
    [clojure.data :as data]))
 
