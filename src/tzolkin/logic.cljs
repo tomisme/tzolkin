@@ -14,7 +14,7 @@
    :remaining-skulls (:skulls spec)
    :players []
    :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec))))
-   :monuments (take (:num-monuments spec) (shuffle (:monuments spec)))
+   :monuments (vec (take (:num-monuments spec) (shuffle (:monuments spec))))
    :gears initial-gears-state})
 
 (defn add-player
@@ -64,6 +64,12 @@
       (assoc-in [:active :decision :type] :gain-building)
       (assoc-in [:active :decision :options] buildings))))
 
+(defn choose-monument
+  [state]
+  (-> state
+    (assoc-in [:active :decision :type] :gain-monument)
+    (assoc-in [:active :decision :options] (:monuments state))))
+
 (defn choose-materials
   [state material-options]
   (-> state
@@ -101,7 +107,8 @@
 (defn build-builder-building
   [state id build]
   (case build
-    :building (choose-building state)))
+    :building (choose-building state)
+    :monument (choose-monument state)))
 
 (defn build-tech-building
   [state id tech]
