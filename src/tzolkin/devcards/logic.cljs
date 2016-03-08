@@ -1,6 +1,5 @@
 (ns tzolkin.devcards.logic
   (:require
-   [clojure.data :refer [diff]]
    [tzolkin.spec :refer [spec]]
    [tzolkin.logic :as logic]
    [tzolkin.utils :as utils]

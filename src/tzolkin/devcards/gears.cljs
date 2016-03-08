@@ -1,6 +1,5 @@
 (ns tzolkin.devcards.gears
   (:require
-   [clojure.data :refer [diff]]
    [reagent.core :as rg]
    [timothypratley.reanimated.core :as anim]
    [tzolkin.spec :refer [spec]]

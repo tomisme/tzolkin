@@ -17,3 +17,15 @@
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
+
+;; TODO make into a macro!
+(deftest differ
+  (testing ":gain-materials"
+    (is (= '(nil nil)
+           (diff
+             (logic/handle-decision
+               (-> s
+                 (logic/handle-action 0 [:choose-materials [{:corn 1} {:stone 1}]]))
+               0)
+             (-> s
+               (update-in [:players 0 :materials :stone] + 1)))))))
