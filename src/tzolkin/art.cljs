@@ -128,7 +128,7 @@
 
 (defn decisions-el
   [active on-decision]
-  (let [decision (:decision active)
+  (let [decision (first (:decisions active))
         type (:type decision)
         decision-options (:options decision)]
     (if (= :gain-building type)
@@ -146,7 +146,7 @@
 
 (defn active-player-status
   [active on-decision]
-  (let [decision (:decision active)]
+  (let [decision (first (:decisions active))]
     (if decision
       (decisions-el active on-decision)
       (let [worker-option (:worker-option active)

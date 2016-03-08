@@ -39,5 +39,5 @@
              2)
            (-> s
              (update-in [:players 0 :tech :arch] inc)
-             (assoc-in [:active :decision :type] :tech)
-             (assoc-in [:active :decision :options] [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]))))))
+             (update-in [:active :decisions] conj {:type :tech
+                                                   :options [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]}))))))

@@ -10,7 +10,7 @@
 
 (def initial-game-state
   {:turn 0
-   :active {:player-id 0 :worker-option :none :placed 0}
+   :active {:player-id 0 :worker-option :none :placed 0 :decisions '()}
    :remaining-skulls (:skulls spec)
    :players []
    :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec))))
@@ -59,22 +59,22 @@
 (defn choose-building
   [state]
   (let [num (:num-available-buildings spec)
-        buildings (vec (take num (:buildings state)))]
+        decision {:type :gain-building
+                  :options (vec (take num (:buildings state)))}]
     (-> state
-      (assoc-in [:active :decision :type] :gain-building)
-      (assoc-in [:active :decision :options] buildings))))
+      (update-in [:active :decisions] conj decision))))
 
 (defn choose-monument
   [state]
-  (-> state
-    (assoc-in [:active :decision :type] :gain-monument)
-    (assoc-in [:active :decision :options] (:monuments state))))
+  (let [decision {:type :gain-monument :options (:monuments state)}]
+    (-> state
+      (update-in [:active :decisions] conj decision))))
 
 (defn choose-materials
   [state material-options]
-  (-> state
-    (assoc-in [:active :decision :type] :gain-materials)
-    (assoc-in [:active :decision :options] material-options)))
+  (let [decision {:type :gain-materials :options material-options}]
+    (-> state
+      (update-in [:active :decisions] conj decision))))
 
 (defn choose-resource
   [state]
@@ -85,24 +85,36 @@
 
 (defn choose-tech
   [state]
-  (-> state
-    (assoc-in [:active :decision :type] :tech)
-    (assoc-in [:active :decision :options] tech-options)))
+  (let [decision {:type :tech :options tech-options}]
+    (-> state
+      (update-in [:active :decisions] conj decision))))
 
 (defn choose-tech-two
   [state]
-  (-> state
-    (assoc-in [:active :decision :type] :tech-two)
-    (assoc-in [:active :decision :options] tech-options)))
+  (let [decision {:type :tech :options tech-options}]
+    (-> state
+      (update-in [:active :decisions] conj decision)
+      (update-in [:active :decisions] conj decision))))
 
 (def temple-options
   (into [] (for [[k v] (:temples spec)] {k 1})))
 
 (defn choose-temple
   [state]
-  (-> state
-    (assoc-in [:active :decision :type] :temple)
-    (assoc-in [:active :decision :options] temple-options)))
+  (let [decision {:type :temple :options temple-options}]
+    (-> state
+      (update-in [:active :decisions] conj decision))))
+
+(defn add-decision
+  [state id k v]
+  (let [options (case k
+                  :action (if (= :non-chi (:gear v))
+                            (for [g '(:yax :tik :uxe :pal) x (range 5)] {g x})
+                            (let [num (get-in spec [:gears (:gear v) :regular-actions])]
+                              (into [] (for [x (range num)] {(:gear v) x})))))]
+    (-> (cond-> state
+          (:cost v) (adjust-materials id (negatise-map (:cost v))))
+      (update-in [:active :decisions] conj {:type k :options options}))))
 
 (defn build-builder-building
   [state id build]
@@ -154,14 +166,14 @@
                          2 (choose-tech-two state))
     :gain-worker       (adjust-workers state id 1)
     :skull-action      (skull-action state id v)
-    :choose-action     state
+    :choose-action     (add-decision state id :action v)
     :gain-materials    (adjust-materials state id v)
     :choose-materials  (choose-materials state v)))
 
 (defn handle-decision
   [{:keys [active] :as state} option-index]
   (let [id        (:player-id active)
-        decision  (:decision active)
+        decision  (first (:decisions active))
         type      (:type decision)
         options   (:options decision)
         choice    (get options option-index)]
@@ -169,24 +181,24 @@
       :gain-materials
         (-> state
           (adjust-materials id choice)
-          (update :active dissoc :decision))
+          (update-in [:active :decisions] rest))
       :gain-building
         (-> state
           (give-building id choice)
           (update :buildings remove-from-vec option-index)
-          (update :active dissoc :decision))
+          (update-in [:active :decisions] rest))
       :tech
         (-> state
           (adjust-tech id choice)
-          (update :active dissoc :decision))
+          (update-in [:active :decisions] rest))
       :tech-two
         (-> state
           (adjust-tech id choice)
-          (assoc-in [:active :decision :type] :tech))
+          (update-in [:active :decisions] rest))
       :temple
         (-> state
           (adjust-temples id choice)
-          (update :active dissoc :decision)))))
+          (update-in [:active :decisions] rest)))))
 
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"

@@ -263,6 +263,7 @@
   {:yax {:name "Yaxchilan"
          :teeth 10
          :location 1
+         :regular-actions 5
          :actions [[:gain-materials {:wood 1}]
                    [:gain-materials {:stone 1
                                      :corn 1}]
@@ -277,6 +278,7 @@
    :tik {:name "Tikal"
          :teeth 10
          :location 6
+         :regular-actions 5
          :actions [[:tech {:steps 1}]
                    [:build {:type :single}]
                    [:tech {:steps 2}]
@@ -288,6 +290,7 @@
    :uxe {:name "Uxmal"
          :teeth 10
          :location 11
+         :regular-actions 5
          :actions [[:temples {:cost {:corn 3}
                               :choose :any}]
                    [:trade {}]
@@ -300,6 +303,7 @@
    :pal {:name "Palenque"
          :teeth 10
          :location 22
+         :regular-actions 5
          :actions [[:gain-materials {:corn 3}]
                    [:gain-materials {:corn 4}]
                    [:choose-materials [{:corn 5}
@@ -313,6 +317,7 @@
    :chi {:name "Chichen Itza"
          :teeth 13
          :location 16
+         :regular-actions 9
          :actions [[:skull-action {:points 4
                                    :temple :chac}]
                    [:skull-action {:points 5
