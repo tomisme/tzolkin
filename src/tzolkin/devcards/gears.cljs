@@ -9,7 +9,7 @@
    [tzolkin.devcards.game :refer [s]])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is]]))
+   [cljs.test :refer [testing is run-tests]]))
 
 (defcard-doc
   "#Gears
@@ -388,7 +388,7 @@
     [:button {:on-click #(swap! spin-test-atom + (/ 360 10))}
       "Spin the gear!"]
     (for [[k v] (get spec :gears)]
-      [:button (:name v)])
+      [:button {:key k} (:name v)])
     [spinning-worker-gear]]
   spin-test-atom
   {:inspect-data true})

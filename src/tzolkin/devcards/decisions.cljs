@@ -6,12 +6,13 @@
    [tzolkin.devcards.game :refer [s]])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is]]))
+   [cljs.test :refer [testing is run-tests]]))
 
 (deftest decisions
   (testing ":gain-materials"
     (is (= (logic/handle-decision
-             (logic/handle-action s 0 [:choose-materials [{:corn 1} {:stone 1}]])
+             (-> s
+               (logic/handle-action 0 [:choose-materials [{:corn 1} {:stone 1}]]))
              1)
            (-> s
              (update-in [:players 0 :materials :stone] + 1)))))
@@ -27,13 +28,15 @@
              (update-in [:players 0 :materials :corn] + 1)))))
   (testing ":tech"
     (is (= (logic/handle-decision
-             (logic/choose-tech s)
+             (-> s
+               (logic/choose-tech))
              1)
            (-> s
              (update-in [:players 0 :tech :extr] inc)))))
   (testing ":tech-two"
     (is (= (logic/handle-decision
-             (logic/choose-tech-two s)
+             (-> s
+               (logic/choose-tech-two))
              2)
            (-> s
              (update-in [:players 0 :tech :arch] inc)

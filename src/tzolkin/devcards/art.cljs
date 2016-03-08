@@ -5,7 +5,7 @@
    [tzolkin.devcards.game :refer [s]])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is]]))
+   [cljs.test :refer [testing is run-tests]]))
 
 (deftest art-tests
   (testing "transform-str"

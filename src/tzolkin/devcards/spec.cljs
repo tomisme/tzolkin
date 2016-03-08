@@ -6,7 +6,7 @@
    [tzolkin.art   :as art])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is]]))
+   [cljs.test :refer [testing is run-tests]]))
 
 (defcard-doc
   "## Game Spec"
