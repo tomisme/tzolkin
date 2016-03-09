@@ -10,7 +10,7 @@
 
 (def initial-game-state
   {:turn 0
-   :active {:player-id 0 :worker-option :none :placed 0 :decisions '()}
+   :active {:pid 0 :worker-option :none :placed 0 :decisions '()}
    :remaining-skulls (:skulls spec)
    :players []
    :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec))))
@@ -31,30 +31,30 @@
     (update state :players conj p)))
 
 (defn adjust-points
-  [state player-id num]
-  (update-in state [:players player-id :points] + num))
+  [state pid num]
+  (update-in state [:players pid :points] + num))
 
 (defn adjust-workers
-  [state player-id num]
-  (update-in state [:players player-id :workers] + num))
+  [state pid num]
+  (update-in state [:players pid :workers] + num))
 
 (defn player-map-adjustment
-  [state player-id k changes]
-  (let [current (get-in state [:players player-id k])
+  [state pid k changes]
+  (let [current (get-in state [:players pid k])
         updated (change-map current + changes)]
-    (assoc-in state [:players player-id k] updated)))
+    (assoc-in state [:players pid k] updated)))
 ;; == TODO are these necessary? ==
 (defn adjust-temples
-  [state player-id changes]
-  (player-map-adjustment state player-id :temples changes))
+  [state pid changes]
+  (player-map-adjustment state pid :temples changes))
 
 (defn adjust-materials
-  [state player-id changes]
-  (player-map-adjustment state player-id :materials changes))
+  [state pid changes]
+  (player-map-adjustment state pid :materials changes))
 
 (defn adjust-tech
-  [state player-id changes]
-  (player-map-adjustment state player-id :tech changes))
+  [state pid changes]
+  (player-map-adjustment state pid :tech changes))
 ;; ==============
 
 (defn choose-building
@@ -103,7 +103,7 @@
              [t1 t2])))
 
 (defn add-decision
-  [state id type data]
+  [state pid type data]
   (let [options (case type
                   :action (if (= :non-chi (:gear data))
                             (into [] (for [g '(:yax :tik :uxe :pal) x (range 5)] {g x}))
@@ -118,47 +118,47 @@
       (update-in [:active :decisions] conj {:type type :options options}))))
 
 (defn build-builder-building
-  [state id build]
+  [state pid build]
   (case build
     :building (choose-building state)
     :monument (choose-monument state)))
 
 (defn build-tech-building
-  [state id tech]
+  [state pid tech]
   (case tech
     :any (choose-tech state)
     :any-two (choose-tech-two state)
-    (adjust-tech state id tech)))
+    (adjust-tech state pid tech)))
 
 (defn give-building
-  [state id building]
+  [state pid building]
   (let [{:keys [cost tech temples materials #_trade build points
                 gain-worker #_free-action-for-corn]} building]
     (-> (cond-> state
-          build       (build-builder-building id build)
-          points      (adjust-points id points)
-          temples     (adjust-temples id temples)
-          materials   (adjust-materials id materials)
-          gain-worker (adjust-workers id 1)
-          tech        (build-tech-building id tech))
-      (update-in [:players id :buildings] conj building)
-      (adjust-materials id (negatise-map cost)))))
+          build       (build-builder-building pid build)
+          points      (adjust-points pid points)
+          temples     (adjust-temples pid temples)
+          materials   (adjust-materials pid materials)
+          gain-worker (adjust-workers pid 1)
+          tech        (build-tech-building pid tech))
+      (update-in [:players pid :buildings] conj building)
+      (adjust-materials pid (negatise-map cost)))))
 
 (defn skull-action
-  [state player-id {:keys [resource points temple]}]
+  [state pid {:keys [resource points temple]}]
   (-> (cond-> state
         resource (choose-resource)
-        points   (adjust-points player-id points)
-        temple   (adjust-temples player-id {temple 1}))
-    (update-in [:players player-id :materials :skull] dec)))
+        points   (adjust-points pid points)
+        temple   (adjust-temples pid {temple 1}))
+    (update-in [:players pid :materials :skull] dec)))
 
 (defn pay-action-cost
-  [state player-id [action-type action-data]]
+  [state pid [action-type action-data]]
   (let [cost (:cost action-data)
         any-resource-cost (:any-resource cost)]
     (if any-resource-cost
-      (add-decision state player-id :pay-resource {})
-      (adjust-materials state player-id (negatise-map cost)))))
+      (add-decision state pid :pay-resource {})
+      (adjust-materials state pid (negatise-map cost)))))
 
 (defn handle-action
   [state pid [k v]]
@@ -177,19 +177,19 @@
 
 (defn handle-decision
   [{:keys [active] :as state} option-index]
-  (let [id        (:player-id active)
+  (let [pid        (:pid active)
         decision  (first (:decisions active))
         type      (:type decision)
         options   (:options decision)
         choice    (get options option-index)]
     (-> (cond-> state
-          (= :gain-materials type) (adjust-materials id choice)
-          (= :gain-building type) (-> (give-building id choice)
+          (= :gain-materials type) (adjust-materials pid choice)
+          (= :gain-building type) (-> (give-building pid choice)
                                     (update :buildings remove-from-vec option-index))
-          (= :tech type) (adjust-tech id choice)
-          (= :tech-two type) (adjust-tech id choice)
-          (= :temple type) (adjust-temples id choice)
-          (= :two-different-temples type) (adjust-temples id {(first choice) 1 (second choice) 1}))
+          (= :tech type) (adjust-tech pid choice)
+          (= :tech-two type) (adjust-tech pid choice)
+          (= :temple type) (adjust-temples pid choice)
+          (= :two-different-temples type) (adjust-temples pid {(first choice) 1 (second choice) 1}))
       (update-in [:active :decisions] rest))))
 
 (defn gear-position
@@ -206,21 +206,21 @@
 
 ;; TODO
 (defn cost-payable?
-  [player-id cost]
+  [pid cost]
   true)
 
 (defn place-worker
-  [state player-id gear]
+  [state pid gear]
   (let [worker-option (get-in state [:active :worker-option])
         gear-slots (get-in state [:gears gear])
         max-position (- (get-in spec [:gears gear :teeth]) 2)
         turn (:turn state)
         position (first-nil (rotate-vec gear-slots turn))
         slot (gear-slot gear position turn)
-        player (get-in state [:players player-id])
+        player (get-in state [:players pid])
         player-color (:color player)
         remaining-workers (:workers player)
-        remaining-corn (get-in state [:players player-id :materials :corn])
+        remaining-corn (get-in state [:players pid :materials :corn])
         placed (get-in state [:active :placed])
         corn-cost (+ position placed)]
     (if (and (> remaining-workers 0)
@@ -229,19 +229,19 @@
              (< position max-position)
              (or (= :place worker-option) (= :none worker-option)))
       (-> state
-        (update-in [:players player-id :workers] dec)
+        (update-in [:players pid :workers] dec)
         (update-in [:gears gear] assoc slot player-color)
-        (update-in [:players player-id :materials :corn] - corn-cost)
+        (update-in [:players pid :materials :corn] - corn-cost)
         (update-in [:active :placed] inc)
         (update :active assoc :worker-option :place))
       state)))
 
 (defn remove-worker
-  [state player-id gear slot]
+  [state pid gear slot]
   (let [turn (:turn state)
         worker-option (get-in state [:active :worker-option])
         position (gear-position gear slot turn)
-        player (get-in state [:players player-id])
+        player (get-in state [:players pid])
         skulls (get-in player [:materials :skull])
         player-color (:color player)
         target-color (get-in state [:gears gear slot])
@@ -251,12 +251,12 @@
              (empty? (get-in state [:active :decisions]))
              (or (= :remove worker-option) (= :none worker-option))
              (or (not= :chi gear) (> skulls 0))
-             (cost-payable? player-id (:cost action)))
+             (cost-payable? pid (:cost action)))
       (-> state
-        (update-in [:players player-id :workers] inc)
+        (update-in [:players pid :workers] inc)
         (update-in [:gears gear] assoc slot nil)
         (update :active assoc :worker-option :remove)
-        (handle-action player-id action))
+        (handle-action pid action))
       state)))
 
 (defn end-turn

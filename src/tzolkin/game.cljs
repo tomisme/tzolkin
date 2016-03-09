@@ -6,11 +6,11 @@
 
 (defn worker-gear-wrapper
   [state-atom gear]
-  (let [player-id (get-in @state-atom [:active :player-id])
+  (let [pid (get-in @state-atom [:active :pid])
         on-worker-click (fn [slot]
-                          (swap! state-atom logic/remove-worker player-id gear slot))
+                          (swap! state-atom logic/remove-worker pid gear slot))
         on-center-click (fn []
-                          (swap! state-atom logic/place-worker player-id gear))
+                          (swap! state-atom logic/place-worker pid gear))
         teeth (get-in spec [:gears gear :teeth])]
     (art/worker-gear {:workers (get-in @state-atom [:gears gear])
                       :gear gear

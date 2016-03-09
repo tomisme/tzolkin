@@ -166,10 +166,10 @@
       buildings)])
 
 (defn player-stats
-  [player-id player]
+  [pid player]
   (let [{:keys [color materials points workers buildings]} player
         player-name (:name player)]
-    ^{:key player-id}
+    ^{:key pid}
     [:div.ui.segment
       [:p
         [:a {:class (str "ui " (name color) " ribbon label")}
@@ -190,8 +190,8 @@
         buildings (:buildings state)
         active (:active state)
         choosing-building? (= :gain-building (get-in active [:decision :type]))
-        active-player-id (:player-id active)
-        active-player (get-in state [:players active-player-id])
+        active-pid (:pid active)
+        active-player (get-in state [:players active-pid])
         active-player-name (:name active-player)]
     [:div
       [:p "Turn " turn "/" turns ", " (food-day-str until-food-day)]
@@ -399,7 +399,7 @@
                     [:div {:class (str color "ui center aligned segment")
                            :style {:height 55}}
                       (map-indexed
-                        (fn [player-id {:keys [temples color]}]
+                        (fn [pid {:keys [temples color]}]
                           (when (= (get temples t) step-index)
                             (player-circle-el color)))
                         players)
