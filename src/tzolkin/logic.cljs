@@ -43,7 +43,7 @@
   (let [current (get-in state [:players player-id k])
         updated (apply-changes-to-map current + changes)]
     (assoc-in state [:players player-id k] updated)))
-
+;; == TODO are these necessary? ==
 (defn adjust-temples
   [state player-id changes]
   (player-map-adjustment state player-id :temples changes))
@@ -55,6 +55,7 @@
 (defn adjust-tech
   [state player-id changes]
   (player-map-adjustment state player-id :tech changes))
+;; ==============
 
 (defn choose-building
   [state]
@@ -96,6 +97,11 @@
       (update-in [:active :decisions] conj decision)
       (update-in [:active :decisions] conj decision))))
 
+(def two-different-temple-options
+  (into [] (for [t1 (keys (:temples spec)) t2 (keys (:temples spec))
+                 :when (not= t1 t2)]
+             [t1 t2])))
+
 (defn add-decision
   [state id type data]
   (let [options (case type
@@ -106,7 +112,8 @@
                   :temple (into [] (for [[temple _] (:temples spec)] {temple 1}))
                   :pay-resource [{:wood 1} {:stone 1} {:gold 1}]
                   :resource [{:wood 1} {:stone 1} {:gold 1}]
-                  :materials data)]
+                  :materials data
+                  :two-different-temples two-different-temple-options)]
     (-> state
       (update-in [:active :decisions] conj {:type type :options options}))))
 
@@ -175,28 +182,15 @@
         type      (:type decision)
         options   (:options decision)
         choice    (get options option-index)]
-    (case type
-      :gain-materials
-        (-> state
-          (adjust-materials id choice)
-          (update-in [:active :decisions] rest))
-      :gain-building
-        (-> state
-          (give-building id choice)
-          (update :buildings remove-from-vec option-index)
-          (update-in [:active :decisions] rest))
-      :tech
-        (-> state
-          (adjust-tech id choice)
-          (update-in [:active :decisions] rest))
-      :tech-two
-        (-> state
-          (adjust-tech id choice)
-          (update-in [:active :decisions] rest))
-      :temple
-        (-> state
-          (adjust-temples id choice)
-          (update-in [:active :decisions] rest)))))
+    (-> (cond-> state
+          (= :gain-materials type) (adjust-materials id choice)
+          (= :gain-building type) (-> (give-building id choice)
+                                    (update :buildings remove-from-vec option-index))
+          (= :tech type) (adjust-tech id choice)
+          (= :tech-two type) (adjust-tech id choice)
+          (= :temple type) (adjust-temples id choice)
+          (= :two-different-temples type) (adjust-temples id {(first choice) 1 (second choice) 1}))
+      (update-in [:active :decisions] rest))))
 
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
@@ -212,7 +206,7 @@
 
 ;; TODO
 (defn cost-payable?
-  [state player-id cost]
+  [player-id cost]
   true)
 
 (defn place-worker
@@ -254,10 +248,10 @@
         action-position (- position 1)
         action (get-in spec [:gears gear :actions action-position])]
     (if (and (= player-color target-color)
-             (not (get-in state [:active :decision]))
+             (empty? (get-in state [:active :decisions]))
              (or (= :remove worker-option) (= :none worker-option))
              (or (not= :chi gear) (> skulls 0))
-             (cost-payable? state player-id (:cost action)))
+             (cost-payable? player-id (:cost action)))
       (-> state
         (update-in [:players player-id :workers] inc)
         (update-in [:gears gear] assoc slot nil)

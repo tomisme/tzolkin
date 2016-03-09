@@ -29,3 +29,13 @@
                0)
              (-> s
                (update-in [:players 0 :materials :stone] + 1)))))))
+
+(print
+    (let [gear :tik
+          num 4
+          action (get-in spec [:gears gear :actions num])]
+        (diff
+           (logic/handle-action s 0 action)
+           (-> s
+             (logic/add-decision 0 :two-different-temples {})
+             (logic/add-decision 0 :pay-resource {})))))

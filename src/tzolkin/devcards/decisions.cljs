@@ -40,4 +40,11 @@
            (-> s
              (update-in [:players 0 :tech :arch] inc)
              (update-in [:active :decisions] conj {:type :tech
-                                                   :options [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]}))))))
+                                                   :options [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]})))))
+  (testing ":two-different-temples"
+    (is (= (logic/handle-decision
+             (-> s
+               (logic/add-decision 0 :two-different-temples {}))
+             1)
+           (-> s
+             (logic/player-map-adjustment 0 :temples {:chac 1 :kuku 1}))))))

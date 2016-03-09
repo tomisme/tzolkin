@@ -16,7 +16,7 @@
   The spinning gears are a one of the coolest mechanics in Tzolk'in. They're
   also the main way that players interact with the game.")
 
-(deftest gear-actions
+(deftest gear-action-tests
   "##Yaxchilan"
   (let [gear :yax
         num 0
@@ -113,7 +113,9 @@
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (is (= (logic/handle-action s 0 action)
-             false))))
+             (-> s
+               (logic/add-decision 0 :two-different-temples {})
+               (logic/add-decision 0 :pay-resource {}))))))
   (let [gear :tik
         num 5
         action (get-in spec [:gears gear :actions num])]
