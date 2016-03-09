@@ -13,7 +13,8 @@
    [tzolkin.devcards.logic]
    [tzolkin.devcards.spec]
    [tzolkin.devcards.temples]
-   [tzolkin.devcards.utils])
+   [tzolkin.devcards.utils]
+   [tzolkin.devcards.workers])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))

@@ -7,7 +7,7 @@
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
-(deftest decisions
+(deftest decision-tests
   (testing ":gain-materials"
     (is (= (logic/handle-decision
              (-> s
