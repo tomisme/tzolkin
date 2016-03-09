@@ -1,7 +1,7 @@
 (ns tzolkin.logic
   (:require
     [tzolkin.spec :refer [spec]]
-    [tzolkin.utils :refer [indexed first-nil rotate-vec remove-from-vec
+    [tzolkin.utils :refer [log indexed first-nil rotate-vec remove-from-vec
                            apply-changes-to-map negatise-map]]))
 
 (def initial-gears-state
@@ -96,25 +96,19 @@
       (update-in [:active :decisions] conj decision)
       (update-in [:active :decisions] conj decision))))
 
-(def temple-options
-  (into [] (for [[k v] (:temples spec)] {k 1})))
-
-(defn choose-temple
-  [state]
-  (let [decision {:type :temple :options temple-options}]
-    (-> state
-      (update-in [:active :decisions] conj decision))))
-
 (defn add-decision
-  [state id k v]
-  (let [options (case k
-                  :action (if (= :non-chi (:gear v))
-                            (for [g '(:yax :tik :uxe :pal) x (range 5)] {g x})
-                            (let [num (get-in spec [:gears (:gear v) :regular-actions])]
-                              (into [] (for [x (range num)] {(:gear v) x})))))]
-    (-> (cond-> state
-          (:cost v) (adjust-materials id (negatise-map (:cost v))))
-      (update-in [:active :decisions] conj {:type k :options options}))))
+  [state id type data]
+  (let [options (case type
+                  :action (if (= :non-chi (:gear data))
+                            (into [] (for [g '(:yax :tik :uxe :pal) x (range 5)] {g x}))
+                            (let [num (get-in spec [:gears (:gear data) :regular-actions])]
+                              (into [] (for [x (range num)] {(:gear data) x}))))
+                  :temple (into [] (for [[temple _] (:temples spec)] {temple 1}))
+                  :pay-resource [{:wood 1} {:stone 1} {:gold 1}]
+                  :resource [{:wood 1} {:stone 1} {:gold 1}]
+                  :materials data)]
+    (-> state
+      (update-in [:active :decisions] conj {:type type :options options}))))
 
 (defn build-builder-building
   [state id build]
@@ -151,24 +145,28 @@
         temple   (adjust-temples player-id {temple 1}))
     (update-in [:players player-id :materials :skull] dec)))
 
+(defn pay-action-cost
+  [state player-id [action-type action-data]]
+  (let [cost (:cost action-data)
+        any-resource-cost (:any-resource cost)]
+    (if any-resource-cost
+      (add-decision state player-id :pay-resource {})
+      (adjust-materials state player-id (negatise-map cost)))))
+
 (defn handle-action
-  [state id [k v]]
-  (case k
-    :trade             state
-    :build             (case (:type v)
-                         :single (choose-building state))
-    :temples           (case (:choose v)
-                         :any (-> state
-                                (adjust-materials id (negatise-map (:cost v)))
-                                (choose-temple)))
-    :tech              (case (:steps v)
-                         1 (choose-tech state)
-                         2 (choose-tech-two state))
-    :gain-worker       (adjust-workers state id 1)
-    :skull-action      (skull-action state id v)
-    :choose-action     (add-decision state id :action v)
-    :gain-materials    (adjust-materials state id v)
-    :choose-materials  (choose-materials state v)))
+  [state pid [k v]]
+  (-> (cond-> state
+        (= :skull-action k) (skull-action pid v)
+        (= :gain-worker k) (adjust-workers pid 1)
+        (= :gain-materials k) (adjust-materials pid v)
+        (= :choose-action k) (add-decision pid :action v)
+        (and (= :temples k) (= :any (:choose v))) (add-decision pid :temple v)
+        (and (= :temples k) (= :two-different (:choose v))) (add-decision pid :two-different-temples v)
+        (and (= :tech k) (= 1 (:steps v))) (choose-tech)
+        (and (= :tech k) (= 2 (:steps v))) (choose-tech-two)
+        (= :choose-materials k) (choose-materials v)
+        (and (= :build k) (= :single (:type v))) (choose-building))
+    (pay-action-cost pid [k v])))
 
 (defn handle-decision
   [{:keys [active] :as state} option-index]
@@ -212,6 +210,11 @@
   (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
 
+;; TODO
+(defn cost-payable?
+  [state player-id cost]
+  true)
+
 (defn place-worker
   [state player-id gear]
   (let [worker-option (get-in state [:active :worker-option])
@@ -253,7 +256,8 @@
     (if (and (= player-color target-color)
              (not (get-in state [:active :decision]))
              (or (= :remove worker-option) (= :none worker-option))
-             (or (not= :chi gear) (> skulls 0)))
+             (or (not= :chi gear) (> skulls 0))
+             (cost-payable? state player-id (:cost action)))
       (-> state
         (update-in [:players player-id :workers] inc)
         (update-in [:gears gear] assoc slot nil)

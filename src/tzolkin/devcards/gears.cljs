@@ -5,7 +5,8 @@
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
    [tzolkin.logic :as logic]
-   [tzolkin.devcards.game :refer [s]])
+   [tzolkin.devcards.game :refer [s]]
+   [tzolkin.utils :refer [diff log]])
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
