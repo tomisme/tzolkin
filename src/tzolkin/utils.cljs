@@ -40,15 +40,15 @@
   [v index]
   (vec (concat (subvec v 0 index) (subvec v (inc index)))))
 
-(defn apply-changes-to-map
+(defn change-map
   "Applies a function 'f' to each value in  'original-map' that has a
   corresponding key in 'changes', supplying the value of that key as the first
   argument to the function.
 
   If a map of changes is not supplied, applies 'f' to every value.
 
-  (apply-changes-to-map {:a 1 :b 1} + {:a 2})  =>  {:a 3 :b 1}
-  (apply-changes-to-map {:a 1 :b 1} inc)  =>  {:a 2 :b 2}"
+  (change-map {:a 1 :b 1} + {:a 2})  =>  {:a 3 :b 1}
+  (change-map {:a 1 :b 1} inc)  =>  {:a 2 :b 2}"
   ([original-map f]
    (into {} (for [[k v] original-map] [k (f v)])))
   ([original-map f changes]
@@ -60,4 +60,4 @@
 (defn negatise-map
   "Multiple each value in map 'm' by -1"
   [m]
-  (apply-changes-to-map m #(* % -1)))
+  (change-map m #(* % -1)))

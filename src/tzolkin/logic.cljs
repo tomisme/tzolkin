@@ -1,8 +1,8 @@
 (ns tzolkin.logic
   (:require
     [tzolkin.spec :refer [spec]]
-    [tzolkin.utils :refer [log indexed first-nil rotate-vec remove-from-vec
-                           apply-changes-to-map negatise-map]]))
+    [tzolkin.utils :refer [log indexed first-nil rotate-vec
+                           remove-from-vec change-map negatise-map]]))
 
 (def initial-gears-state
   (into {} (for [[k v] (:gears spec)]
@@ -41,7 +41,7 @@
 (defn player-map-adjustment
   [state player-id k changes]
   (let [current (get-in state [:players player-id k])
-        updated (apply-changes-to-map current + changes)]
+        updated (change-map current + changes)]
     (assoc-in state [:players player-id k] updated)))
 ;; == TODO are these necessary? ==
 (defn adjust-temples

@@ -17,25 +17,3 @@
   (:require-macros
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
-
-;; TODO make into a macro!
-(deftest differ
-  (testing ":gain-materials"
-    (is (= '(nil nil)
-           (diff
-             (logic/handle-decision
-               (-> s
-                 (logic/handle-action 0 [:choose-materials [{:corn 1} {:stone 1}]]))
-               0)
-             (-> s
-               (update-in [:players 0 :materials :stone] + 1)))))))
-
-(print
-    (let [gear :tik
-          num 4
-          action (get-in spec [:gears gear :actions num])]
-        (diff
-           (logic/handle-action s 0 action)
-           (-> s
-             (logic/add-decision 0 :two-different-temples {})
-             (logic/add-decision 0 :pay-resource {})))))
