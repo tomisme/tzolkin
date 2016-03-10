@@ -3,8 +3,8 @@
    [clojure.data :as data]))
 
 (defn log
-  [& args]
-  (.log js/console args))
+  [arg]
+  (.log js/console arg) arg)
 
 (defn diff
   [a b]
