@@ -130,7 +130,7 @@
     :any-two (choose-tech-two state)
     (adjust-tech state pid tech)))
 
-(defn give-building
+(defn gain-building
   [state pid building]
   (let [{:keys [cost tech temples materials #_trade build points
                 gain-worker #_free-action-for-corn]} building]
@@ -144,14 +144,6 @@
       (update-in [:players pid :buildings] conj building)
       (adjust-materials pid (negatise-map cost)))))
 
-(defn skull-action
-  [state pid {:keys [resource points temple]}]
-  (-> (cond-> state
-        resource (choose-resource)
-        points   (adjust-points pid points)
-        temple   (adjust-temples pid {temple 1}))
-    (update-in [:players pid :materials :skull] dec)))
-
 (defn pay-action-cost
   [state pid [action-type action-data]]
   (let [cost (:cost action-data)
@@ -160,10 +152,18 @@
       (add-decision state pid :pay-resource {})
       (adjust-materials state pid (negatise-map cost)))))
 
+(defn handle-skull-action
+  [state pid {:keys [resource points temple]}]
+  (-> (cond-> state
+        resource (choose-resource)
+        points   (adjust-points pid points)
+        temple   (adjust-temples pid {temple 1}))
+    (update-in [:players pid :materials :skull] dec)))
+
 (defn handle-action
   [state pid [k v]]
   (-> (cond-> state
-        (= :skull-action k) (skull-action pid v)
+        (= :skull-action k) (handle-skull-action pid v)
         (= :gain-worker k) (adjust-workers pid 1)
         (= :gain-materials k) (adjust-materials pid v)
         (= :choose-action k) (add-decision pid :action v)
@@ -183,9 +183,11 @@
         options   (:options decision)
         choice    (get options option-index)]
     (-> (cond-> state
+          ;;TODO :action
           (= :gain-materials type) (adjust-materials pid choice)
-          (= :gain-building type) (-> (give-building pid choice)
+          (= :gain-building type) (-> (gain-building pid choice)
                                     (update :buildings remove-from-vec option-index))
+          ;; TODO merge :tech and :tech-two
           (= :tech type) (adjust-tech pid choice)
           (= :tech-two type) (adjust-tech pid choice)
           (= :temple type) (adjust-temples pid choice)
@@ -269,3 +271,11 @@
         (update :active assoc :placed 0)
         (update :active assoc :worker-option :none))
       state)))
+
+(defn handle-event
+  [state event]
+  state)
+
+(defn reduce-events
+  [prev-state events]
+  (reduce handle-event prev-state events))
