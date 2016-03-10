@@ -8,13 +8,9 @@
    [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
-(defn new-test-game
-  [{:keys [players]}]
-  (cond-> logic/initial-game-state
-    (> players 0) (logic/add-player "Elisa" :red)
-    (> players 1) (logic/add-player "Tom" :blue)))
-
-(def s (new-test-game {:players 2}))
+(def s (logic/reduce-events {} [[:new-game]
+                                [:add-player {:name "Elisa" :color :red}]
+                                [:add-player {:name "Tom" :color :blue}]]))
 
 (defcard-rg game-test
   (fn [state _]

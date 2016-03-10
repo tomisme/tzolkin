@@ -273,8 +273,13 @@
       state)))
 
 (defn handle-event
-  [state event]
-  state)
+  [state [e data]]
+  (cond-> state
+   (= :new-game e)      (conj initial-game-state)
+   (= :add-player e)    (add-player (:name data) (:color data))
+   (= :place-worker e)  (place-worker (:pid data) (:gear data))
+   (= :remove-worker e) (remove-worker (:pid data) (:gear data) (:slot data))
+   (= :choose-option e) (handle-decision (:index data))))
 
 (defn reduce-events
   [prev-state events]

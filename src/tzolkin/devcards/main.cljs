@@ -9,7 +9,6 @@
    [tzolkin.devcards.art]
    [tzolkin.devcards.buildings]
    [tzolkin.devcards.decisions]
-   [tzolkin.devcards.events]
    [tzolkin.devcards.game :refer [s]]
    [tzolkin.devcards.logic]
    [tzolkin.devcards.spec]
