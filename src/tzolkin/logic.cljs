@@ -5,7 +5,7 @@
                            remove-from-vec change-map negatise-map]]))
 
 (def initial-gears-state
-  (into {} (for [[k v] (:gears spec)]
+  (into {} (for [k (keys (:gears spec))]
              [k (into [] (repeat (get-in spec [:gears k :teeth]) nil))])))
 
 (def initial-game-state
@@ -43,7 +43,7 @@
   (let [current (get-in state [:players pid k])
         updated (change-map current + changes)]
     (assoc-in state [:players pid k] updated)))
-;; == TODO are these necessary? ==
+
 (defn adjust-temples
   [state pid changes]
   (player-map-adjustment state pid :temples changes))
@@ -55,7 +55,6 @@
 (defn adjust-tech
   [state pid changes]
   (player-map-adjustment state pid :tech changes))
-;; ==============
 
 (defn choose-building
   [state]
