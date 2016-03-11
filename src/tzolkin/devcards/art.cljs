@@ -90,23 +90,23 @@
         workers [:blue nil :blue :red nil nil :red nil nil nil]]
     (fn []
       [:svg {:width 300 :height 300}
-        [art/gear-el {:cx 150
-                      :cy 150
-                      :r 75
-                      :teeth 10
-                      :tooth-height-factor 1.15
-                      :tooth-width-factor 0.75
-                      :workers workers
-                      :gear :tik
-                      :rotation @rotation-spring}]])))
+       [art/gear-el {:cx 150
+                     :cy 150
+                     :r 75
+                     :teeth 10
+                     :tooth-height-factor 1.15
+                     :tooth-width-factor 0.75
+                     :workers workers
+                     :gear :tik
+                     :rotation @rotation-spring}]])))
 
 (defcard-rg spinning-worker-gear-test
   [:div
-    [:button {:on-click #(swap! spin-test-atom + (/ 360 10))}
-      "Spin the gear!"]
-    (for [[k v] (get spec :gears)]
-      [:button {:key k} (:name v)])
-    [spinning-worker-gear]]
+   [:button {:on-click #(swap! spin-test-atom + (/ 360 10))}
+    "Spin the gear!"]
+   (for [[k v] (get spec :gears)]
+     [:button {:key k} (:name v)])
+   [spinning-worker-gear]]
   spin-test-atom
   {:inspect-data true})
 
