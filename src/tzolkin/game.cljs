@@ -2,7 +2,8 @@
   (:require
    [tzolkin.spec  :refer [spec]]
    [tzolkin.logic :as logic]
-   [tzolkin.art   :as art]))
+   [tzolkin.art   :as art]
+   [tzolkin.utils :refer [log]]))
 
 (defn worker-gear-wrapper
   [state-atom gear]
@@ -25,8 +26,14 @@
                       (swap! state-atom logic/handle-decision option-index))]
     (art/status-bar @state-atom on-decision)))
 
+(defn game-log-wrapper
+  [state-atom event-stream]
+  (let [on-event-reset-click (fn [state]
+                               (reset! state-atom state))]
+    (art/game-log-el {:stream event-stream})))
+
 (defn board
-  [state-atom]
+  [state-atom event-stream]
   [:div
     [:p
       [:button {:on-click #(swap! state-atom logic/end-turn)}
@@ -34,4 +41,5 @@
     (status-bar-wrapper state-atom)
     (art/temples-el @state-atom)
     (for [[k _] (:gears spec)]
-      (worker-gear-wrapper state-atom k))])
+      (worker-gear-wrapper state-atom k))
+    (game-log-wrapper state-atom event-stream)])

@@ -365,10 +365,10 @@
 (defn worker-gear
   [{:keys [gear workers on-worker-click on-center-click actions rotation]}]
   ^{:key gear}
-  [:svg {:width 400 :height 400}
-   [gear-el {:cx 200
-             :cy 200
-             :r 100
+  [:svg {:width 300 :height 300}
+   [gear-el {:cx 150
+             :cy 150
+             :r 75
              :rotation rotation
              :teeth (get-in spec [:gears gear :teeth])
              :tooth-height-factor 1.15

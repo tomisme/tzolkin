@@ -42,8 +42,25 @@
            (-> s
                (update :turn + 2))))))
 
+(def test-events
+  [[:new-game]
+   [:add-player {:name "Elisa" :color :red}]
+   [:add-player {:name "Tom" :color :blue}]
+   [:give-stuff {:pid 0 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
+   [:give-stuff {:pid 1 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
+   [:place-worker {:pid 0 :gear :uxe}]
+   [:place-worker {:pid 0 :gear :uxe}]
+   [:place-worker {:pid 0 :gear :uxe}]
+   [:end-turn {:pid 0}]
+   [:place-worker {:pid 1 :gear :yax}]
+   [:place-worker {:pid 1 :gear :yax}]
+   [:end-turn {:pid 1}]])
+
+(def test-event-stream
+  (logic/event-stream {} test-events))
+
 (defcard-rg game-test
   (fn [state _]
-    (game/board state))
-  s
+    (game/board state test-event-stream))
+  (rev {} test-events)
   {:inspect-data true :history true})
