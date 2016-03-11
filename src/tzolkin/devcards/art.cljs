@@ -22,10 +22,11 @@
            "🌲🗿🌕🌕3🌽💀"))))
 
 (defcard-rg symbol-examples
-  [:div (for [size '(16 45)]
-          [:div {:style {:font-size size}}
-            (for [[k v] art/symbols]
-              (str (name k) ": " v ", "))])])
+  (into [:div]
+    (for [size '(16 45)]
+      (into [:div {:style {:font-size size}}]
+        (for [[k v] art/symbols]
+          (str (name k) ": " v ", "))))))
 
 (defcard-doc
   "#Gears

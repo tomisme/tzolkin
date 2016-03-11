@@ -411,32 +411,33 @@
                 (get symbols material)]]))
           (:steps temple)))]])]])
 
-(defn event-player-el
-  [player]
-  [:span (player-circle-el (:color player)) (:name player)])
-
 (defn event-summary-el
   [[type data] state]
-  (let [player (get-in state [:players (:pid data)])]
-   (case type
-     :new-game      [:span "New vanilla tzolkin game!"]
-     :give-stuff    [:span [:div.ui.label "DEV:"] (event-player-el player) " + " (materials-str (:changes data))]
-     :add-player    [:span (:name data) " joined the game as " (name (:color data))]
-     :place-worker  [:span (event-player-el player) " placed a worker on " (get symbols (:gear data))]
-     :remove-worker [:span (event-player-el player) " removed a worker from " (get symbols (:gear data))]
-     :end-turn      [:span (event-player-el player) " ended their turn"]
-     (str "ERROR: no matching event type"))))
+  (let [player (get-in state [:players (:pid data)])
+        dev? (or (= :give-stuff type))]
+   [:div.summary {:style {:font-weight 400}}
+    [:i.caret.right.link.icon]
+    (when dev? [:div.ui.label "DEV"])
+    (when player [:span (player-circle-el (:color player)) (:name player)])
+    (case type
+      :new-game      [:span (:corn symbols) "New vanilla tzolkin game!"]
+      :give-stuff    [:span " + " (materials-str (:changes data))]
+      :add-player    [:span [:i {:class (str (name (:color data)) " circle icon")}] (:name data) " joined the game"]
+      :place-worker  [:span " placed a worker on " (get symbols (:gear data))]
+      :remove-worker [:span " removed a worker from " (get symbols (:gear data))]
+      :end-turn      [:span " ended their turn"]
+      (str "ERROR: no matching event type"))
+    [:div.date
+     [:a {:on-click #(log state)}"inspect"]
+     " | "
+     [:a "reset"]]]))
 
 (defn game-log-el
   [{:keys [stream]}]
   [:div.ui.segment
    (into [:div.ui.feed]
-         (for [[event state] (log stream)
+         (for [[event state] stream
                :let [[type data] event]]
            [:div.event
             [:div.content
-             [:div.summary (event-summary-el event state)]]]))])
-             ; [:div.extra.text
-             ;  "extra text"]
-             ; [:div.meta
-             ;  "meta text"]
+             (event-summary-el event state)]]))])
