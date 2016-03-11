@@ -264,12 +264,12 @@
   [state pid]
   (let [turn (:turn state)
         max-turn (:total-turns spec)
-        final-player? (= (dec (count (:players state))) pid)]
+        last-player? (= (dec (count (:players state))) pid)]
     (if (< turn max-turn)
       (-> (cond-> state
-                  final-player? (update :turn inc)
-                  final-player? (update :active assoc :pid 0)
-                  (not final-player?) (update-in [:active :pid] inc))
+                  last-player? (update :turn inc)
+                  last-player? (update :active assoc :pid 0)
+                  (not last-player?) (update-in [:active :pid] inc))
           (update :active assoc :placed 0)
           (update :active assoc :worker-option :none))
       (update :errors conj "Can't end turn"))))
@@ -287,9 +287,18 @@
           ;; debugging events
           (= :give-stuff e) (player-map-adjustment (:pid data) (:k data) (:changes data))))
 
-;; Maybe check if state has changed after handling an eveent?
-;; If not, throw an error or something
-
 (defn reduce-events
   [prev-state events]
   (reduce handle-event prev-state events))
+
+(defn event-stream
+  [initial-state events]
+  (:stream
+   (reduce
+    (fn [prev event]
+      (let [state (handle-event (:state prev) event)]
+        {:stream (conj (:stream prev) [event state])
+         :state state}))
+    {:stream []
+     :state initial-state}
+    events)))

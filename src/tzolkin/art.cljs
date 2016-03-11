@@ -1,5 +1,7 @@
 (ns tzolkin.art
-  (:require [tzolkin.spec :refer [spec]]))
+  (:require
+   [tzolkin.spec :refer [spec]]
+   [tzolkin.utils :refer [log diff]]))
 
 (def color-strings
   {:red "#CC333F"
@@ -385,26 +387,56 @@
 (defn temples-el
   [{:keys [players]}]
   [:div.ui.segment
-    [:div.ui.equal.width.grid
-      (for [[t temple] (:temples spec)]
-        ^{:key t}
-        [:div.bottom.aligned.column
-          [:div.ui.center.aligned.segment
-            [:span {:style {:font-size 64}} (get symbols t)]
-            (reverse
-              (map-indexed
-                (fn [step-index {:keys [points material]}]
-                  (let [color (when (= step-index 1) "secondary ")]
-                    ^{:key (str t step-index)}
-                    [:div {:class (str color "ui center aligned segment")
-                           :style {:height 55}}
-                      (map-indexed
-                        (fn [pid {:keys [temples color]}]
-                          (when (= (get temples t) step-index)
-                            (player-circle-el color)))
-                        players)
-                      [:div {:style {:float "left"}}
-                        (points-el points)]
-                      [:div {:style {:float "right"}}
-                        (get symbols material)]]))
-                (:steps temple)))]])]])
+   [:div.ui.equal.width.grid
+    (for [[t temple] (:temples spec)]
+      ^{:key t}
+      [:div.bottom.aligned.column
+       [:div.ui.center.aligned.segment
+        [:span {:style {:font-size 64}} (get symbols t)]
+        (reverse
+         (map-indexed
+          (fn [step-index {:keys [points material]}]
+            (let [color (when (= step-index 1) "secondary ")]
+              ^{:key (str t step-index)}
+              [:div {:class (str color "ui center aligned segment")
+                     :style {:height 55}}
+               (map-indexed
+                (fn [pid {:keys [temples color]}]
+                  (when (= (get temples t) step-index)
+                    (player-circle-el color)))
+                players)
+               [:div {:style {:float "left"}}
+                (points-el points)]
+               [:div {:style {:float "right"}}
+                (get symbols material)]]))
+          (:steps temple)))]])]])
+
+(defn event-player-el
+  [player]
+  [:span (player-circle-el (:color player)) (:name player)])
+
+(defn event-summary-el
+  [[type data] state]
+  (let [player (get-in state [:players (:pid data)])]
+   (case type
+     :new-game      [:span "New vanilla tzolkin game!"]
+     :give-stuff    [:span [:div.ui.label "DEV:"] (event-player-el player) " + " (materials-str (:changes data))]
+     :add-player    [:span (:name data) " joined the game as " (name (:color data))]
+     :place-worker  [:span (event-player-el player) " placed a worker on " (get symbols (:gear data))]
+     :remove-worker [:span (event-player-el player) " removed a worker from " (get symbols (:gear data))]
+     :end-turn      [:span (event-player-el player) " ended their turn"]
+     (str "ERROR: no matching event type"))))
+
+(defn game-log-el
+  [{:keys [stream]}]
+  [:div.ui.segment
+   (into [:div.ui.feed]
+         (for [[event state] (log stream)
+               :let [[type data] event]]
+           [:div.event
+            [:div.content
+             [:div.summary (event-summary-el event state)]]]))])
+             ; [:div.extra.text
+             ;  "extra text"]
+             ; [:div.meta
+             ;  "meta text"]
