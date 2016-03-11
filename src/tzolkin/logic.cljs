@@ -135,14 +135,14 @@
   (let [{:keys [cost tech temples materials #_trade build points
                 gain-worker #_free-action-for-corn]} building]
     (-> (cond-> state
-          build       (build-builder-building pid build)
-          points      (adjust-points pid points)
-          temples     (adjust-temples pid temples)
-          materials   (adjust-materials pid materials)
-          gain-worker (adjust-workers pid 1)
-          tech        (build-tech-building pid tech))
-      (update-in [:players pid :buildings] conj building)
-      (adjust-materials pid (negatise-map cost)))))
+                build       (build-builder-building pid build)
+                points      (adjust-points pid points)
+                temples     (adjust-temples pid temples)
+                materials   (adjust-materials pid materials)
+                gain-worker (adjust-workers pid 1)
+                tech        (build-tech-building pid tech))
+        (update-in [:players pid :buildings] conj building)
+        (adjust-materials pid (negatise-map cost)))))
 
 (defn pay-action-cost
   [state pid [action-type action-data]]
@@ -155,44 +155,44 @@
 (defn handle-skull-action
   [state pid {:keys [resource points temple]}]
   (-> (cond-> state
-        resource (choose-resource)
-        points   (adjust-points pid points)
-        temple   (adjust-temples pid {temple 1}))
+              resource (choose-resource)
+              points   (adjust-points pid points)
+              temple   (adjust-temples pid {temple 1}))
     (update-in [:players pid :materials :skull] dec)))
 
 (defn handle-action
   [state pid [k v]]
   (-> (cond-> state
-        (= :skull-action k) (handle-skull-action pid v)
-        (= :gain-worker k) (adjust-workers pid 1)
-        (= :gain-materials k) (adjust-materials pid v)
-        (= :choose-action k) (add-decision pid :action v)
-        (and (= :temples k) (= :any (:choose v))) (add-decision pid :temple v)
-        (and (= :temples k) (= :two-different (:choose v))) (add-decision pid :two-different-temples v)
-        (and (= :tech k) (= 1 (:steps v))) (choose-tech)
-        (and (= :tech k) (= 2 (:steps v))) (choose-tech-two)
-        (= :choose-materials k) (choose-materials v)
-        (and (= :build k) (= :single (:type v))) (choose-building))
-    (pay-action-cost pid [k v])))
+              (= :skull-action k) (handle-skull-action pid v)
+              (= :gain-worker k) (adjust-workers pid 1)
+              (= :gain-materials k) (adjust-materials pid v)
+              (= :choose-action k) (add-decision pid :action v)
+              (and (= :temples k) (= :any (:choose v))) (add-decision pid :temple v)
+              (and (= :temples k) (= :two-different (:choose v))) (add-decision pid :two-different-temples v)
+              (and (= :tech k) (= 1 (:steps v))) (choose-tech)
+              (and (= :tech k) (= 2 (:steps v))) (choose-tech-two)
+              (= :choose-materials k) (choose-materials v)
+              (and (= :build k) (= :single (:type v))) (choose-building))
+      (pay-action-cost pid [k v])))
 
 (defn handle-decision
   [{:keys [active] :as state} option-index]
-  (let [pid        (:pid active)
+  (let [pid       (:pid active)
         decision  (first (:decisions active))
         type      (:type decision)
         options   (:options decision)
         choice    (get options option-index)]
     (-> (cond-> state
-          ;;TODO :action
-          (= :gain-materials type) (adjust-materials pid choice)
-          (= :gain-building type) (-> (gain-building pid choice)
-                                    (update :buildings remove-from-vec option-index))
-          ;; TODO merge :tech and :tech-two
-          (= :tech type) (adjust-tech pid choice)
-          (= :tech-two type) (adjust-tech pid choice)
-          (= :temple type) (adjust-temples pid choice)
-          (= :two-different-temples type) (adjust-temples pid {(first choice) 1 (second choice) 1}))
-      (update-in [:active :decisions] rest))))
+                ;;TODO :action
+                (= :gain-materials type) (adjust-materials pid choice)
+                (= :gain-building type) (-> (gain-building pid choice)
+                                            (update :buildings remove-from-vec option-index))
+                ;; TODO merge :tech and :tech-two
+                (= :tech type) (adjust-tech pid choice)
+                (= :tech-two type) (adjust-tech pid choice)
+                (= :temple type) (adjust-temples pid choice)
+                (= :two-different-temples type) (adjust-temples pid {(first choice) 1 (second choice) 1}))
+        (update-in [:active :decisions] rest))))
 
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
@@ -231,12 +231,12 @@
              (< position max-position)
              (or (= :place worker-option) (= :none worker-option)))
       (-> state
-        (update-in [:players pid :workers] dec)
-        (update-in [:gears gear] assoc slot player-color)
-        (update-in [:players pid :materials :corn] - corn-cost)
-        (update-in [:active :placed] inc)
-        (update :active assoc :worker-option :place))
-      state)))
+          (update-in [:players pid :workers] dec)
+          (update-in [:gears gear] assoc slot player-color)
+          (update-in [:players pid :materials :corn] - corn-cost)
+          (update-in [:active :placed] inc)
+          (update :active assoc :worker-option :place))
+      (update state :errors conj "Can't place worker here"))))
 
 (defn remove-worker
   [state pid gear slot]
@@ -255,31 +255,41 @@
              (or (not= :chi gear) (> skulls 0))
              (cost-payable? pid (:cost action)))
       (-> state
-        (update-in [:players pid :workers] inc)
-        (update-in [:gears gear] assoc slot nil)
-        (update :active assoc :worker-option :remove)
-        (handle-action pid action))
-      state)))
+          (update-in [:players pid :workers] inc)
+          (update-in [:gears gear] assoc slot nil)
+          (update :active assoc :worker-option :remove)
+          (handle-action pid action))
+      (update state :errors conj "Can't end turn"))))
 
 (defn end-turn
-  [state]
+  [state pid]
   (let [turn (:turn state)
-        max-turn (:total-turns spec)]
+        max-turn (:total-turns spec)
+        final-player? (= (dec (count (:players state))) pid)]
     (if (< turn max-turn)
-      (-> state
-        (update :turn inc)
-        (update :active assoc :placed 0)
-        (update :active assoc :worker-option :none))
-      state)))
+      (-> (cond-> state
+                  final-player? (update :turn inc)
+                  final-player? (update :active assoc :pid 0)
+                  (not final-player?) (update-in [:active :pid] inc))
+          (update :active assoc :placed 0)
+          (update :active assoc :worker-option :none))
+      (update :errors conj "Can't end turn"))))
 
 (defn handle-event
   [state [e data]]
+  (when (:errors state) (log (:errors state)))
   (cond-> state
-   (= :new-game e)      (conj initial-game-state)
-   (= :add-player e)    (add-player (:name data) (:color data))
-   (= :place-worker e)  (place-worker (:pid data) (:gear data))
-   (= :remove-worker e) (remove-worker (:pid data) (:gear data) (:slot data))
-   (= :choose-option e) (handle-decision (:index data))))
+          (= :new-game e)      (conj initial-game-state)
+          (= :end-turn e)      (end-turn (:pid data))
+          (= :add-player e)    (add-player (:name data) (:color data))
+          (= :place-worker e)  (place-worker (:pid data) (:gear data))
+          (= :remove-worker e) (remove-worker (:pid data) (:gear data) (:slot data))
+          (= :choose-option e) (handle-decision (:index data))
+          ;; debugging events
+          (= :give-stuff e) (player-map-adjustment (:pid data) (:k data) (:changes data))))
+
+;; Maybe check if state has changed after handling an eveent?
+;; If not, throw an error or something
 
 (defn reduce-events
   [prev-state events]
