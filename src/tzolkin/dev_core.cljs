@@ -4,7 +4,7 @@
    [devtools.core :as devtools]
    [tzolkin.utils :refer [log]]))
 
-#_(devtools/install!)
+(devtools/install!)
 
 #_(log js/window)
 

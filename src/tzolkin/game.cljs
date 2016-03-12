@@ -19,12 +19,12 @@
                             (swap! es-atom logic/add-event [:place-worker {:pid pid
                                                                            :gear gear}]))
           teeth (get-in spec [:gears gear :teeth])]
-      (art/worker-gear {:workers (get-in state [:gears gear])
+      [art/worker-gear {:workers (get-in state [:gears gear])
                         :gear gear
                         :rotation (* (/ 360 teeth) (:turn state))
                         :actions (get-in spec [:gears gear :actions])
                         :on-center-click on-center-click
-                        :on-worker-click on-worker-click}))))
+                        :on-worker-click on-worker-click}])))
 
 (defn status-bar-wrapper
   [es-atom re-state]
@@ -38,7 +38,7 @@
   [es-atom]
   (let [on-end-turn #(swap! es-atom logic/add-event [:end-turn])]
     [:button.ui.button {:on-click on-end-turn}
-     "End Turn"]))
+     "Finish and Submit Turn"]))
 
 (defn game-log
   [es-atom]

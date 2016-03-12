@@ -162,7 +162,8 @@
         (case worker-option
           :none " has not yet chosen to remove or place workers."
           :place (str " has placed " placed " worker(s).")
-          :remove " is removing workers.")))))
+          :remove " is removing workers."
+          "ERROR")))))
 
 (defn player-buildings
   [buildings]
@@ -370,21 +371,21 @@
 
 (defn worker-gear
   [{:keys [gear workers on-worker-click on-center-click actions rotation]}]
-  ^{:key gear}
-  (let [x 350]
-    [:svg {:width x :height (* x 0.9)}
-     [gear-el {:cx (/ x 2)
-               :cy (/ x 2)
-               :r (/ x 4)
-               :rotation rotation
-               :teeth (get-in spec [:gears gear :teeth])
-               :tooth-height-factor 1.15
-               :tooth-width-factor 0.75
-               :workers workers
-               :gear gear
-               :actions actions
-               :on-center-click on-center-click
-               :on-worker-click on-worker-click}]]))
+  (fn []
+    (let [x 350]
+      [:svg {:width x :height (* x 0.9)}
+       [gear-el {:cx (/ x 2)
+                 :cy (/ x 2)
+                 :r (/ x 4)
+                 :rotation rotation
+                 :teeth (get-in spec [:gears gear :teeth])
+                 :tooth-height-factor 1.15
+                 :tooth-width-factor 0.75
+                 :workers workers
+                 :gear gear
+                 :actions actions
+                 :on-center-click on-center-click
+                 :on-worker-click on-worker-click}]])))
 
 (defn player-circle-el
   [color]
