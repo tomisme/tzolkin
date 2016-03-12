@@ -37,7 +37,7 @@
 (defn end-turn-button-wrapper
   [es-atom]
   (let [on-end-turn #(swap! es-atom logic/add-event [:end-turn])]
-    [:button {:on-click on-end-turn}
+    [:button.ui.button {:on-click on-end-turn}
      "End Turn"]))
 
 (defn game-log

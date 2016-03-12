@@ -371,19 +371,20 @@
 (defn worker-gear
   [{:keys [gear workers on-worker-click on-center-click actions rotation]}]
   ^{:key gear}
-  [:svg {:width 300 :height 300}
-   [gear-el {:cx 150
-             :cy 150
-             :r 75
-             :rotation rotation
-             :teeth (get-in spec [:gears gear :teeth])
-             :tooth-height-factor 1.15
-             :tooth-width-factor 0.75
-             :workers workers
-             :gear gear
-             :actions actions
-             :on-center-click on-center-click
-             :on-worker-click on-worker-click}]])
+  (let [x 350]
+    [:svg {:width x :height (* x 0.9)}
+     [gear-el {:cx (/ x 2)
+               :cy (/ x 2)
+               :r (/ x 4)
+               :rotation rotation
+               :teeth (get-in spec [:gears gear :teeth])
+               :tooth-height-factor 1.15
+               :tooth-width-factor 0.75
+               :workers workers
+               :gear gear
+               :actions actions
+               :on-center-click on-center-click
+               :on-worker-click on-worker-click}]]))
 
 (defn player-circle-el
   [color]
@@ -392,30 +393,29 @@
 
 (defn temples-el
   [{:keys [players]}]
-  [:div.ui.segment
-   [:div.ui.equal.width.grid
-    (for [[t temple] (:temples spec)]
-      ^{:key t}
-      [:div.bottom.aligned.column
-       [:div.ui.center.aligned.segment
-        [:span {:style {:font-size 64}} (get symbols t)]
-        (reverse
-         (map-indexed
-          (fn [step-index {:keys [points material]}]
-            (let [color (when (= step-index 1) "secondary ")]
-              ^{:key (str t step-index)}
-              [:div {:class (str color "ui center aligned segment")
-                     :style {:height 55}}
-               (map-indexed
-                (fn [pid {:keys [temples color]}]
-                  (when (= (get temples t) step-index)
-                    (player-circle-el color)))
-                players)
-               [:div {:style {:float "left"}}
-                (points-el points)]
-               [:div {:style {:float "right"}}
-                (get symbols material)]]))
-          (:steps temple)))]])]])
+  [:div.ui.equal.width.grid
+   (for [[t temple] (:temples spec)]
+     ^{:key t}
+     [:div.bottom.aligned.column
+      [:div.ui.center.aligned.segment
+       [:span {:style {:font-size 32}} (get symbols t)]
+       (reverse
+        (map-indexed
+         (fn [step-index {:keys [points material]}]
+           (let [color (when (= step-index 1) "secondary ")]
+             ^{:key (str t step-index)}
+             [:div {:class (str color "ui center aligned segment")
+                    :style {:height 50}}
+              (map-indexed
+               (fn [pid {:keys [temples color]}]
+                 (when (= (get temples t) step-index)
+                   (player-circle-el color)))
+               players)
+              [:div {:style {:float "left"}}
+               (points-el points)]
+              [:div {:style {:float "right"}}
+               (get symbols material)]]))
+         (:steps temple)))]])])
 
 (defn event-player-el
   [player]
