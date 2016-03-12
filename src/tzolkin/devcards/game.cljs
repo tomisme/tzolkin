@@ -1,5 +1,6 @@
 (ns tzolkin.devcards.game
   (:require
+   [reagent.core :as rg]
    [tzolkin.spec  :refer [spec]]
    [tzolkin.logic :as logic]
    [tzolkin.game  :as game]
@@ -48,19 +49,19 @@
    [:add-player {:name "Tom" :color :blue}]
    [:give-stuff {:pid 0 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
    [:give-stuff {:pid 1 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
+   [:start-game]
    [:place-worker {:pid 0 :gear :uxe}]
    [:place-worker {:pid 0 :gear :uxe}]
    [:place-worker {:pid 0 :gear :uxe}]
-   [:end-turn {:pid 0}]
+   [:end-turn]
    [:place-worker {:pid 1 :gear :yax}]
    [:place-worker {:pid 1 :gear :yax}]
-   [:end-turn {:pid 1}]])
+   [:end-turn]])
 
-(def test-event-stream
-  (logic/event-stream {} test-events))
+(def test-event-stream-atom
+  (rg/atom (logic/reduce-event-stream {} test-events)))
 
 (defcard-rg game-test
-  (fn [state _]
-    (game/board state test-event-stream))
-  (rev {} test-events)
-  {:inspect-data true :history true})
+  (fn [es-atom _]
+    (game/board es-atom))
+  test-event-stream-atom)

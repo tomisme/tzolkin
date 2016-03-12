@@ -119,13 +119,16 @@
    [:place-worker {:pid 0 :gear :uxe}]
    [:place-worker {:pid 0 :gear :uxe}]
    [:place-worker {:pid 0 :gear :uxe}]
-   [:end-turn {:pid 0}]
+   [:end-turn]
    [:place-worker {:pid 1 :gear :yax}]
    [:place-worker {:pid 1 :gear :yax}]
-   [:end-turn {:pid 1}]])
+   [:end-turn]])
 
 (def test-event-stream
-  (logic/event-stream {} test-events))
+  (logic/reduce-event-stream {} test-events))
 
-(defcard-rg game-log-test
+(defcard-rg game-log-art-test
   [art/game-log-el {:stream test-event-stream}])
+
+(defcard-rg temple-art-test
+  (art/temples-el s))

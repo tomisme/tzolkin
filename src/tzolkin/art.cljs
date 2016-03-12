@@ -121,30 +121,36 @@
 (defn available-buildings
   [buildings on-decision choosing?]
   [:div.ui.segment
-    [:div.ui.cards
+    (into [:div.ui.cards]
       (map-indexed
         (fn [index building]
-          ^{:key (str index building)}
           [:div.item (building-card building #(on-decision index) choosing?)])
-        (take (:num-available-buildings spec) buildings))]])
+        (take (:num-available-buildings spec) buildings)))])
 
 (defn decisions-el
   [active on-decision]
   (let [decision (first (:decisions active))
         type (:type decision)
-        decision-options (:options decision)]
-    (if (= :gain-building type)
-      [:span " needs to choose a building."]
-      [:span "HE"])))
-      ; [:span
-      ;   " needs to choose between "
-      ;   (map-indexed
-      ;     (fn [index option]
-      ;       (case type
-      ;         :gain-materials ^{:key index}
-      ;                         [:button {:on-click #(on-decision index)}
-      ;                           (materials-str option)]))
-      ;     decision-options)])))
+        decision-options (:options decision)
+        msg (str " needs to choose "
+                 (case type
+                   :gain-materials "which materials to gain."
+                   :gain-building "which building to build."
+                   :tech "which tech tracks to increase."
+                   :temple "which temple to move up on."
+                   :two-different-temples "which two temples to move up on."))]
+      [:span
+       msg
+       (into [:div]
+             (map-indexed
+               (fn [index option]
+                 [:button {:on-click #(on-decision index decision)}
+                   (case type
+                     :gain-materials (materials-str option)
+                     :gain-building index
+                     :tech (log option)
+                     :temple (materials-str option))])
+               decision-options))]))
 
 (defn active-player-status
   [active on-decision]
@@ -184,7 +190,7 @@
         (player-buildings buildings)
         [:p "No buildings."])]))
 
-(defn status-bar
+(defn status-bar-el
   [state on-decision]
   (let [turn (:turn state)
         turns (:total-turns spec)
@@ -411,9 +417,15 @@
                 (get symbols material)]]))
           (:steps temple)))]])]])
 
+(defn event-player-el
+  [player]
+  [:span (player-circle-el (:color player)) (:name player)])
+
 (defn event-summary-el
-  [[type data] state]
-  (let [player (get-in state [:players (:pid data)])
+  [[type data] state on-es-reset es-index]
+  (let [active-pid (get-in state [:active :pid])
+        active-player (get-in state [:players active-pid])
+        player (get-in state [:players (:pid data)])
         dev? (or (= :give-stuff type))]
    [:div.summary {:style {:font-weight 400}}
     [:i.caret.right.link.icon]
@@ -421,23 +433,27 @@
     (when player [:span (player-circle-el (:color player)) (:name player)])
     (case type
       :new-game      [:span (:corn symbols) "New vanilla tzolkin game!"]
+      :start-game    [:span (event-player-el active-player) "'s turn"]
       :give-stuff    [:span " + " (materials-str (:changes data))]
       :add-player    [:span [:i {:class (str (name (:color data)) " circle icon")}] (:name data) " joined the game"]
       :place-worker  [:span " placed a worker on " (get symbols (:gear data))]
       :remove-worker [:span " removed a worker from " (get symbols (:gear data))]
-      :end-turn      [:span " ended the turn"]
+      :end-turn      [:span (event-player-el active-player) "'s turn"]
+      :choose-option [:span (event-player-el active-player) " chose to ..."]
       (str "ERROR: no matching event type"))
     [:div.date
-     [:a {:on-click #(log state)}"inspect"]
+     [:a {:on-click #(log [[type data] state])} "inspect"]
      " | "
-     [:a "reset"]]]))
+     [:a {:on-click #(on-es-reset es-index)} "reset"]]]))
 
 (defn game-log-el
-  [{:keys [stream]}]
+  [{:keys [stream on-es-reset]}]
   [:div.ui.segment
    (into [:div.ui.feed]
-         (for [[event state] stream
-               :let [[type data] event]]
-           [:div.event
-            [:div.content
-             (event-summary-el event state)]]))])
+         (map-indexed
+          (fn [es-index [event state]]
+            (let [[type data] event]
+              [:div.event
+               [:div.content
+                (event-summary-el event state on-es-reset es-index)]]))
+          stream))])

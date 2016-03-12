@@ -12,7 +12,6 @@
    [tzolkin.devcards.game :refer [s]]
    [tzolkin.devcards.logic]
    [tzolkin.devcards.spec]
-   [tzolkin.devcards.temples]
    [tzolkin.devcards.utils]
    [tzolkin.devcards.workers])
   (:require-macros

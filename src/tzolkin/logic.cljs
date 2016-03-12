@@ -4,32 +4,6 @@
     [tzolkin.utils :refer [log indexed first-nil rotate-vec
                            remove-from-vec change-map negatise-map]]))
 
-(def initial-gears-state
-  (into {} (for [k (keys (:gears spec))]
-             [k (into [] (repeat (get-in spec [:gears k :teeth]) nil))])))
-
-(def initial-game-state
-  {:turn 0
-   :active {:pid 0 :worker-option :none :placed 0 :decisions '()}
-   :remaining-skulls (:skulls spec)
-   :players []
-   :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec))))
-   :monuments (vec (take (:num-monuments spec) (shuffle (:monuments spec))))
-   :gears initial-gears-state})
-
-(defn add-player
-  [state name color]
-  (let [p {:starters (take (:num-starters spec) (shuffle (:starters spec)))
-           :materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
-           :temples {:chac 1 :quet 1 :kuku 1}
-           :tech {:agri 0 :extr 0 :arch 0 :theo 0}
-           :buildings []
-           :workers 3
-           :points 0
-           :name name
-           :color color}]
-    (update state :players conj p)))
-
 (defn adjust-points
   [state pid num]
   (update-in state [:players pid :points] + num))
@@ -174,6 +148,31 @@
               (and (= :build k) (= :single (:type v))) (choose-building))
       (pay-action-cost pid [k v])))
 
+(defn gear-position
+  "Returns the current board position of a gear slot after 'turn' spins"
+  [gear slot turn]
+  (let [teeth (get-in spec [:gears gear :teeth])]
+    (mod (+ slot turn) teeth)))
+
+(defn gear-slot
+  "Return the gear slot index of a board position after 'turn' spins"
+  [gear position turn]
+  (let [teeth (get-in spec [:gears gear :teeth])]
+    (mod (+ position (- teeth turn)) teeth)))
+
+;; TODO
+(defn cost-payable?
+  [pid cost]
+  true)
+
+(def initial-gears-state
+  (into {} (for [k (keys (:gears spec))]
+             [k (into [] (repeat (get-in spec [:gears k :teeth]) nil))])))
+
+;; ==================
+;; = Event Handlers =
+;; ==================
+
 (defn handle-decision
   [{:keys [active] :as state} option-index]
   (let [pid       (:pid active)
@@ -192,23 +191,6 @@
                 (= :temple type) (adjust-temples pid choice)
                 (= :two-different-temples type) (adjust-temples pid {(first choice) 1 (second choice) 1}))
         (update-in [:active :decisions] rest))))
-
-(defn gear-position
-  "Returns the current board position of a gear slot after 'turn' spins"
-  [gear slot turn]
-  (let [teeth (get-in spec [:gears gear :teeth])]
-    (mod (+ slot turn) teeth)))
-
-(defn gear-slot
-  "Return the gear slot index of a board position after 'turn' spins"
-  [gear position turn]
-  (let [teeth (get-in spec [:gears gear :teeth])]
-    (mod (+ position (- teeth turn)) teeth)))
-
-;; TODO
-(defn cost-payable?
-  [pid cost]
-  true)
 
 (defn place-worker
   [state pid gear]
@@ -235,7 +217,7 @@
           (update-in [:players pid :materials :corn] - corn-cost)
           (update-in [:active :placed] inc)
           (update :active assoc :worker-option :place))
-      (update state :errors conj "Can't place worker here"))))
+      (update state :errors conj "Can't place worker"))))
 
 (defn remove-worker
   [state pid gear slot]
@@ -258,12 +240,13 @@
           (update-in [:gears gear] assoc slot nil)
           (update :active assoc :worker-option :remove)
           (handle-action pid action))
-      (update state :errors conj "Can't end turn"))))
+      (update state :errors conj "Can't remove worker"))))
 
 (defn end-turn
-  [state pid]
+  [state]
   (let [turn (:turn state)
         max-turn (:total-turns spec)
+        pid (-> state :active :pid)
         last-player? (= (dec (count (:players state))) pid)]
     (if (< turn max-turn)
       (-> (cond-> state
@@ -274,12 +257,42 @@
           (update :active assoc :worker-option :none))
       (update :errors conj "Can't end turn"))))
 
+(defn init-game
+  [state]
+  (conj state {:game {:started false}
+               :turn 0
+               :active {:pid 0 :worker-option :none :placed 0 :decisions '()}
+               :remaining-skulls (:skulls spec)
+               :players []
+               :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec))))
+               :monuments (vec (take (:num-monuments spec) (shuffle (:monuments spec))))
+               :gears initial-gears-state}))
+
+(defn start-game
+  [state]
+  (-> state
+      (update :game assoc :started true)))
+
+(defn add-player
+  [state name color]
+  (let [p {:starters (take (:num-starters spec) (shuffle (:starters spec)))
+           :materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
+           :temples {:chac 1 :quet 1 :kuku 1}
+           :tech {:agri 0 :extr 0 :arch 0 :theo 0}
+           :buildings []
+           :workers 3
+           :points 0
+           :name name
+           :color color}]
+    (update state :players conj p)))
+
 (defn handle-event
   [state [e data]]
   (when (:errors state) (log (:errors state)))
   (cond-> state
-          (= :new-game e)      (conj initial-game-state)
-          (= :end-turn e)      (end-turn (:pid data))
+          (= :new-game e)      init-game
+          (= :end-turn e)      end-turn
+          (= :start-game e)    start-game
           (= :add-player e)    (add-player (:name data) (:color data))
           (= :place-worker e)  (place-worker (:pid data) (:gear data))
           (= :remove-worker e) (remove-worker (:pid data) (:gear data) (:slot data))
@@ -287,11 +300,36 @@
           ;; debugging events
           (= :give-stuff e) (player-map-adjustment (:pid data) (:k data) (:changes data))))
 
+;; ================
+;; = Event Stream =
+;; ================
+
+(defn add-event
+  [es event]
+  (let [[_ prev-state] (last es)
+        new-state (handle-event prev-state event)
+        errors (:errors new-state)]
+    (if errors
+      (do (log errors) es)
+      (conj es [event new-state]))))
+
+(defn current-state
+  [es]
+  (let [[_ state] (last es)]
+    state))
+
+(defn reset-es
+  [es index]
+  (let [pos (inc index)]
+    (if (< pos (count es))
+      (vec (take pos es))
+      es)))
+
 (defn reduce-events
   [prev-state events]
   (reduce handle-event prev-state events))
 
-(defn event-stream
+(defn reduce-event-stream
   [initial-state events]
   (:stream
    (reduce
