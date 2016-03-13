@@ -28,8 +28,8 @@
                    [:place-worker {:pid 1 :gear :yax}]
                    [:end-turn {:pid 1}]])
            (-> s
-               (update :gears assoc :uxe (into [:red :red :red] (repeat 7 nil)))
-               (update :gears assoc :yax (into [:blue :blue] (repeat 8 nil)))
+               (update :gears assoc :uxe (into [:red :red :red] (repeat 7 :none)))
+               (update :gears assoc :yax (into [:blue :blue] (repeat 8 :none)))
                (update :turn inc)
                (update-in [:players 0 :materials :corn] - 6)
                (update-in [:players 1 :materials :corn] - 2)
@@ -63,5 +63,5 @@
 
 (defcard-rg game-test
   (fn [es-atom _]
-    (game/board es-atom))
+    (game/board es-atom #()))
   test-event-stream-atom)

@@ -1,8 +1,11 @@
 (ns tzolkin.dev-core
   (:require
    [tzolkin.devcards.main]
+   [devcards.core]
    [devtools.core :as devtools]
-   [tzolkin.utils :refer [log]]))
+   [tzolkin.utils :refer [log]])
+  (:require-macros
+   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
 
 (devtools/install!)
 

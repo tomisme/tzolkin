@@ -9,7 +9,7 @@
 
 (deftest worker-tests
   (testing "Place Worker"
-    (is (= (logic/place-worker s 0 :yax)
+    (is (= (logic/place-worker s :yax)
            (-> s
              (update-in [:players 0 :workers] dec)
              (update-in [:gears :yax] assoc 0 :red)

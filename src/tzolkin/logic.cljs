@@ -1,7 +1,7 @@
 (ns tzolkin.logic
   (:require
     [tzolkin.spec :refer [spec]]
-    [tzolkin.utils :refer [log indexed first-nil rotate-vec
+    [tzolkin.utils :refer [log indexed first-val rotate-vec
                            remove-from-vec change-map negatise-map]]))
 
 (defn adjust-points
@@ -167,7 +167,7 @@
 
 (def initial-gears-state
   (into {} (for [k (keys (:gears spec))]
-             [k (into [] (repeat (get-in spec [:gears k :teeth]) nil))])))
+             [k (into [] (repeat (get-in spec [:gears k :teeth]) :none))])))
 
 ;; ==================
 ;; = Event Handlers =
@@ -193,17 +193,18 @@
         (update-in [:active :decisions] rest))))
 
 (defn place-worker
-  [state pid gear]
-  (let [worker-option (get-in state [:active :worker-option])
+  [state gear]
+  (let [pid (-> state :active :pid)
+        worker-option (get-in state [:active :worker-option])
         gear-slots (get-in state [:gears gear])
         max-position (- (get-in spec [:gears gear :teeth]) 2)
         turn (:turn state)
-        position (first-nil (rotate-vec gear-slots turn))
+        position (first-val (rotate-vec gear-slots turn) :none)
         slot (gear-slot gear position turn)
         player (get-in state [:players pid])
         player-color (:color player)
         remaining-workers (:workers player)
-        remaining-corn (get-in state [:players pid :materials :corn])
+        remaining-corn (-> player :materials :corn)
         placed (get-in state [:active :placed])
         corn-cost (+ position placed)]
     (if (and (> remaining-workers 0)
@@ -220,8 +221,9 @@
       (update state :errors conj "Can't place worker"))))
 
 (defn remove-worker
-  [state pid gear slot]
-  (let [turn (:turn state)
+  [state gear slot]
+  (let [pid (-> state :active :pid)
+        turn (:turn state)
         worker-option (get-in state [:active :worker-option])
         position (gear-position gear slot turn)
         player (get-in state [:players pid])
@@ -294,8 +296,8 @@
           (= :end-turn e)      end-turn
           (= :start-game e)    start-game
           (= :add-player e)    (add-player (:name data) (:color data))
-          (= :place-worker e)  (place-worker (:pid data) (:gear data))
-          (= :remove-worker e) (remove-worker (:pid data) (:gear data) (:slot data))
+          (= :place-worker e)  (place-worker (:gear data))
+          (= :remove-worker e) (remove-worker (:gear data) (:slot data))
           (= :choose-option e) (handle-decision (:index data))
           ;; debugging events
           (= :give-stuff e) (player-map-adjustment (:pid data) (:k data) (:changes data))))

@@ -18,10 +18,10 @@
   [coll]
   (map-indexed vector coll))
 
-(defn first-nil
+(defn first-val
   "Returns the index of the first instance of nil in 'coll'"
-  [coll]
-  (first (for [[index element] (indexed coll) :when (= element nil)] index)))
+  [coll val]
+  (first (for [[index element] (indexed coll) :when (= element val)] index)))
 
 (defn rotate-vec
   "Circularly shifts items in a vector forward 'num' times.

@@ -12,8 +12,8 @@
   (testing "indexed"
     (is (= (utils/indexed '(a b c)) '([0 a] [1 b] [2 c])))
     (is (= (utils/indexed [:a :b :c]) '([0 :a] [1 :b] [2 :c]))))
-  (testing "first-nil"
-    (is (= (utils/first-nil ["nil" 0 :a nil :b nil]) 3)))
+  (testing "first-val"
+    (is (= (utils/first-val ["none" 0 :a :none :b :none] :none) 3)))
   (testing "rotate-vec"
     (is (= (utils/rotate-vec [:a :b :c] 2) [:b :c :a]))
     (is (= (utils/rotate-vec [:a :b :c] 4) [:c :a :b]))
