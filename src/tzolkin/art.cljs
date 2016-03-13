@@ -130,42 +130,47 @@
         (take (:num-available-buildings spec) buildings)))])
 
 (defn decisions-el
-  [active on-decision]
+  [active active-player on-decision]
   (let [decision (first (:decisions active))
         type (:type decision)
         decision-options (:options decision)
-        msg (str " needs to choose "
+        color-str (if (:color active-player)
+                    (name (:color active-player))
+                    "teal")
+        msg (str (:name active-player)
+                 " needs to choose "
                  (case type
                    :gain-materials "which materials to gain."
                    :gain-building "which building to build."
                    :tech "which tech tracks to increase."
                    :temple "which temple to move up on."
                    :two-different-temples "which two temples to move up on."))]
-      [:span
-       msg
-       (into [:div]
+      [:div
+       [:div {:class (str "ui inverted segment " color-str)}
+        msg]
+       (into [:div [:i.large.chevron.right.icon]]
              (map-indexed
                (fn [index option]
-                 [:button {:on-click #(on-decision index decision)}
+                 [:button.ui.button {:on-click #(on-decision index decision)}
                    (case type
                      :gain-materials (symbols-str option)
                      :gain-building index
-                     :tech (log option)
+                     :tech (symbols-str option)
                      :temple (symbols-str option))])
                decision-options))]))
 
 (defn active-player-status
-  [active on-decision]
-  (let [decision (first (:decisions active))]
-    (if decision
-      (decisions-el active on-decision)
-      (let [worker-option (:worker-option active)
-            placed (:placed active)]
-        (case worker-option
-          :none " has not yet chosen to remove or place workers."
-          :place (str " has placed " placed " worker(s).")
-          :remove " is removing workers."
-          "ERROR")))))
+  [active active-player]
+  (let [worker-option (:worker-option active)
+        name (:name active-player)
+        placed (:placed active)]
+    (str
+     name
+     (case worker-option
+      :none " has not yet chosen to remove or place workers."
+      :place (str " has placed " placed " worker(s).")
+      :remove " is removing workers."
+      "ERROR"))))
 
 (defn player-buildings
   [buildings]
@@ -236,7 +241,9 @@
         choosing-building? (= :gain-building (get-in active [:decision :type]))
         active-pid (:pid active)
         active-player (get-in state [:players active-pid])
-        active-player-name (:name active-player)]
+        color-str (if (:color active-player)
+                    (name (:color active-player))
+                    "teal")]
     [:div
       [:p
        [:button.ui.button {:on-click on-end-turn}
@@ -245,7 +252,12 @@
         "Beg for corn"]
        [:span {:style {:margin-left 15}} "Turn " turn "/" turns ", " (food-day-str until-food-day)]]
       (turn-status-el)
-      [:div.ui.inverted.teal.segment active-player-name (active-player-status active on-decision)]
+      [:div
+       (let [decision (first (:decisions active))]
+         (if decision
+           (decisions-el active active-player on-decision)
+           [:div {:class (str "ui inverted segment " color-str)}
+            (active-player-status active active-player)]))]
       (map-indexed player-stats-el (:players state))
       (available-buildings buildings on-decision choosing-building?)]))
 
@@ -468,6 +480,26 @@
   [player]
   [:span (player-circle-el (:color player)) (:name player)])
 
+(defn event-summary-choice
+  [{:keys [index decision] :as thing}]
+  (log thing)
+  (let [{:keys [options type]} decision
+        choice (get options index)]
+    (case type
+          :action " chose an action..."
+          :temple (str " chose to gain favour with " (symbols-str choice))
+          :pay-resource (str " chose to pay " (symbols-str choice))
+          :resoure (str " chose to gain " (symbols-str choice))
+          :materials (str " chose to gain " (symbols-str choice))
+          :two-different-temples (str " chose to gain favour with "
+                                      (symbols-str (first choice))
+                                      " and "
+                                      (symbols-str (second choice)))
+          :tech (str " chose to go up on " (symbols-str choice))
+          "NOPEPPP")))
+
+
+
 (defn event-summary-el
   [[type data] state on-es-reset es-index]
   (let [active-pid (get-in state [:active :pid])
@@ -486,7 +518,7 @@
       :place-worker  [:span (event-player-el active-player) " placed a worker on " (get symbols (:gear data))]
       :remove-worker [:span (event-player-el active-player) " removed a worker from " (get symbols (:gear data))]
       :end-turn      [:span (event-player-el active-player) "'s turn"]
-      :choose-option [:span (event-player-el active-player) " chose to ..."]
+      :choose-option [:span (event-player-el active-player) (event-summary-choice data)]
       (str "ERROR: no matching event type"))
     [:div.date
      [:a {:on-click #(log [[type data] state])} "inspect"]

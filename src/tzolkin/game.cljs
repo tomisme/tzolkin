@@ -33,12 +33,12 @@
   (let [on-end-turn #(if save
                        (save (logic/add-event @es-atom [:end-turn]))
                        (swap! es-atom logic/add-event [:end-turn]))
-        on-decision (fn [option-index options]
+        on-decision (fn [option-index decision]
                       (if save
                         (save (logic/add-event @es-atom [:choose-option {:index option-index
-                                                                         :options options}]))
+                                                                         :decision decision}]))
                         (swap! es-atom logic/add-event [:choose-option {:index option-index
-                                                                        :options options}])))]
+                                                                        :decision decision}])))]
     (fn []
       (art/status-bar-el @re-state on-decision on-end-turn))))
 
