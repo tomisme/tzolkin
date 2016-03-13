@@ -30,7 +30,7 @@
                                    :source-map-timestamp true}}
                        {:id "dev"
                         :source-paths ["src"]
-                        :figwheel true
+                        ; :figwheel true
                         :compiler {:main       "tzolkin.core"
                                    :asset-path "js/compiled/out"
                                    :output-to  "resources/public/js/compiled/tzolkin.js"

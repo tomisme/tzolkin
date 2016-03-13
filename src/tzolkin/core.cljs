@@ -7,11 +7,11 @@
    [tzolkin.db :as db]
    [tzolkin.logic :as logic]
    [tzolkin.art :as art]
-   [tzolkin.spec :refer [spec]]
+   [tzolkin.spec :refer [spec]]))
    ; [devcards.core] ;; TODO remove for prod
-   [devtools.core :as devtools]))
+   ; [devtools.core :as devtools]))
 
-(devtools/install!)
+; (devtools/install!)
 
 (def es-atom
   (rg/atom (logic/reduce-event-stream {} [[:new-game]])))

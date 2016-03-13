@@ -260,7 +260,21 @@
     :chi 10}])
 
 (def gears
-  {:yax {:name "Yaxchilan"
+  {:pal {:name "Palenque"
+         :teeth 10
+         :location 22
+         :regular-actions 5
+         :actions [[:gain-materials {:corn 3}]
+                   [:gain-materials {:corn 4}]
+                   [:choose-materials [{:corn 5}
+                                       {:wood 2}]]
+                   [:choose-materials [{:corn 7}
+                                       {:wood 3}]]
+                   [:choose-materials [{:corn 9}
+                                       {:wood 4}]]
+                   [:choose-action {:gear :pal}]
+                   [:choose-action {:gear :pal}]]}
+   :yax {:name "Yaxchilan"
          :teeth 10
          :location 1
          :regular-actions 5
@@ -300,20 +314,6 @@
                                     :gear :non-chi}]
                    [:choose-action {:gear :uxe}]
                    [:choose-action {:gear :uxe}]]}
-   :pal {:name "Palenque"
-         :teeth 10
-         :location 22
-         :regular-actions 5
-         :actions [[:gain-materials {:corn 3}]
-                   [:gain-materials {:corn 4}]
-                   [:choose-materials [{:corn 5}
-                                       {:wood 2}]]
-                   [:choose-materials [{:corn 7}
-                                       {:wood 3}]]
-                   [:choose-materials [{:corn 9}
-                                       {:wood 4}]]
-                   [:choose-action {:gear :pal}]
-                   [:choose-action {:gear :pal}]]}
    :chi {:name "Chichen Itza"
          :teeth 13
          :location 16

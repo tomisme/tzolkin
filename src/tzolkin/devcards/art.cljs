@@ -17,8 +17,8 @@
     (is (= (art/transform-str [:rotate {:deg 55 :x 10 :y 10}]
                               [:rotate {:deg 10 :x 1 :y 1}])
            "rotate(55 10 10)rotate(10 1 1)")))
-  (testing "materials-str"
-    (is (= (art/materials-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
+  (testing "symbols-str"
+    (is (= (art/symbols-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
            "🌲🗿🌕🌕3🌽💀"))))
 
 (defcard-rg symbol-examples
@@ -116,12 +116,12 @@
    [:add-player {:name "Tom" :color :blue}]
    [:give-stuff {:pid 0 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
    [:give-stuff {:pid 1 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
-   [:place-worker {:pid 0 :gear :uxe}]
-   [:place-worker {:pid 0 :gear :uxe}]
-   [:place-worker {:pid 0 :gear :uxe}]
+   [:place-worker {:gear :uxe}]
+   [:place-worker {:gear :uxe}]
+   [:place-worker {:gear :uxe}]
    [:end-turn]
-   [:place-worker {:pid 1 :gear :yax}]
-   [:place-worker {:pid 1 :gear :yax}]
+   [:place-worker {:gear :yax}]
+   [:place-worker {:gear :yax}]
    [:end-turn]])
 
 (def test-event-stream

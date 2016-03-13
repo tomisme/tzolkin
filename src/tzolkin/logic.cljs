@@ -239,7 +239,7 @@
              (cost-payable? pid (:cost action)))
       (-> state
           (update-in [:players pid :workers] inc)
-          (update-in [:gears gear] assoc slot nil)
+          (update-in [:gears gear] assoc slot :none)
           (update :active assoc :worker-option :remove)
           (handle-action pid action))
       (update state :errors conj "Can't remove worker"))))

@@ -53,8 +53,8 @@
                        (str " " (:x data) " " (:y data)))
                      ")")))))
 
-(defn materials-str
-  "Takes a map of resources and the amount of each and returns a string of
+(defn symbols-str
+  "Takes a map of materials and the amount of each and returns a string of
   symbols. Amounts larger than two represented by a number and a single symbol."
   [materials]
   (apply str (for [[material amount] materials]
@@ -105,8 +105,8 @@
         [:div {:class (str "ui " (name color) " corner label")}]
         (if choosing?
           [:a {:on-click on-click}
-            (materials-str cost)]
-          (materials-str cost))]
+            (symbols-str cost)]
+          (symbols-str cost))]
       [:div.center.aligned.content {:style {:height 110}}
         [:div.description
           (when farm (farm-el farm))
@@ -115,7 +115,7 @@
           (when free-action-for-corn [:p (get symbols :corn) ": any"])
           (when build [:p "build " (name build)])
           (when temples [:p (temples-str temples)])
-          (when materials [:p (materials-str materials)])
+          (when materials [:p (symbols-str materials)])
           (when points [:p (points-el points)])]]]))
 
 (defn available-buildings
@@ -146,10 +146,10 @@
                (fn [index option]
                  [:button {:on-click #(on-decision index decision)}
                    (case type
-                     :gain-materials (materials-str option)
+                     :gain-materials (symbols-str option)
                      :gain-building index
                      :tech (log option)
-                     :temple (materials-str option))])
+                     :temple (symbols-str option))])
                decision-options))]))
 
 (defn active-player-status
@@ -183,10 +183,10 @@
       [:p
         [:a {:class (str "ui " (name color) " ribbon label")}
           player-name]
-        [:span workers " workers remaining | "]
+        [:span (symbols-str {:worker workers}) " | "]
         [:span (for [[k v] materials]
                  (str v " " (get symbols k) " | "))]
-        [:span points " victory points"]]
+        [:span points " VP"]]
       (if (seq buildings)
         (player-buildings buildings)
         [:p "No buildings."])]))
@@ -211,8 +211,8 @@
 (defn action-label
   [[k data]]
   (case k
-    :gain-materials  (materials-str data)
-    :choose-materials (str (materials-str (first data)) "/" (materials-str (second data)))
+    :gain-materials  (symbols-str data)
+    :choose-materials (str (symbols-str (first data)) "/" (symbols-str (second data)))
     :choose-action (if (= (:gear data) :non-chi)
                      (str (:corn symbols) ": any")
                      (str (:choose-prev symbols) (get symbols (:gear data))))
@@ -333,7 +333,7 @@
     ;; slot indexes for testing
     ; [:text {:style {:pointer-events "none"}
     ;         :x cx :y (+ cy (* r 0.8)) :text-anchor "middle" :transform transform}
-    ;   index]]))
+    ;   index]
     workers)])
 
 (defn gear-el
@@ -434,10 +434,10 @@
     (case type
       :new-game      [:span (:corn symbols) "New vanilla tzolkin game!"]
       :start-game    [:span (event-player-el active-player) "'s turn"]
-      :give-stuff    [:span " + " (materials-str (:changes data))]
+      :give-stuff    [:span " + " (symbols-str (:changes data))]
       :add-player    [:span [:i {:class (str (name (:color data)) " circle icon")}] (:name data) " joined the game"]
-      :place-worker  [:span " placed a worker on " (get symbols (:gear data))]
-      :remove-worker [:span " removed a worker from " (get symbols (:gear data))]
+      :place-worker  [:span (event-player-el active-player) " placed a worker on " (get symbols (:gear data))]
+      :remove-worker [:span (event-player-el active-player) " removed a worker from " (get symbols (:gear data))]
       :end-turn      [:span (event-player-el active-player) "'s turn"]
       :choose-option [:span (event-player-el active-player) " chose to ..."]
       (str "ERROR: no matching event type"))
