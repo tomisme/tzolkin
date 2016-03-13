@@ -255,12 +255,19 @@
     :gain-materials  (symbols-str data)
     :choose-materials (str (symbols-str (first data)) "/" (symbols-str (second data)))
     :choose-action (if (= (:gear data) :non-chi)
-                     (str (:corn symbols) ": any")
+                     (str (:corn symbols) ": action")
                      (str (:choose-prev symbols) (get symbols (:gear data))))
     :choose-any-action "any"
-    :tech "+tech"
-    :build "build"
-    :temples "+temple"
+    :tech (case (:steps data)
+                1 "1x tech"
+                2 "2x tech")
+    :build (case (:type data)
+                 :single "build"
+                 :double-or-monument "bld x2/mon"
+                 :with-corn (str "bld w/" (:corn symbols)))
+    :temples (case (:choose data)
+                   :any (str (symbols-str (:cost data)) ": tmpl")
+                   :two-different (str (:resource symbols) ": tmpls"))
     :trade "trade"
     :gain-worker (:worker symbols)
     :skull-action (str (get symbols (:temple data))
