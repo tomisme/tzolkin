@@ -98,11 +98,11 @@
      [:div.five.wide.column
        [status-bar-wrapper es-atom re-state save]
        [game-log es-atom save]]
-     [:div.seven.wide.column
+     [:div.eight.wide.column
        (into [:div]
          (for [[k _] (:gears spec)]
            [worker-gear-wrapper es-atom re-state k save]))]
-     [:div.four.wide.column
+     [:div.three.wide.column
        [temples-wrapper es-atom re-state]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} test-events))}
          "test events"]

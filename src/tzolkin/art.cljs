@@ -73,10 +73,13 @@
   (apply str (for [[temple amount] temples]
                (apply str (repeat amount (get symbols temple))))))
 
-;; TODO
 (defn tech-str
   [tech]
-  "tech")
+  (str "+"
+       (case tech
+             :any "1x tech"
+             :any-two "2x tech"
+             (symbols-str tech))))
 
 (defn food-day-str
   [until-food-day]
@@ -100,21 +103,25 @@
   (let [{:keys [cost color materials points tech farm temples gain-worker
                 free-action-for-corn build]} building]
     [:div {:class (str (name color) " ui card")
-           :style {:width 124
-                   :margin 5}}
-      [:div.content {:style {:height 50}}
-        [:div {:class (str "ui " (name color) " corner label")}]
+           :style {:width "7rem"
+                   :margin 5
+                   :font-size "0.9rem"}}
+      [:div.content {:style {:height "2em"
+                             :padding-top "0.5rem"
+                             :z-index 1}}
+        [:div {:class (str "ui " (name color) " corner label")
+               :style {:z-index -1}}]
         (if choosing?
           [:a {:on-click on-click}
             (symbols-str cost)]
           (symbols-str cost))]
-      [:div.center.aligned.content {:style {:height 110}}
+      [:div.center.aligned.content {:style {:height "6.1rem"}}
         [:div.description
           (when farm (farm-el farm))
           (when tech [:p (tech-str tech)])
           (when gain-worker [:p (:worker symbols)])
-          (when free-action-for-corn [:p (get symbols :corn) ": any"])
-          (when build [:p "build " (name build)])
+          (when free-action-for-corn [:p (get symbols :corn) ": action"])
+          (when build [:p "+" (name build)])
           (when temples [:p (temples-str temples)])
           (when materials [:p (symbols-str materials)])
           (when points [:p (points-el points)])]]]))
@@ -464,16 +471,23 @@
            (let [color (when (= step-index 1) "secondary ")]
              [:div {:key (str t step-index)
                     :class (str color "ui center aligned segment")
-                    :style {:height 50}}
-              (map-indexed
-               (fn [pid {:keys [temples color]}]
-                 (when (= (get temples t) step-index)
-                   (player-circle-el color)))
-               players)
-              [:div {:style {:float "left"}}
-               (points-el points)]
-              [:div {:style {:float "right"}}
-               (get symbols material)]]))
+                    :style {:height 50
+                            :padding "0.8em"
+                            :padding-left 0
+                            :padding-right 0
+                            :z-index 1}}
+              [:span
+               (map-indexed
+                (fn [pid {:keys [temples color]}]
+                  (when (= (get temples t) step-index)
+                    (player-circle-el color)))
+                players)]
+              [:div.ui.top.left.attached.label {:style {:z-index -1}}
+               points]
+               ;(points-el points)]
+              (if material
+                [:div.ui.top.right.attached.label {:style {:z-index -1}}
+                 (get symbols material)])]))
          (:steps temple)))]])])
 
 (defn event-player-el
