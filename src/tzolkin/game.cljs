@@ -1,6 +1,7 @@
 (ns tzolkin.game
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require
+   [reagent.core :as rg]
    [tzolkin.spec  :refer [spec]]
    [tzolkin.logic :as logic]
    [tzolkin.art   :as art]
@@ -29,23 +30,17 @@
 
 (defn status-bar-wrapper
   [es-atom re-state save]
-  (let [on-decision (fn [option-index options]
+  (let [on-end-turn #(if save
+                       (save (logic/add-event @es-atom [:end-turn]))
+                       (swap! es-atom logic/add-event [:end-turn]))
+        on-decision (fn [option-index options]
                       (if save
                         (save (logic/add-event @es-atom [:choose-option {:index option-index
                                                                          :options options}]))
                         (swap! es-atom logic/add-event [:choose-option {:index option-index
                                                                         :options options}])))]
     (fn []
-      (art/status-bar-el @re-state on-decision))))
-
-(defn end-turn-button-wrapper
-  [es-atom save]
-  (let [on-end-turn #(if save
-                       (save (logic/add-event @es-atom [:end-turn]))
-                       (swap! es-atom logic/add-event [:end-turn]))]
-
-    [:button.ui.button {:on-click on-end-turn}
-     "End Turn"]))
+      (art/status-bar-el @re-state on-decision on-end-turn))))
 
 (defn game-log
   [es-atom save]
@@ -53,21 +48,24 @@
                       (if save
                         (save (logic/reset-es @es-atom index))
                         (swap! es-atom logic/reset-es index)))]
-    (fn []
-      (art/game-log-el {:stream @es-atom
-                        :on-es-reset on-es-reset}))))
+    (rg/create-class
+     {:component-did-update #(art/scroll-log-down!)
+      :reagent-render
+       (fn []
+         (art/game-log-el {:stream @es-atom
+                           :on-es-reset on-es-reset}))})))
 
 (defn temples-wrapper
-  [re-state]
+  [es-atom re-state]
   (art/temples-el @re-state))
 
 (defn test-board
   [es-atom]
   (let [re-state (reaction (logic/current-state @es-atom))]
     [:div
-     (end-turn-button-wrapper es-atom nil)
+     ; (end-turn-button-wrapper es-atom nil)
      [status-bar-wrapper es-atom re-state nil]
-     [art/temples-el @re-state]
+     [art/temples-el es-atom @re-state]
      (into [:div]
        (for [[k _] (:gears spec)]
          [worker-gear-wrapper es-atom re-state k nil]))
@@ -98,7 +96,6 @@
   (let [re-state (reaction (logic/current-state @es-atom))]
     [:div.ui.grid {:style {:margin 0}}
      [:div.five.wide.column
-       (end-turn-button-wrapper es-atom save)
        [status-bar-wrapper es-atom re-state save]
        [game-log es-atom save]]
      [:div.seven.wide.column
@@ -106,7 +103,7 @@
          (for [[k _] (:gears spec)]
            [worker-gear-wrapper es-atom re-state k save]))]
      [:div.four.wide.column
-       [temples-wrapper re-state]
+       [temples-wrapper es-atom re-state]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} test-events))}
          "test events"]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} new-game-events))}

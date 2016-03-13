@@ -1,5 +1,6 @@
 (ns tzolkin.art
   (:require
+   [reagent.core :as rg]
    [tzolkin.spec :refer [spec]]
    [tzolkin.utils :refer [log diff]]))
 
@@ -121,6 +122,7 @@
 (defn available-buildings
   [buildings on-decision choosing?]
   [:div.ui.segment
+    [:div.ui.top.left.attached.label "Available Buildings"]
     (into [:div.ui.cards]
       (map-indexed
         (fn [index building]
@@ -174,7 +176,7 @@
         [:div.item (building-card building nil false)])
       buildings)])
 
-(defn player-stats
+(defn player-stats-el
   [pid player]
   (let [{:keys [color materials points workers buildings]} player
         player-name (:name player)]
@@ -183,16 +185,49 @@
       [:p
         [:a {:class (str "ui " (name color) " ribbon label")}
           player-name]
-        [:span (symbols-str {:worker workers}) " | "]
+        [:span (str workers (:worker symbols) " | ")]
         [:span (for [[k v] materials]
-                 (str v " " (get symbols k) " | "))]
+                 (str v (get symbols k) " | "))]
         [:span points " VP"]]
       (if (seq buildings)
         (player-buildings buildings)
-        [:p "No buildings."])]))
+        [:p "No buildings or monuments."])]))
+
+;; TODO
+(defn turn-status-el
+  []
+  [:p
+   [:i.square.icon]
+   [:i.square.icon]
+   [:i.square.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.plus.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.plus.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.plus.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.outline.icon]
+   [:i.square.plus.icon]])
 
 (defn status-bar-el
-  [state on-decision]
+  [state on-decision on-end-turn]
   (let [turn (:turn state)
         turns (:total-turns spec)
         until-food-day (get-in spec [:until-food-day turn])
@@ -203,9 +238,15 @@
         active-player (get-in state [:players active-pid])
         active-player-name (:name active-player)]
     [:div
-      [:p "Turn " turn "/" turns ", " (food-day-str until-food-day)]
-      [:p active-player-name (active-player-status active on-decision)]
-      (map-indexed player-stats (:players state))
+      [:p
+       [:button.ui.button {:on-click on-end-turn}
+        "End Turn"]
+       [:button.ui.disabled.button {:on-click #(log "begging!")}
+        "Beg for corn"]
+       [:span {:style {:margin-left 15}} "Turn " turn "/" turns ", " (food-day-str until-food-day)]]
+      (turn-status-el)
+      [:div.ui.inverted.teal.segment active-player-name (active-player-status active on-decision)]
+      (map-indexed player-stats-el (:players state))
       (available-buildings buildings on-decision choosing-building?)]))
 
 (defn action-label
@@ -388,8 +429,7 @@
 
 (defn player-circle-el
   [color]
-  ^{:key color}
-  [:i {:class (str (name color) " circle icon")}])
+  [:i {:key color :class (str (name color) " circle icon")}])
 
 (defn temples-el
   [{:keys [players]}]
@@ -403,8 +443,8 @@
         (map-indexed
          (fn [step-index {:keys [points material]}]
            (let [color (when (= step-index 1) "secondary ")]
-             ^{:key (str t step-index)}
-             [:div {:class (str color "ui center aligned segment")
+             [:div {:key (str t step-index)
+                    :class (str color "ui center aligned segment")
                     :style {:height 50}}
               (map-indexed
                (fn [pid {:keys [temples color]}]
@@ -448,12 +488,18 @@
 
 (defn game-log-el
   [{:keys [stream on-es-reset]}]
-  [:div.ui.segment
+  [:div.ui.segment {:id "game-log"
+                    :style {:overflow-y "scroll"
+                            :height 250}}
    (into [:div.ui.feed]
          (map-indexed
           (fn [es-index [event state]]
             (let [[type data] event]
               [:div.event
                [:div.content
-                (event-summary-el event state on-es-reset es-index)]]))
-          stream))])
+                (event-summary-el event state on-es-reset es-index)]])))
+         stream)])
+
+(defn scroll-log-down!
+ []
+ (set! (.-scrollTop (.getElementById js/document "game-log")) 99999))

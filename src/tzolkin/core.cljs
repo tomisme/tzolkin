@@ -4,10 +4,12 @@
    [reagent.core :as rg]
    [matchbox.core :as m]
    [tzolkin.game :as game]
+   [tzolkin.art :as art]
    [tzolkin.db :as db]
    [tzolkin.logic :as logic]
    [tzolkin.art :as art]
-   [tzolkin.spec :refer [spec]]))
+   [tzolkin.spec :refer [spec]]
+   [tzolkin.utils :refer [log]]))
    ; [devcards.core] ;; TODO remove for prod
    ; [devtools.core :as devtools]))
 
