@@ -207,36 +207,10 @@
 
 ;; TODO
 (defn turn-status-el
-  []
+  [turn turns]
   [:p
-   [:i.square.icon]
-   [:i.square.icon]
-   [:i.square.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.plus.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.plus.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.plus.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.outline.icon]
-   [:i.square.plus.icon]])
+   (into [:span] (repeat (inc turn) [:i.square.icon]))
+   (into [:span] (repeat (- turns turn) [:i.square.outline.icon]))])
 
 (defn status-bar-el
   [state on-decision on-end-turn]
@@ -257,8 +231,8 @@
         "End Turn"]
        [:button.ui.disabled.button {:on-click #(log "begging!")}
         "Beg for corn"]
-       [:span {:style {:margin-left 15}} "Turn " turn "/" turns ", " (food-day-str until-food-day)]]
-      (turn-status-el)
+       [:span {:style {:margin-left 15}} "Turn " (inc turn) "/" (inc turns) ", " (food-day-str until-food-day)]]
+      (turn-status-el turn turns)
       [:div
        (let [decision (first (:decisions active))]
          (if decision
