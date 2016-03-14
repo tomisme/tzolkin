@@ -205,17 +205,32 @@
         (player-buildings buildings)
         [:p "No buildings or monuments."])]))
 
-;; TODO
 (defn turn-status-el
-  [turn turns]
-  [:p
-   (into [:span] (repeat (inc turn) [:i.square.icon]))
-   (into [:span] (repeat (- turns turn) [:i.square.outline.icon]))])
+  [current-turn]
+  (into [:p] (map-indexed
+                (fn [index turn]
+                  (if (>= index current-turn)
+                    (case (:type turn)
+                      :normal [:i.circle.thin.icon]
+                      :points-food-day [:i.add.circle.icon]
+                      :resource-food-day [:i.remove.circle.icon])
+                    [:i.circle.icon]))
+                (:turns spec))))
+
+;; TODO
+(defn new-player-form-el
+  [on-add-player]
+  (let [on-submit-clicked #(on-add-player "Greg" :green)]
+    [:div.ui.form
+     [:div.inline.fields
+      [:div.five.wide.field
+       [:input {:type "text" :placeholder "Name.."}]]
+      [:div.ui.submit.button {:on-click on-submit-clicked} "Add Player"]]]))
 
 (defn status-bar-el
-  [state on-decision on-end-turn]
+  [state on-decision on-end-turn on-start-game on-add-player]
   (let [turn (:turn state)
-        turns (:total-turns spec)
+        started? (> turn 0)
         until-food-day (get-in spec [:until-food-day turn])
         buildings (:buildings state)
         active (:active state)
@@ -226,21 +241,27 @@
                     (name (:color active-player))
                     "teal")]
     [:div
-      [:p
-       [:button.ui.button {:on-click on-end-turn}
-        "End Turn"]
-       [:button.ui.disabled.button {:on-click #(log "begging!")}
-        "Beg for corn"]
-       [:span {:style {:margin-left 15}} "Turn " (inc turn) "/" (inc turns) ", " (food-day-str until-food-day)]]
-      (turn-status-el turn turns)
-      [:div
-       (let [decision (first (:decisions active))]
-         (if decision
-           (decisions-el active active-player on-decision)
-           [:div {:class (str "ui inverted segment " color-str)}
-            (active-player-status active active-player)]))]
+     (if started?
+       [:p
+        [:button.ui.button {:on-click on-end-turn}
+         "End Turn"]
+        [:button.ui.disabled.button {:on-click #(log "begging!")}
+         "Beg for corn"]
+        [:span {:style {:margin-left 15}} "Turn " turn "/" (count (:turns spec)) ", " (food-day-str until-food-day)]]
+       [:p
+        [:button.ui.button {:on-click on-start-game}
+         "Start Game"]])
+     (turn-status-el turn)
+     [:div
+      (if started?
+        (let [decision (first (:decisions active))]
+          (if decision
+            (decisions-el active active-player on-decision)
+            [:div {:class (str "ui inverted segment " color-str)}
+             (active-player-status active active-player)]))
+        (new-player-form-el on-add-player))
       (map-indexed player-stats-el (:players state))
-      (available-buildings buildings on-decision choosing-building?)]))
+      (available-buildings buildings on-decision choosing-building?)]]))
 
 (defn action-label
   [[k data]]

@@ -1,11 +1,5 @@
 (ns tzolkin.spec)
 
-(def tech
-  {:agri {}
-   :extr {}
-   :arch {}
-   :theo {}})
-
 (def buildings
   [{:cost {:corn 4}
     :farm :all
@@ -380,16 +374,42 @@
                   {:points 9}
                   {:points 10}]}})
 
+(def tech
+  {:agri {}
+   :extr {}
+   :arch {}
+   :theo {}})
+
+(def turns
+  (flatten
+    [(repeat 7 {:age 1 :type :normal})
+     {:age 1 :type :resource-food-day}
+     (repeat 5 {:age 1 :type :normal})
+     {:age 1 :type :points-food-day}
+     (repeat 6 {:age 2 :type :normal})
+     {:age 2 :type :resource-food-day}
+     (repeat 5 {:age 2 :type :normal})
+     {:age 2 :type :points-food-day}]))
+
+(def player-starting-stuff
+  {:materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
+   :temples {:chac 1 :quet 1 :kuku 1}
+   :tech {:agri 0 :extr 0 :arch 0 :theo 0}
+   :buildings []
+   :workers 3
+   :points 0})
+
 (def spec
   {:total-turns 26
    :skulls 13
    :until-food-day [7 6 5 4 3 2 1 0 5 4 3 2 1 0 6 5 4 3 2 1 0 5 4 3 2 1 0]
    :trade-values {:wood 2 :stone 3 :gold 4}
    :num-available-buildings 4
-   :num-monuments 4
    :num-starters 3
+   :player-starting-stuff player-starting-stuff
    :tech tech
    :gears gears
+   :turns turns
    :temples temples
    :starters starters
    :buildings buildings

@@ -33,14 +33,23 @@
   (let [on-end-turn #(if save
                        (save (logic/add-event @es-atom [:end-turn]))
                        (swap! es-atom logic/add-event [:end-turn]))
+        on-start-game #(if save
+                         (save (logic/add-event @es-atom [:start-game]))
+                         (swap! es-atom logic/add-event [:start-game]))
         on-decision (fn [option-index decision]
                       (if save
                         (save (logic/add-event @es-atom [:choose-option {:index option-index
                                                                          :decision decision}]))
                         (swap! es-atom logic/add-event [:choose-option {:index option-index
-                                                                        :decision decision}])))]
+                                                                        :decision decision}])))
+        ;; TODO
+        on-add-player #(log %)]
     (fn []
-      (art/status-bar-el @re-state on-decision on-end-turn))))
+      (art/status-bar-el @re-state
+                         on-decision
+                         on-end-turn
+                         on-start-game
+                         on-add-player))))
 
 (defn game-log
   [es-atom save]
@@ -58,18 +67,6 @@
 (defn temples-wrapper
   [es-atom re-state]
   (art/temples-el @re-state))
-
-(defn test-board
-  [es-atom]
-  (let [re-state (reaction (logic/current-state @es-atom))]
-    [:div
-     ; (end-turn-button-wrapper es-atom nil)
-     [status-bar-wrapper es-atom re-state nil]
-     [art/temples-el es-atom @re-state]
-     (into [:div]
-       (for [[k _] (:gears spec)]
-         [worker-gear-wrapper es-atom re-state k nil]))
-     [game-log es-atom nil]]))
 
 (def new-game-events
   [[:new-game]
@@ -97,16 +94,16 @@
     [:div.ui.grid {:style {:margin 0}}
      [:div.five.wide.column
        [status-bar-wrapper es-atom re-state save]
-       [game-log es-atom save]]
-     [:div.eight.wide.column
-       (into [:div]
-         (for [[k _] (:gears spec)]
-           [worker-gear-wrapper es-atom re-state k save]))]
-     [:div.three.wide.column
-       [temples-wrapper es-atom re-state]
+       [game-log es-atom save]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} test-events))}
          "test events"]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} new-game-events))}
          "new game"]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} nil))}
-         "blank state"]]]))
+         "blank state"]]
+     [:div.seven.wide.column
+       (into [:div]
+         (for [[k _] (:gears spec)]
+           [worker-gear-wrapper es-atom re-state k save]))]
+     [:div.four.wide.column
+       [temples-wrapper es-atom re-state]]]))

@@ -135,4 +135,4 @@
   (art/temples-el s))
 
 (defcard-rg status-bar-test
-  (art/status-bar-el s #(log [%1 %2]) #(log "end turn!")))
+  (art/status-bar-el s #(log [%1 %2]) #(log "end turn!") #(log "start game!") #(log "add player")))

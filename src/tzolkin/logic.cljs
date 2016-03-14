@@ -36,19 +36,19 @@
         decision {:type :gain-building
                   :options (vec (take num (:buildings state)))}]
     (-> state
-      (update-in [:active :decisions] conj decision))))
+        (update-in [:active :decisions] conj decision))))
 
 (defn choose-monument
   [state]
   (let [decision {:type :gain-monument :options (:monuments state)}]
     (-> state
-      (update-in [:active :decisions] conj decision))))
+        (update-in [:active :decisions] conj decision))))
 
 (defn choose-materials
   [state material-options]
   (let [decision {:type :gain-materials :options material-options}]
     (-> state
-      (update-in [:active :decisions] conj decision))))
+        (update-in [:active :decisions] conj decision))))
 
 (defn choose-resource
   [state]
@@ -61,14 +61,14 @@
   [state]
   (let [decision {:type :tech :options tech-options}]
     (-> state
-      (update-in [:active :decisions] conj decision))))
+        (update-in [:active :decisions] conj decision))))
 
 (defn choose-tech-two
   [state]
   (let [decision {:type :tech :options tech-options}]
     (-> state
-      (update-in [:active :decisions] conj decision)
-      (update-in [:active :decisions] conj decision))))
+        (update-in [:active :decisions] conj decision)
+        (update-in [:active :decisions] conj decision))))
 
 (def two-different-temple-options
   (into [] (for [t1 (keys (:temples spec)) t2 (keys (:temples spec))
@@ -88,7 +88,7 @@
                   :materials data
                   :two-different-temples two-different-temple-options)]
     (-> state
-      (update-in [:active :decisions] conj {:type type :options options}))))
+        (update-in [:active :decisions] conj {:type type :options options}))))
 
 (defn build-builder-building
   [state pid build]
@@ -168,6 +168,21 @@
 (def initial-gears-state
   (into {} (for [k (keys (:gears spec))]
              [k (into [] (repeat (get-in spec [:gears k :teeth]) :none))])))
+
+(defn setup-buildings-monuments
+  [state]
+  (-> state
+      (assoc :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec)))))
+      (assoc :monuments (vec (take (+ 2 (count (:players state)))
+                                   (shuffle (:monuments spec)))))))
+
+(defn give-starter-tiles
+  [state]
+  (update state
+          :players
+          #(vec (for [p %]
+                  (assoc p :starters (vec (take (:num-starters spec)
+                                                (shuffle (:starters spec)))))))))
 
 ;; ==================
 ;; = Event Handlers =
@@ -261,32 +276,27 @@
 
 (defn init-game
   [state]
-  (conj state {:game {:started false}
-               :turn 0
+  (conj state {:turn 0
                :active {:pid 0 :worker-option :none :placed 0 :decisions '()}
                :remaining-skulls (:skulls spec)
                :players []
-               :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec))))
-               :monuments (vec (take (:num-monuments spec) (shuffle (:monuments spec))))
                :gears initial-gears-state}))
 
 (defn start-game
   [state]
-  (-> state
-      (update :game assoc :started true)))
+  (if (> (:turn state) 0)
+    (-> state
+        (update :errors conj "Can't start game - game has already started"))
+    (-> state
+        (update :turn inc)
+        give-starter-tiles
+        setup-buildings-monuments)))
 
 (defn add-player
   [state name color]
-  (let [p {:starters (take (:num-starters spec) (shuffle (:starters spec)))
-           :materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
-           :temples {:chac 1 :quet 1 :kuku 1}
-           :tech {:agri 0 :extr 0 :arch 0 :theo 0}
-           :buildings []
-           :workers 3
-           :points 0
-           :name name
-           :color color}]
-    (update state :players conj p)))
+  (update state :players conj (-> (:player-starting-stuff spec)
+                                  (assoc :name name)
+                                  (assoc :color color))))
 
 (defn handle-event
   [state [e data]]
