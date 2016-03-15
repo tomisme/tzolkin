@@ -1,0 +1,8 @@
+{
+  "firebase": "bgames",
+  "public": "resources/public",
+  "ignore": [
+    "firebase.json",
+    "**/.*"
+  ]
+}
