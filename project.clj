@@ -12,6 +12,8 @@
                  [matchbox "0.0.8-SNAPSHOT"]
                  [reagent "0.5.1"]]
 
+  :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+
   :plugins [[lein-cljsbuild "1.1.2"]
             [lein-figwheel "0.5.0-6"]]
 
@@ -19,6 +21,12 @@
                                     "target"]
 
   :source-paths ["src"]
+
+  :profiles {:dev {:dependencies [[figwheel-sidecar "0.5.0-1"]
+                                  [com.cemerick/piggieback "0.2.1"]
+                                  [proto-repl "0.1.2"]
+                                  [org.clojure/tools.nrepl "0.2.10"]]
+                   :source-paths ["src" "dev"]}}
 
   :cljsbuild {:builds [{:id "devcards"
                         :source-paths ["src"]
