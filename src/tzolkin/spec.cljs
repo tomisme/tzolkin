@@ -337,7 +337,8 @@
 
 (def temples
   {:chac {:name "Chaac"
-          :bonus [6 2]
+          :age-bonus {1 6
+                      2 2}
           :steps [{:points -1}
                   {:points 0}
                   {:points 2
@@ -348,7 +349,8 @@
                   {:points 7}
                   {:points 8}]}
    :quet {:name "Quetzalcoatl"
-          :bonus [2 6]
+          :age-bonus {1 2
+                      2 6}
           :steps [{:points -2}
                   {:points 0}
                   {:points 1}
@@ -361,7 +363,8 @@
                   {:points 12}
                   {:points 13}]}
    :kuku {:name "Kukulcan"
-          :bonus [4 4]
+          :age-bonus {1 4
+                      2 4}
           :steps [{:points -3}
                   {:points 0}
                   {:points 1
@@ -400,9 +403,9 @@
    :points 0})
 
 (def spec
-  {:total-turns 26
+  {:total-turns 27
    :skulls 13
-   :until-food-day [7 6 5 4 3 2 1 0 5 4 3 2 1 0 6 5 4 3 2 1 0 5 4 3 2 1 0]
+   :until-food-day [7 7 6 5 4 3 2 1 0 5 4 3 2 1 0 6 5 4 3 2 1 0 5 4 3 2 1 0]
    :trade-values {:wood 2 :stone 3 :gold 4}
    :num-available-buildings 4
    :num-starters 3

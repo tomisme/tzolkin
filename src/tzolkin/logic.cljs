@@ -184,6 +184,53 @@
                   (assoc p :starters (vec (take (:num-starters spec)
                                                 (shuffle (:starters spec)))))))))
 
+#_(def pl [{:points 5
+            :temples {:chac 0, :quet 1, :kuku 1}}
+           {:points 5
+            :temples {:chac 1, :quet 1, :kuku 1}}])
+
+#_(def s
+    {:players [{:points 5
+                :temples {:chac 0, :quet 1, :kuku 1}}
+               {:points 5
+                :temples {:chac 1, :quet 1, :kuku 1}}]})
+
+#_(apply-temple-rewards s :points 1)
+
+#_(def spec tzolkin.spec/spec)
+
+#_(reduce
+   (fn [m p]
+     (let [player-step (get-in p [:temples :chac])
+           highest-step (get-in m [:winner :chac :step])
+           winner? (or (not highest-step) (> player-step highest-step))]
+       (update :players conj (cond-> p))))
+   {:winner {:chac {:player nil :step nil}
+             :quet {:player nil :step nil}
+             :kuku {:player nil :step nil}}
+    :players []}
+   pl)
+
+(defn apply-temple-rewards
+  [state type age]
+  {:pre [(contains? #{:points :materials} type)
+         (contains? #{1 2} age)]}
+  (update state
+          :players
+          (reduce
+           (fn [blob p]
+             ())
+           {})))
+
+          ; #(vec (for [p %]
+          ;         (let [step (log (get-in p [:temples :chac]))
+          ;               points (log (get-in spec [:temples :chac :steps step :points]))]
+          ;           (update p :points + points))))))
+
+(defn finish-game
+  [state]
+  (.alert js/window "Game Over!"))
+
 ;; ==================
 ;; = Event Handlers =
 ;; ==================
@@ -265,14 +312,17 @@
         max-turn (:total-turns spec)
         pid (-> state :active :pid)
         last-player? (= (dec (count (:players state))) pid)]
-    (if (< turn max-turn)
-      (-> (cond-> state
-                  last-player? (update :turn inc)
-                  last-player? (update :active assoc :pid 0)
-                  (not last-player?) (update-in [:active :pid] inc))
-          (update :active assoc :placed 0)
-          (update :active assoc :worker-option :none))
-      (update :errors conj "Can't end turn"))))
+    (if (and last-player? (= turn max-turn))
+      (finish-game state)
+      (if (and (> turn 0)
+               (<= turn max-turn))
+        (-> (cond-> state
+                    last-player? (update :turn inc)
+                    last-player? (update :active assoc :pid 0)
+                    (not last-player?) (update-in [:active :pid] inc))
+            (update :active assoc :placed 0)
+            (update :active assoc :worker-option :none))
+        (update state :errors conj "Can't end turn")))))
 
 (defn init-game
   [state]
