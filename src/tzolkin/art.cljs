@@ -75,11 +75,10 @@
 
 (defn tech-str
   [tech]
-  (str "+"
-       (case tech
-             :any "1x tech"
-             :any-two "2x tech"
-             (symbols-str tech))))
+  (case tech
+        :any "any tech"
+        :any-two "2x any tech"
+        (symbols-str tech)))
 
 (defn food-day-str
   [until-food-day]
@@ -104,9 +103,9 @@
                 free-action-for-corn build]} building]
     [:div {:class (str (name color) " ui card")
            :style {:width "7rem"
-                   :margin 5
+                   :margin "0.3rem"
                    :font-size "0.9rem"}}
-      [:div.content {:style {:height "2em"
+      [:div.content {:style {:height "2rem"
                              :padding-top "0.5rem"
                              :z-index 1}}
         [:div {:class (str "ui " (name color) " corner label")
@@ -121,10 +120,10 @@
           (when tech [:p (tech-str tech)])
           (when gain-worker [:p (:worker symbols)])
           (when free-action-for-corn [:p (get symbols :corn) ": action"])
-          (when build [:p "+" (name build)])
+          (when build [:p (name build)])
           (when temples [:p (temples-str temples)])
           (when materials [:p (symbols-str materials)])
-          (when points [:p (points-el points)])]]]))
+          (when points (points-el points))]]]))
 
 (defn available-buildings
   [buildings on-decision choosing?]
