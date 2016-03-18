@@ -18,31 +18,31 @@
                 [:give-stuff {:pid 0 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
                 [:give-stuff {:pid 1 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]]))
 
-(deftest game-tests
-  (testing
-    (is (= (rev s [[:place-worker {:pid 0 :gear :uxe}]
-                   [:place-worker {:pid 0 :gear :uxe}]
-                   [:place-worker {:pid 0 :gear :uxe}]
-                   [:end-turn {:pid 0}]
-                   [:place-worker {:pid 1 :gear :yax}]
-                   [:place-worker {:pid 1 :gear :yax}]
-                   [:end-turn {:pid 1}]])
-           (-> s
-               (update :gears assoc :uxe (into [:red :red :red] (repeat 7 :none)))
-               (update :gears assoc :yax (into [:blue :blue] (repeat 8 :none)))
-               (update :turn inc)
-               (update-in [:players 0 :materials :corn] - 6)
-               (update-in [:players 1 :materials :corn] - 2)
-               (update-in [:players 0 :workers] - 3)
-               (update-in [:players 1 :workers] - 2)))))
-  (testing
-    (is (= (rev s [[:end-turn {:pid 0}]
-                   [:end-turn {:pid 1}]
-                   [:end-turn {:pid 0}]
-                   [:end-turn {:pid 1}]])
-           (-> s
-               (update :turn + 2))))))
-
+; (deftest game-tests
+;   (testing
+;     (is (= (rev s [[:place-worker {:pid 0 :gear :uxe}]
+;                    [:place-worker {:pid 0 :gear :uxe}]
+;                    [:place-worker {:pid 0 :gear :uxe}]
+;                    [:end-turn {:pid 0}]
+;                    [:place-worker {:pid 1 :gear :yax}]
+;                    [:place-worker {:pid 1 :gear :yax}]
+;                    [:end-turn {:pid 1}]])
+;            (-> s
+;                (update :gears assoc :uxe (into [:red :red :red] (repeat 7 :none)))
+;                (update :gears assoc :yax (into [:blue :blue] (repeat 8 :none)))
+;                (update :turn inc)
+;                (update-in [:players 0 :materials :corn] - 6)
+;                (update-in [:players 1 :materials :corn] - 2)
+;                (update-in [:players 0 :workers] - 3)
+;                (update-in [:players 1 :workers] - 2)))))
+;   (testing
+;     (is (= (rev s [[:end-turn {:pid 0}]
+;                    [:end-turn {:pid 1}]
+;                    [:end-turn {:pid 0}]
+;                    [:end-turn {:pid 1}]])
+;            (-> s
+;                (update :turn + 2))))))
+;
 (def test-events
   [[:new-game]
    [:add-player {:name "Elisa" :color :red}]

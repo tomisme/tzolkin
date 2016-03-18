@@ -9,6 +9,7 @@
    [tzolkin.devcards.art]
    [tzolkin.devcards.buildings]
    [tzolkin.devcards.decisions]
+   [tzolkin.devcards.end]
    [tzolkin.devcards.firebase]
    [tzolkin.devcards.game :refer [s]]
    [tzolkin.devcards.logic]

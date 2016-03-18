@@ -176,6 +176,7 @@
       (assoc :monuments (vec (take (+ 2 (count (:players state)))
                                    (shuffle (:monuments spec)))))))
 
+;; TODO don't give them the tiles... just add a new decision
 (defn give-starter-tiles
   [state]
   (update state
@@ -183,33 +184,6 @@
           #(vec (for [p %]
                   (assoc p :starters (vec (take (:num-starters spec)
                                                 (shuffle (:starters spec)))))))))
-
-#_(def pl [{:points 5
-            :temples {:chac 0, :quet 1, :kuku 1}}
-           {:points 5
-            :temples {:chac 1, :quet 1, :kuku 1}}])
-
-#_(def s
-    {:players [{:points 5
-                :temples {:chac 0, :quet 1, :kuku 1}}
-               {:points 5
-                :temples {:chac 1, :quet 1, :kuku 1}}]})
-
-#_(apply-temple-rewards s :points 1)
-
-#_(def spec tzolkin.spec/spec)
-
-#_(reduce
-   (fn [m p]
-     (let [player-step (get-in p [:temples :chac])
-           highest-step (get-in m [:winner :chac :step])
-           winner? (or (not highest-step) (> player-step highest-step))]
-       (update :players conj (cond-> p))))
-   {:winner {:chac {:player nil :step nil}
-             :quet {:player nil :step nil}
-             :kuku {:player nil :step nil}}
-    :players []}
-   pl)
 
 (defn apply-temple-rewards
   [state type age]
@@ -226,6 +200,40 @@
           ;         (let [step (log (get-in p [:temples :chac]))
           ;               points (log (get-in spec [:temples :chac :steps step :points]))]
           ;           (update p :points + points))))))
+
+#_(def pl [{:points 5
+            :temples {:chac 0, :quet 1, :kuku 1}}
+           {:points 5
+            :temples {:chac 1, :quet 1, :kuku 1}}])
+
+#_(def s {:players pl})
+
+#_(log (apply-temple-rewards s :points 2))
+
+#_(reduce
+   (fn [m p]
+     (let [player-step (get-in p [:temples :chac])
+           highest-step (get-in m [:winner :chac :step])
+           winner? (or (not highest-step) (> player-step highest-step))]
+       (update :players conj (cond-> p))))
+   {:winner {:chac {:player nil :step nil}
+             :quet {:player nil :step nil}
+             :kuku {:player nil :step nil}}
+    :players []}
+   pl)
+
+(defn fd-materials-earned
+  "Returns the materials earned by a player for ending 1st/3rd food day at
+   position 'pos' on 'temple'"
+  [temple pos]
+  (frequencies
+    (reduce
+     (fn [materials step]
+       (if-let [material (:material step)]
+         (conj materials material)
+         materials))
+     []
+     (take (inc pos) (get-in spec [:temples temple :steps])))))
 
 (defn finish-game
   [state]
