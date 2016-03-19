@@ -123,3 +123,10 @@
 
 (defcard-rg status-bar-test
   (art/status-bar-el s #(log [%1 %2]) #(log "end turn!") #(log "start game!") #(log "add player")))
+
+(defcard-rg all-starters
+  [:div.ui.cards
+    (map-indexed
+      (fn [index starter]
+        [:div {:key index} (art/starter-card starter #(log "selected!"))])
+      (:starters spec))])

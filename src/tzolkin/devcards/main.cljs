@@ -4,7 +4,7 @@
    [tzolkin.game  :as game]
    [tzolkin.logic :as logic]
    [tzolkin.spec  :as spec  :refer [spec]]
-   [tzolkin.utils :as utils :refer [log]]
+   [tzolkin.utils :as utils :refer [log dif]]
 
    [tzolkin.devcards.actions]
    [tzolkin.devcards.art]

@@ -8,25 +8,37 @@
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
+
 (deftest decision-tests
+  (testing "starter"
+    (nod (-> s
+             (logic/add-decision :starters [{} {} {:materials {:corn 2}
+                                                   :temple :chac
+                                                   :tech :arch
+                                                   :tik 1}])
+             (logic/handle-decision 2))
+         (-> s
+             (update-in [:players 0 :materials :corn] + 2)
+             (update-in [:players 0 :temples :chac] inc)
+             (update-in [:players 0 :tech :arch] inc))))
   (testing "gain materials"
     (nod (-> s
              (logic/add-decision :gain-materials [{:corn 1} {:stone 1}])
              (logic/handle-decision 1))
          (-> s
-           (update-in [:players 0 :materials :stone] + 1))))
+             (update-in [:players 0 :materials :stone] + 1))))
   (testing "gain resource"
     (nod (-> s
              (logic/add-decision :gain-resource)
              (logic/handle-decision 0))
          (-> s
-           (update-in [:players 0 :materials :wood] + 1))))
+             (update-in [:players 0 :materials :wood] + 1))))
   (testing "pay resource"
     (nod (-> s
              (logic/add-decision :pay-resource)
              (logic/handle-decision 0))
          (-> s
-           (update-in [:players 0 :materials :wood] - 1))))
+             (update-in [:players 0 :materials :wood] - 1))))
   (testing "build a building"
     (nod (-> s
              (assoc :buildings [{} {:materials {:corn 1}} {}])

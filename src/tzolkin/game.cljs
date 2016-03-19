@@ -34,8 +34,8 @@
                        (save (logic/add-event @es-atom [:end-turn]))
                        (swap! es-atom logic/add-event [:end-turn]))
         on-start-game #(if save
-                         (save (logic/add-event @es-atom [:start-game]))
-                         (swap! es-atom logic/add-event [:start-game]))
+                         (save (logic/add-event @es-atom [:start-game {:test false}]))
+                         (swap! es-atom logic/add-event [:start-game {:test false}]))
         on-decision (fn [option-index decision]
                       (if save
                         (save (logic/add-event @es-atom [:choose-option {:index option-index
@@ -85,7 +85,7 @@
    [:add-player {:name "Tom" :color :blue}]
    [:give-stuff {:pid 0 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
    [:give-stuff {:pid 1 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
-   [:start-game]
+   [:start-game {:test true}]
    [:place-worker {:gear :uxe}]
    [:place-worker {:gear :uxe}]
    [:place-worker {:gear :uxe}]

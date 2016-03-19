@@ -135,6 +135,21 @@
           [:div.item (building-card building #(on-decision index) choosing?)])
         (take (:num-available-buildings spec) buildings)))])
 
+(defn starter-card
+  [{:keys [materials tech farm temple gain-worker]} on-select]
+  [:div.ui.button.card {:style {:width "7rem"
+                                :margin "0.3rem"
+                                :font-size "0.9rem"
+                                :font-weight "inherit"}
+                        :on-click on-select}
+   [:div.center.aligned.content
+    [:div.description
+      (when materials [:p (symbols-str materials)])
+      (when tech [:p (get symbols tech)])
+      (when farm (farm-el farm))
+      (when gain-worker [:p (:worker symbols)])
+      (when temple [:p (get symbols temple)])]]])
+
 (defn decisions-el
   [active active-player on-decision]
   (let [decision (first (:decisions active))
@@ -146,6 +161,7 @@
         msg (str (:name active-player)
                  " needs to choose "
                  (case type
+                   :starters "which starter tile to take."
                    :action "which action to take."
                    :gain-materials "which materials to gain."
                    :gain-resource "which resource to gain."
@@ -161,17 +177,19 @@
        (into [:div [:i.large.chevron.right.icon]]
              (map-indexed
                (fn [index option]
-                 [:button.ui.button {:on-click #(on-decision index decision)}
-                   (case type
-                     :action (str option)
-                     :gain-materials (symbols-str option)
-                     :gain-resource (symbols-str option)
-                     :pay-resource (symbols-str option)
-                     :build-building index
-                     :build-monument index
-                     :tech (symbols-str option)
-                     :temple (symbols-str option)
-                     :two-different-temples (symbols-str option))])
+                 (if (= :starters type)
+                   (starter-card option #(on-decision index decision))
+                   [:button.ui.button {:on-click #(on-decision index decision)}
+                     (case type
+                       :action (str option)
+                       :gain-materials (symbols-str option)
+                       :gain-resource (symbols-str option)
+                       :pay-resource (symbols-str option)
+                       :build-building index
+                       :build-monument index
+                       :tech (symbols-str option)
+                       :temple (symbols-str option)
+                       :two-different-temples (symbols-str option))]))
                decision-options))]))
 
 (defn active-player-status
@@ -499,7 +517,9 @@
 
 (defn event-player-el
   [player]
-  [:span (player-circle-el (:color player)) (:name player)])
+  (if player
+    [:span (player-circle-el (:color player)) (:name player)]
+    [:i.cross.icon]))
 
 (defn event-summary-choice
   [{:keys [index decision] :as thing}]

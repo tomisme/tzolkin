@@ -209,7 +209,7 @@
     :tik 7}
    {:materials {:corn 2}
     :temple :chac
-    :track :arch
+    :tech :arch
     :tik 1}
    {:materials {:corn 5 :stone 1}
     :temple :chac

@@ -4,6 +4,37 @@
     [tzolkin.utils :refer [log indexed first-val rotate-vec
                            remove-from-vec change-map negatise-map]]))
 
+;; ============
+;; =  Helpers =
+;; ============
+
+(defn gear-position
+  "Returns the current board position of a gear slot after 'turn' spins"
+  [gear slot turn]
+  (let [teeth (get-in spec [:gears gear :teeth])]
+    (mod (+ slot turn) teeth)))
+
+(defn gear-slot
+  "Return the gear slot index of a board position after 'turn' spins"
+  [gear position turn]
+  (let [teeth (get-in spec [:gears gear :teeth])]
+    (mod (+ position (- teeth turn)) teeth)))
+
+;; TODO
+(defn cost-payable?
+  [pid cost]
+  true)
+
+;; ======================
+;; = Player Adjustments =
+;; ======================
+
+(defn player-map-adjustment
+  [state pid k changes]
+  (let [current (get-in state [:players pid k])
+        updated (change-map current + changes)]
+    (assoc-in state [:players pid k] updated)))
+
 (defn adjust-points
   [state pid num]
   (update-in state [:players pid :points] + num))
@@ -11,12 +42,6 @@
 (defn adjust-workers
   [state pid num]
   (update-in state [:players pid :workers] + num))
-
-(defn player-map-adjustment
-  [state pid k changes]
-  (let [current (get-in state [:players pid k])
-        updated (change-map current + changes)]
-    (assoc-in state [:players pid k] updated)))
 
 (defn adjust-temples
   [state pid changes]
@@ -29,6 +54,10 @@
 (defn adjust-tech
   [state pid changes]
   (player-map-adjustment state pid :tech changes))
+
+;; ==================
+;; =  Add Decisions =
+;; ==================
 
 (def resource-options
   (into [] (for [k (:resources spec)] {k 1})))
@@ -60,6 +89,7 @@
    (let [pid (-> state :active :pid)
          num (if (= :tech type) data 1)
          options (case type
+                   :starters data
                    :action (action-options (:gear data))
                    :temple temple-options
                    :two-different-temples two-different-temple-options
@@ -73,6 +103,10 @@
                                                              :options options}))))
   ([state type]
    (add-decision state type {})))
+
+;; ==============
+;; =  Buildings =
+;; ==============
 
 (defn build-builder-building
   [state pid build]
@@ -100,6 +134,10 @@
           tech        (build-tech-building pid tech))
         (update-in [:players pid :buildings] conj building)
         (adjust-materials pid (negatise-map cost)))))
+
+;; ============
+;; =  Actions =
+;; ============
 
 (defn pay-action-cost
   [state pid [action-type action-data]]
@@ -134,22 +172,9 @@
           choose-two-temples?   (add-decision :two-different-temples v))
         (pay-action-cost pid [k v]))))
 
-(defn gear-position
-  "Returns the current board position of a gear slot after 'turn' spins"
-  [gear slot turn]
-  (let [teeth (get-in spec [:gears gear :teeth])]
-    (mod (+ slot turn) teeth)))
-
-(defn gear-slot
-  "Return the gear slot index of a board position after 'turn' spins"
-  [gear position turn]
-  (let [teeth (get-in spec [:gears gear :teeth])]
-    (mod (+ position (- teeth turn)) teeth)))
-
-;; TODO
-(defn cost-payable?
-  [pid cost]
-  true)
+;; ==============
+;; = Game Start =
+;; ==============
 
 (def initial-gears-state
   (into {} (for [k (keys (:gears spec))]
@@ -162,14 +187,23 @@
       (assoc :monuments (vec (take (+ 2 (count (:players state)))
                                    (shuffle (:monuments spec)))))))
 
-;; TODO don't give them the tiles... just add a new decision
-(defn give-starter-tiles
+(defn choose-starter-tiles
   [state]
-  (update state
-          :players
-          #(vec (for [p %]
-                  (assoc p :starters (vec (take (:num-starters spec)
-                                                (shuffle (:starters spec)))))))))
+  (let [tiles #(vec (take (:num-starters spec)
+                          (shuffle (:starters spec))))]
+    (add-decision state :starters (tiles))))
+
+(defn gain-starter
+  [state pid {:keys [materials tech #_farm temple gain-worker]}]
+  (cond-> state
+    temple      (adjust-temples pid {temple 1})
+    tech        (adjust-tech pid {tech 1})
+    materials   (adjust-materials pid materials)
+    gain-worker (adjust-workers pid 1)))
+
+;; ========================
+;; =  Food Day / Game End =
+;; ========================
 
 (defn apply-temple-rewards
   [state type age]
@@ -238,6 +272,7 @@
         choice    (get options index)]
     (-> (cond-> state
           ;;TODO :action
+          (= :starters type) (gain-starter pid choice)
           (= :gain-materials type) (adjust-materials pid choice)
           (= :gain-resource type) (adjust-materials pid choice)
           (= :pay-resource type) (adjust-materials pid (negatise-map choice))
@@ -327,14 +362,14 @@
                :gears initial-gears-state}))
 
 (defn start-game
-  [state]
-  (if (> (:turn state) 0)
-    (-> state
-        (update :errors conj "Can't start game - game has already started"))
-    (-> state
-        (update :turn inc)
-        give-starter-tiles
-        setup-buildings-monuments)))
+  ([state test?]
+   (if (> (:turn state) 0)
+     (-> state
+         (update :errors conj "Can't start game - game has already started"))
+     (-> (cond-> state
+           (not test?) choose-starter-tiles)
+         (update :turn inc)
+         setup-buildings-monuments))))
 
 (defn add-player
   [state name color]
@@ -348,7 +383,7 @@
   (let [started? (> (:turn state) 0)]
    (cond-> state
      (and (= :new-game e)   (not started?)) init-game
-     (and (= :start-game e) (not started?)) start-game
+     (and (= :start-game e) (not started?)) (start-game (:test data))
      (and (= :add-player e) (not started?)) (add-player (:name data) (:color data))
      (and (= :place-worker e)     started?) (place-worker (:gear data))
      (and (= :remove-worker e)    started?) (remove-worker (:gear data) (:slot data))
