@@ -3,7 +3,7 @@
    [tzolkin.spec :refer [spec]]
    [tzolkin.logic :as logic]
    [tzolkin.devcards.game :refer [s]]
-   [tzolkin.utils :refer [diff log]])
+   [tzolkin.utils :refer [log]])
   (:require-macros
    [tzolkin.macros :refer [nod]]
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]

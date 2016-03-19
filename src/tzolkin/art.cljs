@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as rg]
    [tzolkin.spec :refer [spec]]
-   [tzolkin.utils :refer [log diff]]))
+   [tzolkin.utils :refer [log]]))
 
 (def color-strings
   {:red "#CC333F"

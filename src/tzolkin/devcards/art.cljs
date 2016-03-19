@@ -5,6 +5,7 @@
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
    [tzolkin.logic :as logic]
+   [tzolkin.game :as game]
    [tzolkin.devcards.game :refer [s]]
    [tzolkin.utils :refer [log]])
   (:require-macros
@@ -111,22 +112,8 @@
   spin-test-atom
   {:inspect-data true})
 
-(def test-events
-  [[:new-game]
-   [:add-player {:name "Elisa" :color :red}]
-   [:add-player {:name "Tom" :color :blue}]
-   [:give-stuff {:pid 0 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
-   [:give-stuff {:pid 1 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
-   [:place-worker {:gear :uxe}]
-   [:place-worker {:gear :uxe}]
-   [:place-worker {:gear :uxe}]
-   [:end-turn]
-   [:place-worker {:gear :yax}]
-   [:place-worker {:gear :yax}]
-   [:end-turn]])
-
 (def test-event-stream
-  (logic/reduce-event-stream {} test-events))
+  (logic/reduce-event-stream {} game/test-events))
 
 (defcard-rg game-log-art-test
   [art/game-log-el {:stream test-event-stream}])

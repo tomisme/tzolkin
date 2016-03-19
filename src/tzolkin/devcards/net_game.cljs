@@ -11,22 +11,22 @@
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
-(def local-state-atom
+(def test-local-state-atom
   (rg/atom {:fb-connected? false}))
 
 (defcard-rg local-state
   (fn [_ _])
-  local-state-atom
+  test-local-state-atom
   {:inspect-data true})
 
-(def fb-test-es-atom
+(def test-es-atom
   (rg/atom (logic/reduce-event-stream {} [[:new-game]])))
 
-(db/setup-game-listener fb-test-es-atom)
+(db/setup-game-listener test-es-atom)
 
-(db/setup-connection-listener local-state-atom)
+(db/setup-connection-listener test-local-state-atom)
 
 (defcard-rg networked-game-test
   (fn [es-atom _]
-    (game/board es-atom local-state-atom db/save))
-  fb-test-es-atom)
+    (game/board es-atom test-local-state-atom db/save))
+  test-es-atom)

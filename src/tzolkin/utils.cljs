@@ -6,7 +6,7 @@
   [arg]
   (.log js/console arg) arg)
 
-(defn diff
+(defn dif
   [a b]
   (drop-last (data/diff a b)))
 
