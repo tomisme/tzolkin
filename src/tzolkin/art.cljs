@@ -146,10 +146,14 @@
         msg (str (:name active-player)
                  " needs to choose "
                  (case type
+                   :action "which action to take."
                    :gain-materials "which materials to gain."
+                   :gain-resource "which resource to gain."
+                   :pay-resource "which resource to pay."
                    :build-building "which building to build."
-                   :tech "which tech tracks to increase."
-                   :temple "which temple to move up on."
+                   :build-monument "which monument to build."
+                   :tech "which tech track to increase."
+                   :temple "which temples to move up on."
                    :two-different-temples "which two temples to move up on."))]
       [:div
        [:div {:class (str "ui inverted segment " color-str)}
@@ -159,10 +163,15 @@
                (fn [index option]
                  [:button.ui.button {:on-click #(on-decision index decision)}
                    (case type
+                     :action (str option)
                      :gain-materials (symbols-str option)
+                     :gain-resource (symbols-str option)
+                     :pay-resource (symbols-str option)
                      :build-building index
+                     :build-monument index
                      :tech (symbols-str option)
-                     :temple (symbols-str option))])
+                     :temple (symbols-str option)
+                     :two-different-temples (symbols-str option))])
                decision-options))]))
 
 (defn active-player-status
@@ -230,6 +239,7 @@
   [state on-decision on-end-turn on-start-game on-add-player]
   (let [turn (:turn state)
         started? (> turn 0)
+        num-players (count (:players state))
         until-food-day (get-in spec [:until-food-day turn])
         buildings (:buildings state)
         active (:active state)
@@ -246,9 +256,11 @@
          "End Turn"]
         [:button.ui.disabled.button {:on-click #(log "begging!")}
          "Beg for corn"]
-        [:span {:style {:margin-left 15}} "Turn " turn "/" (count (:turns spec)) ", " (food-day-str until-food-day)]]
+        [:span {:style {:margin-left 15}}
+         "Turn " turn "/" (count (:turns spec)) ", " (food-day-str until-food-day)]]
        [:p
-        [:button.ui.button {:class (str "ui button " (when-not state "disabled"))
+        [:button.ui.button {:class (str "ui button "
+                                        (when-not (> num-players 0) "disabled"))
                             :on-click on-start-game}
          "Start Game"]])
      (turn-status-el turn)
@@ -491,21 +503,20 @@
 
 (defn event-summary-choice
   [{:keys [index decision] :as thing}]
-  (log thing)
   (let [{:keys [options type]} decision
         choice (get options index)]
     (case type
           :action " chose an action..."
           :temple (str " chose to gain favour with " (symbols-str choice))
           :pay-resource (str " chose to pay " (symbols-str choice))
-          :resoure (str " chose to gain " (symbols-str choice))
-          :materials (str " chose to gain " (symbols-str choice))
+          :gain-resource (str " chose to gain " (symbols-str choice))
+          :gain-materials (str " chose to gain " (symbols-str choice))
           :two-different-temples (str " chose to gain favour with "
-                                      (symbols-str (first choice))
-                                      " and "
-                                      (symbols-str (second choice)))
+                                      (symbols-str choice))
           :tech (str " chose to go up on " (symbols-str choice))
-          "NOPEPPP")))
+          :build-monument " built a monument"
+          :build-building " built a building"
+          (str "ERROR: no matching choice found for key: " type))))
 
 
 
@@ -513,6 +524,7 @@
   [[type data] state on-es-reset es-index]
   (let [active-pid (get-in state [:active :pid])
         active-player (get-in state [:players active-pid])
+        turn (:turn state)
         player (get-in state [:players (:pid data)])
         dev? (or (= :give-stuff type))]
    [:div.summary {:style {:font-weight 400}}
@@ -521,18 +533,18 @@
     (when player [:span (player-circle-el (:color player)) (:name player)])
     (case type
       :new-game      [:span (:corn symbols) "New vanilla tzolkin game!"]
-      :start-game    [:span (event-player-el active-player) "'s turn"]
+      :start-game    [:span (event-player-el active-player) "'s turn " turn]
       :give-stuff    [:span " + " (symbols-str (:changes data))]
       :add-player    [:span [:i {:class (str (name (:color data)) " circle icon")}] (:name data) " joined the game"]
       :place-worker  [:span (event-player-el active-player) " placed a worker on " (get symbols (:gear data))]
       :remove-worker [:span (event-player-el active-player) " removed a worker from " (get symbols (:gear data))]
-      :end-turn      [:span (event-player-el active-player) "'s turn"]
+      :end-turn      [:span (event-player-el active-player) "'s turn " turn]
       :choose-option [:span (event-player-el active-player) (event-summary-choice data)]
-      (str "ERROR: no matching event type"))
+      (str "ERROR: no matching event for key: " type))
     [:div.date
-     [:a {:on-click #(log [[type data] state])} "inspect"]
+     [:a {:on-click #(log [[type data] state])} "inspect state"]
      " | "
-     [:a {:on-click #(on-es-reset es-index)} "reset"]]]))
+     [:a {:on-click #(on-es-reset es-index)} "reset here"]]]))
 
 (defn game-log-el
   [{:keys [stream on-es-reset]}]
@@ -555,5 +567,5 @@
 (defn fb-conn-indicator-el
   [connected?]
   (if connected?
-    [:p "Connected to server" [:i.green.check.icon]]
+    [:p "Connected to server " [:i.green.check.icon]]
     [:p "Connecting to server..."]))

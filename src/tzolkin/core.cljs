@@ -15,7 +15,7 @@
 (devtools/install!)
 
 (def es-atom
-  (rg/atom (logic/reduce-event-stream {} [[:new-game]])))
+  (rg/atom (logic/reduce-es {} [[:new-game]])))
 
 (def local-state-atom
   (rg/atom {:fb-connected? false}))

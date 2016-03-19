@@ -101,13 +101,13 @@
      [:div.five.wide.column
        [status-bar-wrapper es-atom re-state save]
        [game-log-wrapper es-atom save]
-       [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} test-events))}
+       [:button.ui.button {:on-click #(save (logic/reduce-es {} test-events))}
          "test events"]
-       [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} new-game-events))}
+       [:button.ui.button {:on-click #(save (logic/reduce-es {} new-game-events))}
          "new 2p game"]
-       [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} [[:new-game]]))}
+       [:button.ui.button {:on-click #(save (logic/reduce-es {} [[:new-game]]))}
          "new empty game"]
-       [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} nil))}
+       [:button.ui.button {:on-click #(save (logic/reduce-es {} nil))}
          "nil state"]
        [fb-conn-indicator-wrapper local-state-atom]]
      [:div.seven.wide.column

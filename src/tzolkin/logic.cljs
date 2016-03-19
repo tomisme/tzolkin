@@ -42,7 +42,7 @@
 (def two-different-temple-options
   (into [] (for [t1 (keys (:temples spec)) t2 (keys (:temples spec))
                  :when (not= t1 t2)]
-             [t1 t2])))
+             {t1 1 t2 1})))
 
 (defn action-options
   [gear]
@@ -245,9 +245,7 @@
                                        (update :buildings remove-from-vec index))
           (= :tech type) (adjust-tech pid choice)
           (= :temple type) (adjust-temples pid choice)
-          (= :two-different-temples type) (adjust-temples pid
-                                                          {(first choice) 1
-                                                           (second choice) 1}))
+          (= :two-different-temples type) (adjust-temples pid choice))
         (update-in [:active :decisions] rest))))
 
 (defn place-worker
@@ -388,7 +386,7 @@
   [prev-state events]
   (reduce handle-event prev-state events))
 
-(defn reduce-event-stream
+(defn reduce-es
   [initial-state events]
   (:stream
    (reduce

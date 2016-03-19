@@ -20,7 +20,7 @@
   {:inspect-data true})
 
 (def test-es-atom
-  (rg/atom (logic/reduce-event-stream {} [[:new-game]])))
+  (rg/atom (logic/reduce-es {} [[:new-game]])))
 
 (db/setup-game-listener test-es-atom)
 

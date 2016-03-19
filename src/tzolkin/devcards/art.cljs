@@ -113,7 +113,7 @@
   {:inspect-data true})
 
 (def test-event-stream
-  (logic/reduce-event-stream {} game/test-events))
+  (logic/reduce-es {} game/test-events))
 
 (defcard-rg game-log-art-test
   [art/game-log-el {:stream test-event-stream}])
