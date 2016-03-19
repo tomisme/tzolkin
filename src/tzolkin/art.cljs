@@ -248,7 +248,8 @@
          "Beg for corn"]
         [:span {:style {:margin-left 15}} "Turn " turn "/" (count (:turns spec)) ", " (food-day-str until-food-day)]]
        [:p
-        [:button.ui.button {:on-click on-start-game}
+        [:button.ui.button {:class (str "ui button " (when-not state "disabled"))
+                            :on-click on-start-game}
          "Start Game"]])
      (turn-status-el turn)
      [:div
@@ -550,3 +551,9 @@
 (defn scroll-log-down!
  []
  (set! (.-scrollTop (.getElementById js/document "game-log")) 99999))
+
+(defn fb-conn-indicator-el
+  [connected?]
+  (if connected?
+    [:p "Connected to server" [:i.green.check.icon]]
+    [:p "Connecting to server..."]))

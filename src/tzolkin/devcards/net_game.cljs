@@ -1,4 +1,4 @@
-(ns tzolkin.devcards.firebase
+(ns tzolkin.devcards.net-game
   (:require
    [tzolkin.spec :refer [spec]]
    [tzolkin.logic :as logic]
@@ -11,11 +11,12 @@
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
-(m/listen-to db/connected-ref :value #(swap! db/fb-connection assoc :connected (second %)))
+(def local-state-atom
+  (rg/atom {:fb-connected? false}))
 
-(defcard-rg fb-connection-test
+(defcard-rg local-state
   (fn [_ _])
-  db/fb-connection
+  local-state-atom
   {:inspect-data true})
 
 (def fb-test-es-atom
@@ -23,7 +24,9 @@
 
 (db/setup-game-listener fb-test-es-atom)
 
-(defcard-rg fb-game-test
+(db/setup-connection-listener local-state-atom)
+
+(defcard-rg networked-game-test
   (fn [es-atom _]
-    (game/board es-atom db/save))
+    (game/board es-atom local-state-atom db/save))
   fb-test-es-atom)

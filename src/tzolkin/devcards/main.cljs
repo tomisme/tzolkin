@@ -5,17 +5,20 @@
    [tzolkin.logic :as logic]
    [tzolkin.spec :refer [spec]]
    [tzolkin.utils :as utils :refer [log]]
+
    [tzolkin.devcards.actions]
    [tzolkin.devcards.art]
    [tzolkin.devcards.buildings]
    [tzolkin.devcards.decisions]
    [tzolkin.devcards.end]
-   [tzolkin.devcards.firebase]
-   [tzolkin.devcards.game :refer [s]]
    [tzolkin.devcards.logic]
    [tzolkin.devcards.spec]
    [tzolkin.devcards.utils]
-   [tzolkin.devcards.workers])
+   [tzolkin.devcards.workers]
+
+   [tzolkin.devcards.net-game]
+   [tzolkin.devcards.local-game :refer [s]])
+
   (:require-macros
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))

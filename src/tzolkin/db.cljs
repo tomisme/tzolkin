@@ -7,11 +7,6 @@
 (def root
   (m/connect "https://bgames.firebaseio.com"))
 
-(def connected-ref
-  (m/connect "https://bgames.firebaseio.com/.info/connected"))
-
-(def fb-connection (rg/atom {:connected false}))
-
 (def fb-game (m/get-in root [:tzolkin]))
 
 (defn setup-game-listener
@@ -20,8 +15,9 @@
                                 (reset! es-atom (:a v)))))
 
 (defn setup-connection-listener
-  []
-  (m/listen-to connected-ref :value #(swap! fb-connection assoc :connected (second %))))
+  [local-state-atom]
+  (let [ref (m/connect "https://bgames.firebaseio.com/.info/connected")]
+    (m/listen-to ref :value #(swap! local-state-atom assoc :fb-connected? (second %)))))
 
 (defn save
   [es]

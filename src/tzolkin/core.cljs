@@ -10,7 +10,6 @@
    [tzolkin.art :as art]
    [tzolkin.spec :refer [spec]]
    [tzolkin.utils :refer [log]]
-   ; [devcards.core] ;; TODO remove for prod
    [devtools.core :as devtools]))
 
 (devtools/install!)
@@ -18,13 +17,16 @@
 (def es-atom
   (rg/atom (logic/reduce-event-stream {} [[:new-game]])))
 
+(def local-state-atom
+  (rg/atom {:fb-connected? false}))
+
 (db/setup-game-listener es-atom)
 
-(db/setup-connection-listener)
+(db/setup-connection-listener local-state-atom)
 
 (defn app-container
   []
-  (game/board es-atom db/save))
+  (game/board es-atom local-state-atom db/save))
 
 (defn main []
   (if-let [app-node (.getElementById js/document "app")]

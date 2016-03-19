@@ -1,4 +1,4 @@
-(ns tzolkin.devcards.game
+(ns tzolkin.devcards.local-game
   (:require
    [reagent.core :as rg]
    [tzolkin.spec  :refer [spec]]
@@ -61,7 +61,10 @@
 (def test-event-stream-atom
   (rg/atom (logic/reduce-event-stream {} test-events)))
 
+(def test-fb-conn-atom
+  (rg/atom {:connected false}))
+
 (defcard-rg game-test
   (fn [es-atom _]
-    (game/board es-atom #()))
+    (game/board es-atom test-fb-conn-atom #()))
   test-event-stream-atom)

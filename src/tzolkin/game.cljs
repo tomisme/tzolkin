@@ -51,7 +51,7 @@
                          on-start-game
                          on-add-player))))
 
-(defn game-log
+(defn game-log-wrapper
   [es-atom save]
   (let [on-es-reset (fn [index]
                       (if save
@@ -63,6 +63,12 @@
        (fn []
          (art/game-log-el {:stream @es-atom
                            :on-es-reset on-es-reset}))})))
+
+(defn fb-conn-indicator-wrapper
+  [local-state-atom]
+  (let [connected? (reaction (:fb-connected? @local-state-atom))]
+    (fn []
+      (art/fb-conn-indicator-el @connected?))))
 
 (defn temples-wrapper
   [es-atom re-state]
@@ -89,18 +95,19 @@
    [:end-turn]])
 
 (defn board
-  [es-atom save]
+  [es-atom local-state-atom save]
   (let [re-state (reaction (logic/current-state @es-atom))]
     [:div.ui.grid {:style {:margin 0}}
      [:div.five.wide.column
        [status-bar-wrapper es-atom re-state save]
-       [game-log es-atom save]
+       [game-log-wrapper es-atom save]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} test-events))}
          "test events"]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} new-game-events))}
-         "new game"]
+         "fresh game"]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} nil))}
-         "blank state"]]
+         "nil state"]
+       [fb-conn-indicator-wrapper local-state-atom]]
      [:div.seven.wide.column
        (into [:div]
          (for [[k _] (:gears spec)]
