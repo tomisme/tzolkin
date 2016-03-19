@@ -30,90 +30,74 @@
   [state pid changes]
   (player-map-adjustment state pid :tech changes))
 
-(defn choose-building
-  [state]
-  (let [num (:num-available-buildings spec)
-        decision {:type :gain-building
-                  :options (vec (take num (:buildings state)))}]
-    (-> state
-        (update-in [:active :decisions] conj decision))))
-
-(defn choose-monument
-  [state]
-  (let [decision {:type :gain-monument :options (:monuments state)}]
-    (-> state
-        (update-in [:active :decisions] conj decision))))
-
-(defn choose-materials
-  [state material-options]
-  (let [decision {:type :gain-materials :options material-options}]
-    (-> state
-        (update-in [:active :decisions] conj decision))))
-
-(defn choose-resource
-  [state]
-  (choose-materials state [{:wood 1} {:stone 1} {:gold 1}]))
+(def resource-options
+  (into [] (for [k (:resources spec)] {k 1})))
 
 (def tech-options
-  (into [] (for [[k v] (:tech spec)] {k 1})))
+  (into [] (for [k (keys (:tech spec))] {k 1})))
 
-(defn choose-tech
-  [state]
-  (let [decision {:type :tech :options tech-options}]
-    (-> state
-        (update-in [:active :decisions] conj decision))))
-
-(defn choose-tech-two
-  [state]
-  (let [decision {:type :tech :options tech-options}]
-    (-> state
-        (update-in [:active :decisions] conj decision)
-        (update-in [:active :decisions] conj decision))))
+(def temple-options
+  (into [] (for [k (keys (:temples spec))] {k 1})))
 
 (def two-different-temple-options
   (into [] (for [t1 (keys (:temples spec)) t2 (keys (:temples spec))
                  :when (not= t1 t2)]
              [t1 t2])))
 
+(defn action-options
+  [gear]
+  (if (= :non-chi gear)
+    (into [] (for [g '(:yax :tik :uxe :pal) x (range 5)] {g x}))
+    (let [num (get-in spec [:gears gear :regular-actions])]
+      (into [] (for [x (range num)] {gear x})))))
+
+(defn building-options
+  [state]
+  (vec (take (:num-available-buildings spec) (:buildings state))))
+
 (defn add-decision
-  [state pid type data]
-  (let [options (case type
-                  :action (if (= :non-chi (:gear data))
-                            (into [] (for [g '(:yax :tik :uxe :pal) x (range 5)] {g x}))
-                            (let [num (get-in spec [:gears (:gear data) :regular-actions])]
-                              (into [] (for [x (range num)] {(:gear data) x}))))
-                  :temple (into [] (for [[temple _] (:temples spec)] {temple 1}))
-                  :pay-resource [{:wood 1} {:stone 1} {:gold 1}]
-                  :resource [{:wood 1} {:stone 1} {:gold 1}]
-                  :materials data
-                  :two-different-temples two-different-temple-options)]
-    (-> state
-        (update-in [:active :decisions] conj {:type type :options options}))))
+  ([state type data]
+   (let [pid (-> state :active :pid)
+         num (if (= :tech type) data 1)
+         options (case type
+                   :action (action-options (:gear data))
+                   :temple temple-options
+                   :two-different-temples two-different-temple-options
+                   :pay-resource resource-options
+                   :gain-resource resource-options
+                   :gain-materials data
+                   :build-monument (:monuments state)
+                   :build-building (building-options state)
+                   :tech tech-options)]
+     (update-in state [:active :decisions] into (repeat num {:type type
+                                                             :options options}))))
+  ([state type]
+   (add-decision state type {})))
 
 (defn build-builder-building
   [state pid build]
   (case build
-    :building (choose-building state)
-    :monument (choose-monument state)))
+    :building (add-decision state :build-building)
+    :monument (add-decision state :build-monument)))
 
 (defn build-tech-building
   [state pid tech]
-  (case tech
-    :any (choose-tech state)
-    :any-two (choose-tech-two state)
-    (adjust-tech state pid tech)))
+  (cond-> state
+    (= :any tech)     (add-decision :tech 1)
+    (= :any-two tech) (add-decision :tech 2)
+    (map? tech)       (adjust-tech pid tech)))
 
 (defn gain-building
   [state pid building]
   (let [{:keys [cost tech temples materials #_trade build points
                 gain-worker #_free-action-for-corn]} building]
     (-> (cond-> state
-                build       (build-builder-building pid build)
-                points      (adjust-points pid points)
-                temples     (adjust-temples pid temples)
-                materials   (adjust-materials pid materials)
-                gain-worker (adjust-workers pid 1)
-                tech        (build-tech-building pid tech))
+          build       (build-builder-building pid build)
+          points      (adjust-points pid points)
+          temples     (adjust-temples pid temples)
+          materials   (adjust-materials pid materials)
+          gain-worker (adjust-workers pid 1)
+          tech        (build-tech-building pid tech))
         (update-in [:players pid :buildings] conj building)
         (adjust-materials pid (negatise-map cost)))))
 
@@ -122,31 +106,33 @@
   (let [cost (:cost action-data)
         any-resource-cost (:any-resource cost)]
     (if any-resource-cost
-      (add-decision state pid :pay-resource {})
+      (add-decision state :pay-resource {})
       (adjust-materials state pid (negatise-map cost)))))
 
 (defn handle-skull-action
   [state pid {:keys [resource points temple]}]
   (-> (cond-> state
-              resource (choose-resource)
-              points   (adjust-points pid points)
-              temple   (adjust-temples pid {temple 1}))
+        resource (add-decision :gain-resource)
+        points   (adjust-points pid points)
+        temple   (adjust-temples pid {temple 1}))
     (update-in [:players pid :materials :skull] dec)))
 
 (defn handle-action
   [state pid [k v]]
-  (-> (cond-> state
-              (= :skull-action k) (handle-skull-action pid v)
-              (= :gain-worker k) (adjust-workers pid 1)
-              (= :gain-materials k) (adjust-materials pid v)
-              (= :choose-action k) (add-decision pid :action v)
-              (and (= :temples k) (= :any (:choose v))) (add-decision pid :temple v)
-              (and (= :temples k) (= :two-different (:choose v))) (add-decision pid :two-different-temples v)
-              (and (= :tech k) (= 1 (:steps v))) (choose-tech)
-              (and (= :tech k) (= 2 (:steps v))) (choose-tech-two)
-              (= :choose-materials k) (choose-materials v)
-              (and (= :build k) (= :single (:type v))) (choose-building))
-      (pay-action-cost pid [k v])))
+  (let [build-building?     (and (= :build k) (= :single (:type v)))
+        choose-a-temple?    (and (= :temples k) (= :any (:choose v)))
+        choose-two-temples? (and (= :temples k) (= :two-different (:choose v)))]
+    (-> (cond-> state
+          (= :skull-action k)   (handle-skull-action pid v)
+          (= :gain-worker k)    (adjust-workers pid 1)
+          (= :gain-materials k) (adjust-materials pid v)
+          (= :choose-action k)  (add-decision :action v)
+          (= :tech k)           (add-decision :tech (:steps v))
+          (= :choose-mats k)    (add-decision :gain-materials v)
+          build-building?       (add-decision :build-building)
+          choose-a-temple?      (add-decision :temple v)
+          choose-two-temples?   (add-decision :two-different-temples v))
+        (pay-action-cost pid [k v]))))
 
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
@@ -244,22 +230,24 @@
 ;; ==================
 
 (defn handle-decision
-  [{:keys [active] :as state} option-index]
+  [{:keys [active] :as state} index]
   (let [pid       (:pid active)
         decision  (first (:decisions active))
         type      (:type decision)
         options   (:options decision)
-        choice    (get options option-index)]
+        choice    (get options index)]
     (-> (cond-> state
-                ;;TODO :action
-                (= :gain-materials type) (adjust-materials pid choice)
-                (= :gain-building type) (-> (gain-building pid choice)
-                                            (update :buildings remove-from-vec option-index))
-                ;; TODO merge :tech and :tech-two
-                (= :tech type) (adjust-tech pid choice)
-                (= :tech-two type) (adjust-tech pid choice)
-                (= :temple type) (adjust-temples pid choice)
-                (= :two-different-temples type) (adjust-temples pid {(first choice) 1 (second choice) 1}))
+          ;;TODO :action
+          (= :gain-materials type) (adjust-materials pid choice)
+          (= :gain-resource type) (adjust-materials pid choice)
+          (= :pay-resource type) (adjust-materials pid (negatise-map choice))
+          (= :build-building type) (-> (gain-building pid choice)
+                                       (update :buildings remove-from-vec index))
+          (= :tech type) (adjust-tech pid choice)
+          (= :temple type) (adjust-temples pid choice)
+          (= :two-different-temples type) (adjust-temples pid
+                                                          {(first choice) 1
+                                                           (second choice) 1}))
         (update-in [:active :decisions] rest))))
 
 (defn place-worker

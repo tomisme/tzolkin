@@ -260,12 +260,12 @@
          :regular-actions 5
          :actions [[:gain-materials {:corn 3}]
                    [:gain-materials {:corn 4}]
-                   [:choose-materials [{:corn 5}
-                                       {:wood 2}]]
-                   [:choose-materials [{:corn 7}
-                                       {:wood 3}]]
-                   [:choose-materials [{:corn 9}
-                                       {:wood 4}]]
+                   [:choose-mats [{:corn 5}
+                                  {:wood 2}]]
+                   [:choose-mats [{:corn 7}
+                                  {:wood 3}]]
+                   [:choose-mats [{:corn 9}
+                                  {:wood 4}]]
                    [:choose-action {:gear :pal}]
                    [:choose-action {:gear :pal}]]}
    :yax {:name "Yaxchilan"
@@ -409,11 +409,13 @@
    :trade-values {:wood 2 :stone 3 :gold 4}
    :num-available-buildings 4
    :num-starters 3
-   :player-starting-stuff player-starting-stuff
+   :resources '(:wood :stone :gold)
+   :materials '(:corn :skull :wood :stone :gold)
    :tech tech
    :gears gears
    :turns turns
    :temples temples
    :starters starters
    :buildings buildings
-   :monuments monuments})
+   :monuments monuments
+   :player-starting-stuff player-starting-stuff})

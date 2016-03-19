@@ -55,12 +55,12 @@
                buildings (vec (take num (:buildings s)))]
            (-> s
              (update-in [:players 0 :buildings] conj {:build :building})
-             (update-in [:active :decisions] conj {:type :gain-building
+             (update-in [:active :decisions] conj {:type :build-building
                                                    :options buildings}))))
     (nod (logic/gain-building s 0 {:build :monument})
          (-> s
            (update-in [:players 0 :buildings] conj {:build :monument})
-           (update-in [:active :decisions] conj {:type :gain-monument
+           (update-in [:active :decisions] conj {:type :build-monument
                                                  :options (:monuments s)})))))
 
 (def random-building

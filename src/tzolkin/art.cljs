@@ -147,7 +147,7 @@
                  " needs to choose "
                  (case type
                    :gain-materials "which materials to gain."
-                   :gain-building "which building to build."
+                   :build-building "which building to build."
                    :tech "which tech tracks to increase."
                    :temple "which temple to move up on."
                    :two-different-temples "which two temples to move up on."))]
@@ -160,7 +160,7 @@
                  [:button.ui.button {:on-click #(on-decision index decision)}
                    (case type
                      :gain-materials (symbols-str option)
-                     :gain-building index
+                     :build-building index
                      :tech (symbols-str option)
                      :temple (symbols-str option))])
                decision-options))]))
@@ -233,7 +233,7 @@
         until-food-day (get-in spec [:until-food-day turn])
         buildings (:buildings state)
         active (:active state)
-        choosing-building? (= :gain-building (get-in active [:decision :type]))
+        choosing-building? (= :build-building (get-in active [:decision :type]))
         active-pid (:pid active)
         active-player (get-in state [:players active-pid])
         color-str (if (:color active-player)
@@ -266,7 +266,7 @@
   [[k data]]
   (case k
     :gain-materials  (symbols-str data)
-    :choose-materials (str (symbols-str (first data)) "/" (symbols-str (second data)))
+    :choose-mats (str (symbols-str (first data)) "/" (symbols-str (second data)))
     :choose-action (if (= (:gear data) :non-chi)
                      (str (:corn symbols) ": action")
                      (str (:choose-prev symbols) (get symbols (:gear data))))
