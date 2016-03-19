@@ -8,7 +8,7 @@
    [tzolkin.utils :refer [log]]
    [matchbox.core :as m])
   (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
+   [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
 (m/listen-to db/connected-ref :value #(swap! db/fb-connection assoc :connected (second %)))

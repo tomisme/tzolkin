@@ -5,7 +5,7 @@
    [devtools.core :as devtools]
    [tzolkin.utils :refer [log]])
   (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]))
+   [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]))
 
 (devtools/install!)
 

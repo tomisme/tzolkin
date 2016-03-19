@@ -6,7 +6,7 @@
    [tzolkin.utils :refer [diff log]])
   (:require-macros
    [tzolkin.macros :refer [nod]]
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
+   [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
 (deftest action-tests

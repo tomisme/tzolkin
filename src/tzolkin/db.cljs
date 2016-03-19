@@ -1,13 +1,8 @@
 (ns tzolkin.db
   (:require
-   [tzolkin.logic :as logic]
    [reagent.core :as rg]
-   [tzolkin.utils :refer [log]]
    [matchbox.core :as m]
-   [tzolkin.devcards.game :refer [s]])
-  (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is run-tests]]))
+   [tzolkin.utils :refer [log]]))
 
 (def root
   (m/connect "https://bgames.firebaseio.com"))

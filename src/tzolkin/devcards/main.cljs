@@ -4,7 +4,7 @@
    [tzolkin.game :as game]
    [tzolkin.logic :as logic]
    [tzolkin.spec :refer [spec]]
-   [tzolkin.utils :as utils :refer [log diff]]
+   [tzolkin.utils :as utils :refer [log]]
    [tzolkin.devcards.actions]
    [tzolkin.devcards.art]
    [tzolkin.devcards.buildings]
@@ -17,5 +17,5 @@
    [tzolkin.devcards.utils]
    [tzolkin.devcards.workers])
   (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
+   [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))

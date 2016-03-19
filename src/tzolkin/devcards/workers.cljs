@@ -4,7 +4,7 @@
    [tzolkin.logic :as logic]
    [tzolkin.devcards.game :refer [s]])
   (:require-macros
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
+   [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
 (deftest worker-tests
