@@ -104,7 +104,9 @@
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} test-events))}
          "test events"]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} new-game-events))}
-         "fresh game"]
+         "new 2p game"]
+       [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} [[:new-game]]))}
+         "new empty game"]
        [:button.ui.button {:on-click #(save (logic/reduce-event-stream {} nil))}
          "nil state"]
        [fb-conn-indicator-wrapper local-state-atom]]

@@ -347,16 +347,17 @@
 (defn handle-event
   [state [e data]]
   (when (:errors state) (log (:errors state)))
-  (cond-> state
-          (= :new-game e)      init-game
-          (= :end-turn e)      end-turn
-          (= :start-game e)    start-game
-          (= :add-player e)    (add-player (:name data) (:color data))
-          (= :place-worker e)  (place-worker (:gear data))
-          (= :remove-worker e) (remove-worker (:gear data) (:slot data))
-          (= :choose-option e) (handle-decision (:index data))
-          ;; debugging events
-          (= :give-stuff e) (player-map-adjustment (:pid data) (:k data) (:changes data))))
+  (let [started? (> (:turn state) 0)]
+   (cond-> state
+     (and (= :new-game e)   (not started?)) init-game
+     (and (= :start-game e) (not started?)) start-game
+     (and (= :add-player e) (not started?)) (add-player (:name data) (:color data))
+     (and (= :place-worker e)     started?) (place-worker (:gear data))
+     (and (= :remove-worker e)    started?) (remove-worker (:gear data) (:slot data))
+     (and (= :choose-option e)    started?) (handle-decision (:index data))
+     (and (= :end-turn e)         started?) end-turn
+     ;; dev events
+     (= :give-stuff e) (player-map-adjustment (:pid data) (:k data) (:changes data)))))
 
 ;; ================
 ;; = Event Stream =
@@ -367,7 +368,7 @@
   (let [[_ prev-state] (last es)
         new-state (handle-event prev-state event)
         errors (:errors new-state)]
-    (if errors
+    (if (or errors (= prev-state new-state))
       (do (log errors) es)
       (conj es [event new-state]))))
 
