@@ -174,11 +174,12 @@
       [:div
        [:div {:class (str "ui inverted segment " color-str)}
         msg]
-       (into [:div [:i.large.chevron.right.icon]]
+       (into [:div {:class (when (= :starters type) "ui cards")}
+              [:i.large.chevron.right.icon]]
              (map-indexed
                (fn [index option]
                  (if (= :starters type)
-                   (starter-card option #(on-decision index decision))
+                   [:div (starter-card option #(on-decision index decision))]
                    [:button.ui.button {:on-click #(on-decision index decision)}
                      (case type
                        :action (str option)
@@ -522,10 +523,11 @@
     [:i.cross.icon]))
 
 (defn event-summary-choice
-  [{:keys [index decision] :as thing}]
+  [{:keys [index decision]}]
   (let [{:keys [options type]} decision
         choice (get options index)]
     (case type
+          :starters " chose a starting tile"
           :action " chose an action..."
           :temple (str " chose to gain favour with " (symbols-str choice))
           :pay-resource (str " chose to pay " (symbols-str choice))
@@ -537,8 +539,6 @@
           :build-monument " built a monument"
           :build-building " built a building"
           (str "ERROR: no matching choice found for key: " type))))
-
-
 
 (defn event-summary-el
   [[type data] state on-es-reset es-index]

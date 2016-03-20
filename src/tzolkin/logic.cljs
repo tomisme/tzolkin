@@ -338,6 +338,7 @@
 (defn end-turn
   [state]
   (let [turn (:turn state)
+        test? (:test state)
         max-turn (:total-turns spec)
         pid (-> state :active :pid)
         last-player? (= (dec (count (:players state))) pid)]
@@ -348,7 +349,8 @@
         (-> (cond-> state
                     last-player? (update :turn inc)
                     last-player? (update :active assoc :pid 0)
-                    (not last-player?) (update-in [:active :pid] inc))
+                    (not last-player?) (update-in [:active :pid] inc)
+                    (and (= turn 1) (not test?)) choose-starter-tiles)
             (update :active assoc :placed 0)
             (update :active assoc :worker-option :none))
         (update state :errors conj "Can't end turn")))))
@@ -367,7 +369,8 @@
      (-> state
          (update :errors conj "Can't start game - game has already started"))
      (-> (cond-> state
-           (not test?) choose-starter-tiles)
+           (not test?) choose-starter-tiles
+           test? (assoc :test true))
          (update :turn inc)
          setup-buildings-monuments))))
 
