@@ -1,13 +1,13 @@
 (ns tzolkin.devcards.decisions
   (:require
    [tzolkin.spec :refer [spec]]
+   [tzolkin.utils :refer [log]]
    [tzolkin.logic :as logic]
    [tzolkin.devcards.game :refer [s]])
   (:require-macros
    [tzolkin.macros :refer [nod]]
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
-
 
 (deftest decision-tests
   (testing "starter"
@@ -35,10 +35,15 @@
              (update-in [:players 0 :materials :wood] + 1))))
   (testing "pay resource"
     (nod (-> s
+             (update-in [:players 0 :materials :wood] inc)
              (logic/add-decision :pay-resource)
              (logic/handle-decision 0))
-         (-> s
-             (update-in [:players 0 :materials :wood] - 1))))
+         s)
+    (nod (-> s
+             (logic/add-decision :pay-resource)
+             (logic/handle-decision 0))
+         (-> s (update :errors conj (str "Can't pay resource cost: {:wood 1}"))
+               (logic/add-decision :pay-resource))))
   (testing "build a building"
     (nod (-> s
              (assoc :buildings [{} {:materials {:corn 1}} {}])
@@ -47,7 +52,20 @@
          (-> s
              (assoc :buildings [{} {}])
              (update-in [:players 0 :buildings] conj {:materials {:corn 1}})
-             (update-in [:players 0 :materials :corn] + 1))))
+             (update-in [:players 0 :materials :corn] + 1)))
+    (nod (-> s
+             (update-in [:players 0 :materials :corn] + 1)
+             (assoc :buildings [{} {:cost {:wood 1 :stone 1}
+                                    :materials {:gold 2}} {}])
+             (logic/add-decision :build-building)
+             (logic/handle-decision 1))
+         (-> s
+             (update-in [:players 0 :materials :corn] + 1)
+             (assoc :buildings [{} {:cost {:wood 1 :stone 1}
+                                    :materials {:gold 2}} {}])
+             (logic/add-decision :build-building)
+             (update :errors conj (str "Can't buy building: {:cost {:wood 1, :stone 1}, :materials {:gold 2}}")))))
+
   (testing "tech"
     (nod (-> s
              (logic/add-decision :tech 1)
@@ -70,7 +88,7 @@
              (logic/player-map-adjustment 0 :temples {:quet 1}))))
   (testing "two different temples"
     (nod (-> s
-             (logic/add-decision :two-different-temples {})
+             (logic/add-decision :two-diff-temples {})
              (logic/handle-decision 1))
          (-> s
              (logic/player-map-adjustment 0 :temples {:chac 1 :kuku 1})))))

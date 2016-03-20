@@ -170,7 +170,7 @@
                    :build-monument "which monument to build."
                    :tech "which tech track to increase."
                    :temple "which temples to move up on."
-                   :two-different-temples "which two temples to move up on."))]
+                   :two-diff-temples "which two temples to move up on."))]
       [:div
        [:div {:class (str "ui inverted segment " color-str)}
         msg]
@@ -190,7 +190,7 @@
                        :build-monument index
                        :tech (symbols-str option)
                        :temple (symbols-str option)
-                       :two-different-temples (symbols-str option))]))
+                       :two-diff-temples (symbols-str option))]))
                decision-options))]))
 
 (defn active-player-status
@@ -533,8 +533,8 @@
           :pay-resource (str " chose to pay " (symbols-str choice))
           :gain-resource (str " chose to gain " (symbols-str choice))
           :gain-materials (str " chose to gain " (symbols-str choice))
-          :two-different-temples (str " chose to gain favour with "
-                                      (symbols-str choice))
+          :two-diff-temples (str " chose to gain favour with "
+                                 (symbols-str choice))
           :tech (str " chose to go up on " (symbols-str choice))
           :build-monument " built a monument"
           :build-building " built a building"

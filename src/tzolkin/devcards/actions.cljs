@@ -108,7 +108,7 @@
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
            (-> s
-             (logic/add-decision :two-different-temples {})
+             (logic/add-decision :two-diff-temples {})
              (logic/add-decision :pay-resource {})))))
   (let [gear :tik
         num 5

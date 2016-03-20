@@ -20,14 +20,15 @@
   (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
 
-;; TODO
 (defn cost-payable?
-  [pid cost]
-  true)
-
-;; ======================
-;; = Player Adjustments =
-;; ======================
+  [state pid cost]
+  (if (-> cost (contains? :any-resource))
+    (boolean (some #(> (get-in state [:players pid :materials %]) 0)
+                   (:resources spec)))
+    (every?
+     (fn [[resource held-amount]]
+       (>= held-amount (get cost resource)))
+     (get-in state [:players pid :materials]))))
 
 (defn player-map-adjustment
   [state pid k changes]
@@ -92,7 +93,7 @@
                    :starters data
                    :action (action-options (:gear data))
                    :temple temple-options
-                   :two-different-temples two-different-temple-options
+                   :two-diff-temples two-different-temple-options
                    :pay-resource resource-options
                    :gain-resource resource-options
                    :gain-materials data
@@ -169,7 +170,7 @@
           (= :choose-mats k)    (add-decision :gain-materials v)
           build-building?       (add-decision :build-building)
           choose-a-temple?      (add-decision :temple v)
-          choose-two-temples?   (add-decision :two-different-temples v))
+          choose-two-temples?   (add-decision :two-diff-temples v))
         (pay-action-cost pid [k v]))))
 
 ;; ==============
@@ -265,23 +266,28 @@
 
 (defn handle-decision
   [{:keys [active] :as state} index]
-  (let [pid       (:pid active)
-        decision  (first (:decisions active))
-        type      (:type decision)
-        options   (:options decision)
-        choice    (get options index)]
-    (-> (cond-> state
-          ;;TODO :action
-          (= :starters type) (gain-starter pid choice)
-          (= :gain-materials type) (adjust-materials pid choice)
-          (= :gain-resource type) (adjust-materials pid choice)
-          (= :pay-resource type) (adjust-materials pid (negatise-map choice))
-          (= :build-building type) (-> (gain-building pid choice)
-                                       (update :buildings remove-from-vec index))
-          (= :tech type) (adjust-tech pid choice)
-          (= :temple type) (adjust-temples pid choice)
-          (= :two-different-temples type) (adjust-temples pid choice))
-        (update-in [:active :decisions] rest))))
+  (let [pid      (:pid active)
+        decision (first (:decisions active))
+        type     (:type decision)
+        options  (:options decision)
+        choice   (get options index)
+        next-dec #(update-in % [:active :decisions] rest)]
+    (case type
+      :starters         (-> (gain-starter state pid choice) next-dec)
+      :gain-materials   (-> (adjust-materials state pid choice) next-dec)
+      :gain-resource    (-> (adjust-materials state pid choice) next-dec)
+      :pay-resource     (if (cost-payable? state pid choice)
+                          (-> (adjust-materials state pid (negatise-map choice))
+                              next-dec)
+                          (update state :errors conj (str "Can't pay resource cost: " choice)))
+      :build-building   (if (cost-payable? state pid (:cost choice))
+                          (-> (gain-building state pid choice)
+                              (update :buildings remove-from-vec index)
+                              next-dec)
+                          (update state :errors conj (str "Can't buy building: " choice)))
+      :tech             (-> (adjust-tech state pid choice) next-dec)
+      :temple           (-> (adjust-temples state pid choice) next-dec)
+      :two-diff-temples (-> (adjust-temples state pid choice) next-dec))))
 
 (defn place-worker
   [state gear]
@@ -327,7 +333,7 @@
              (empty? (get-in state [:active :decisions]))
              (or (= :remove worker-option) (= :none worker-option))
              (or (not= :chi gear) (> skulls 0))
-             (cost-payable? pid (:cost action)))
+             (cost-payable? state pid (:cost action)))
       (-> state
           (update-in [:players pid :workers] inc)
           (update-in [:gears gear] assoc slot :none)

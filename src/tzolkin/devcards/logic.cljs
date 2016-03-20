@@ -8,7 +8,7 @@
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
-(deftest positions-and-slots-tests
+(deftest helper-tests
   (testing "gear-position"
     (is (= (logic/gear-position :yax 2 0) 2))
     (is (= (logic/gear-position :yax 2 2) 4))
@@ -18,9 +18,24 @@
     (is (= (logic/gear-slot :yax 2 0) 2))
     (is (= (logic/gear-slot :yax 4 2) 2))
     (is (= (logic/gear-slot :yax 7 13) 4))
-    (is (= (logic/gear-slot :chi 5 14) 4))))
-
-(deftest player-adjustment-tests
+    (is (= (logic/gear-slot :chi 5 14) 4)))
+  (testing "cost-payable?"
+    (is (true?
+         (-> s
+             (logic/player-map-adjustment 0 :materials {:corn 3 :wood 2 :stone 1})
+             (logic/cost-payable? 0 {:corn 3 :stone 1}))))
+    (is (false?
+         (-> s
+             (logic/player-map-adjustment 0 :materials {:corn 3 :wood 2 :stone 1})
+             (logic/cost-payable? 0 {:corn 2 :stone 2}))))
+    (is (true?
+         (-> s
+             (logic/player-map-adjustment 0 :materials {:corn 3 :wood 2 :stone 1})
+             (logic/cost-payable? 0 {:any-resource 1}))))
+    (is (false?
+         (-> s
+             (logic/player-map-adjustment 0 :materials {:corn 3 :skull 1})
+             (logic/cost-payable? 0 {:any-resource 1})))))
   (testing "adjust-points"
     (is (= (logic/adjust-points s 0 5)
            (-> s
