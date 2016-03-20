@@ -328,12 +328,13 @@
         player-color (:color player)
         target-color (get-in state [:gears gear slot])
         action-position (- position 1)
-        action (get-in spec [:gears gear :actions action-position])]
+        action (get-in spec [:gears gear :actions action-position])
+        [action-type action-data] action]
     (if (and (= player-color target-color)
              (empty? (get-in state [:active :decisions]))
              (or (= :remove worker-option) (= :none worker-option))
              (or (not= :chi gear) (> skulls 0))
-             (cost-payable? state pid (:cost action)))
+             (cost-payable? state pid (:cost action-data)))
       (-> state
           (update-in [:players pid :workers] inc)
           (update-in [:gears gear] assoc slot :none)
@@ -356,7 +357,7 @@
                     last-player? (update :turn inc)
                     last-player? (update :active assoc :pid 0)
                     (not last-player?) (update-in [:active :pid] inc)
-                    (and (= turn 1) (not test?)) choose-starter-tiles)
+                    (and (= turn 1) (not test?) (not last-player?)) choose-starter-tiles)
             (update :active assoc :placed 0)
             (update :active assoc :worker-option :none))
         (update state :errors conj "Can't end turn")))))
