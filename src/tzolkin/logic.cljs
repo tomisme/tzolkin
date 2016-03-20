@@ -330,7 +330,14 @@
         action-position (- position 1)
         action (get-in spec [:gears gear :actions action-position])
         [action-type action-data] action]
-    (if (and (= player-color target-color)
+    (if (and ;; (log action)
+             ;; Not implemented yet! ===================
+             (not= :choose-action action-type)
+             (not (and (= :build action-type) (contains? #{:with-corn
+                                                           :double-or-monument}
+                                                         (:type action-data))))
+             ;; ========================================
+             (= player-color target-color)
              (empty? (get-in state [:active :decisions]))
              (or (= :remove worker-option) (= :none worker-option))
              (or (not= :chi gear) (> skulls 0))
