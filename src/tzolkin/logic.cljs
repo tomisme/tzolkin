@@ -20,16 +20,6 @@
   (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
 
-(defn cost-payable?
-  [state pid cost]
-  (if (-> cost (contains? :any-resource))
-    (boolean (some #(> (get-in state [:players pid :materials %]) 0)
-                   (:resources spec)))
-    (every?
-     (fn [[resource held-amount]]
-       (>= held-amount (get cost resource)))
-     (get-in state [:players pid :materials]))))
-
 (defn player-map-adjustment
   [state pid k changes]
   (let [current (get-in state [:players pid k])
@@ -56,9 +46,9 @@
   [state pid changes]
   (player-map-adjustment state pid :tech changes))
 
-;; ==================
-;; =  Add Decisions =
-;; ==================
+;; ==============
+;; =  Decisions =
+;; ==============
 
 (def resource-options
   (into [] (for [k (:resources spec)] {k 1})))
@@ -86,7 +76,7 @@
   (vec (take (:num-available-buildings spec) (:buildings state))))
 
 (defn add-decision
-  ([state type data]
+  ([state pid type data]
    (let [pid (-> state :active :pid)
          num (if (= :tech type) data 1)
          options (case type
@@ -102,8 +92,36 @@
                    :tech tech-options)]
      (update-in state [:active :decisions] into (repeat num {:type type
                                                              :options options}))))
-  ([state type]
-   (add-decision state type {})))
+  ([state pid type]
+   (add-decision state pid type {})))
+
+;; ==========
+;; =  Costs =
+;; ==========
+
+(defn cost-payable?
+  [state pid cost]
+  (if (-> cost (contains? :any-resource))
+    (boolean (some #(> (get-in state [:players pid :materials %]) 0)
+                   (:resources spec)))
+    (every?
+     (fn [[resource held-amount]]
+       (>= held-amount (get cost resource)))
+     (get-in state [:players pid :materials]))))
+
+(defn pay-cost
+  [state pid cost]
+  (if (:any-resource cost)
+    (add-decision state pid :pay-resource {})
+    (adjust-materials state pid (negatise-map cost))))
+
+;; ============
+;; =  Trading =
+;; ============
+
+(defn trade
+  [state pid]
+  state)
 
 ;; ==============
 ;; =  Buildings =
@@ -112,14 +130,14 @@
 (defn build-builder-building
   [state pid build]
   (case build
-    :building (add-decision state :build-building)
-    :monument (add-decision state :build-monument)))
+    :building (add-decision state pid :build-building)
+    :monument (add-decision state pid :build-monument)))
 
 (defn build-tech-building
   [state pid tech]
   (cond-> state
-    (= :any tech)     (add-decision :tech 1)
-    (= :any-two tech) (add-decision :tech 2)
+    (= :any tech)     (add-decision pid :tech 1)
+    (= :any-two tech) (add-decision pid :tech 2)
     (map? tech)       (adjust-tech pid tech)))
 
 (defn gain-building
@@ -134,24 +152,16 @@
           gain-worker (adjust-workers pid 1)
           tech        (build-tech-building pid tech))
         (update-in [:players pid :buildings] conj building)
-        (adjust-materials pid (negatise-map cost)))))
+        (pay-cost pid cost))))
 
 ;; ============
 ;; =  Actions =
 ;; ============
 
-(defn pay-action-cost
-  [state pid [action-type action-data]]
-  (let [cost (:cost action-data)
-        any-resource-cost (:any-resource cost)]
-    (if any-resource-cost
-      (add-decision state :pay-resource {})
-      (adjust-materials state pid (negatise-map cost)))))
-
 (defn handle-skull-action
   [state pid {:keys [resource points temple]}]
   (-> (cond-> state
-        resource (add-decision :gain-resource)
+        resource (add-decision pid :gain-resource)
         points   (adjust-points pid points)
         temple   (adjust-temples pid {temple 1}))
     (update-in [:players pid :materials :skull] dec)))
@@ -165,13 +175,15 @@
           (= :skull-action k)   (handle-skull-action pid v)
           (= :gain-worker k)    (adjust-workers pid 1)
           (= :gain-materials k) (adjust-materials pid v)
-          (= :choose-action k)  (add-decision :action v)
-          (= :tech k)           (add-decision :tech (:steps v))
-          (= :choose-mats k)    (add-decision :gain-materials v)
-          build-building?       (add-decision :build-building)
-          choose-a-temple?      (add-decision :temple v)
-          choose-two-temples?   (add-decision :two-diff-temples v))
-        (pay-action-cost pid [k v]))))
+          (= :choose-action k)  (add-decision pid :action v)
+          (= :tech k)           (add-decision pid :tech (:steps v))
+          (= :choose-mats k)    (add-decision pid :gain-materials v)
+          build-building?       (add-decision pid :build-building)
+          choose-a-temple?      (add-decision pid :temple v)
+          choose-two-temples?   (add-decision pid :two-diff-temples v)
+          (= :trade k)          (trade pid)
+
+          (:cost v)             (pay-cost pid (:cost v))))))
 
 ;; ==============
 ;; = Game Start =
@@ -189,10 +201,10 @@
                                    (shuffle (:monuments spec)))))))
 
 (defn choose-starter-tiles
-  [state]
+  [state pid]
   (let [tiles #(vec (take (:num-starters spec)
                           (shuffle (:starters spec))))]
-    (add-decision state :starters (tiles))))
+    (add-decision state pid :starters (tiles))))
 
 (defn gain-starter
   [state pid {:keys [materials tech #_farm temple gain-worker]}]
@@ -364,7 +376,7 @@
                     last-player? (update :turn inc)
                     last-player? (update :active assoc :pid 0)
                     (not last-player?) (update-in [:active :pid] inc)
-                    (and (= turn 1) (not test?) (not last-player?)) choose-starter-tiles)
+                    (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
             (update :active assoc :placed 0)
             (update :active assoc :worker-option :none))
         (update state :errors conj "Can't end turn")))))
@@ -383,7 +395,7 @@
      (-> state
          (update :errors conj "Can't start game - game has already started"))
      (-> (cond-> state
-           (not test?) choose-starter-tiles
+           (not test?) (choose-starter-tiles 0)
            test? (assoc :test true))
          (update :turn inc)
          setup-buildings-monuments))))

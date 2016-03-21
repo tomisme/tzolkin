@@ -130,3 +130,6 @@
       (fn [index starter]
         [:div (art/starter-card starter #(log "selected!"))])
       (:starters spec))))
+
+(defcard-rg trade-window-test
+  (art/trade-window-el 12 {:wood 2 :stone 1 :gold 1} #(log %)))

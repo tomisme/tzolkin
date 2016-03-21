@@ -206,7 +206,7 @@
       :remove " is removing workers."
       "ERROR"))))
 
-(defn player-buildings
+(defn player-buildings-el
   [buildings]
   [:div.ui.cards
     (map-indexed
@@ -229,7 +229,7 @@
                  (str v (get symbols k) " | "))]
         [:span points " VP"]]
       (if (seq buildings)
-        (player-buildings buildings)
+        (player-buildings-el buildings)
         [:p "No buildings or monuments."])]))
 
 (defn turn-status-el
@@ -589,3 +589,22 @@
   (if connected?
     [:p "Connected to server " [:i.green.check.icon]]
     [:p "Connecting to server..."]))
+
+(defn trade-window-el
+  [corn resources on-trade]
+  [:div.ui.center.aligned.compact.segment
+   [:div.ui.top.attached.label "Trade"]
+   (into [:div
+          [:p {:style {:margin-bottom 5}}
+           corn (:corn symbols)]]
+     (map
+      (fn [[k v]]
+        [:div {:style {:padding 3}}
+         [:button.ui.icon.button {:on-click #(on-trade [:buy k])}
+          [:i.plus.icon]]
+         [:span {:style {:padding 4}}
+          v (get symbols k)
+          " (" (get-in spec [:trade-values k]) (:corn symbols) "ea.)"]
+         [:button.ui.icon.button {:on-click #(on-trade [:sell k])}
+          [:i.minus.icon]]])
+      resources))])
