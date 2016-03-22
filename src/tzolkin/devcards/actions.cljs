@@ -134,13 +134,12 @@
                (update-in [:players 0 :materials :corn] - 3)
                (update-in [:active :decisions] conj {:type :temple
                                                      :options [{:chac 1} {:quet 1} {:kuku 1}]})))))
-  ;; TODO
-  ; (let [gear :uxe
-  ;       num 1
-  ;       action (get-in spec [:gears gear :actions num])]
-  ;   (testing (str gear " " num " " action)
-  ;     (nod (logic/handle-action s 0 action)
-  ;          false)))
+  (let [gear :uxe
+        num 1
+        action (get-in spec [:gears gear :actions num])]
+    (testing (str gear " " num " " action)
+      (nod (logic/handle-action s 0 action)
+           (update s :active assoc :trading? true))))
   (let [gear :uxe
         num 2
         action (get-in spec [:gears gear :actions num])]

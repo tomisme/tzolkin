@@ -122,7 +122,7 @@
   (art/temples-el s))
 
 (defcard-rg status-bar-test
-  (art/status-bar-el s #(log [%1 %2]) #(log "end turn!") #(log "start game!") #(log "add player")))
+  (art/status-bar-el s #(log [%1 %2]) #(log "trading!") #(log "stopping trading") #(log "end turn!") #(log "start game!") #(log "add player")))
 
 (defcard-rg all-starters
   (into [:div.ui.cards]
@@ -132,4 +132,4 @@
       (:starters spec))))
 
 (defcard-rg trade-window-test
-  (art/trade-window-el 12 {:wood 2 :stone 1 :gold 1} #(log %)))
+  (art/trade-window-el {:materials {:corn 8 :wood 2 :stone 1 :gold 1 :skull 1}} #(log %) #(log %)))

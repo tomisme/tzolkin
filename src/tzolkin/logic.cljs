@@ -121,7 +121,7 @@
 
 (defn trade
   [state pid]
-  state)
+  (update state :active assoc :trading? true))
 
 ;; ==============
 ;; =  Buildings =
@@ -368,23 +368,25 @@
         max-turn (:total-turns spec)
         pid (-> state :active :pid)
         last-player? (= (dec (count (:players state))) pid)]
-    (if (and last-player? (= turn max-turn))
-      (finish-game state)
-      (if (and (> turn 0)
-               (<= turn max-turn))
-        (-> (cond-> state
-                    last-player? (update :turn inc)
-                    last-player? (update :active assoc :pid 0)
-                    (not last-player?) (update-in [:active :pid] inc)
-                    (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
-            (update :active assoc :placed 0)
-            (update :active assoc :worker-option :none))
-        (update state :errors conj "Can't end turn")))))
+    (if (get-in state [:active :decisions])
+      (update state :errors conj "Can't end turn - There's still a decision to be made")
+      (if (and last-player? (= turn max-turn))
+        (finish-game state)
+        (if (and (> turn 0)
+                 (<= turn max-turn))
+          (-> (cond-> state
+                      last-player? (update :turn inc)
+                      last-player? (update :active assoc :pid 0)
+                      (not last-player?) (update-in [:active :pid] inc)
+                      (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
+              (update :active assoc :placed 0)
+              (update :active assoc :worker-option :none))
+          (update state :errors conj "Can't end turn"))))))
 
 (defn init-game
   [state]
   (conj state {:turn 0
-               :active {:pid 0 :worker-option :none :placed 0 :decisions '()}
+               :active {:pid 0 :worker-option :none :placed 0 :decisions '() :trading false}
                :remaining-skulls (:skulls spec)
                :players []
                :gears initial-gears-state}))
@@ -406,6 +408,21 @@
                                   (assoc :name name)
                                   (assoc :color color))))
 
+(defn make-trade
+  [state [type resource]]
+  (let [pid (-> state :active :pid)
+        price (get-in spec [:trade-values resource])
+        corn-amount (case type
+                      :buy (* -1 price)
+                      :sell price)]
+    (-> state
+        (adjust-materials pid {resource (case type :buy 1 :sell -1)})
+        (adjust-materials pid {:corn corn-amount}))))
+
+(defn stop-trading
+  [state]
+  (update state :active assoc :trading? false))
+
 (defn handle-event
   [state [e data]]
   (when (:errors state) (log (:errors state)))
@@ -414,6 +431,8 @@
      (and (= :new-game e)   (not started?)) init-game
      (and (= :start-game e) (not started?)) (start-game (:test data))
      (and (= :add-player e) (not started?)) (add-player (:name data) (:color data))
+     (and (= :make-trade e)       started?) (make-trade (:trade data))
+     (and (= :stop-trading e)     started?) stop-trading
      (and (= :place-worker e)     started?) (place-worker (:gear data))
      (and (= :remove-worker e)    started?) (remove-worker (:gear data) (:slot data))
      (and (= :choose-option e)    started?) (handle-decision (:index data))

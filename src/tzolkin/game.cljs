@@ -42,11 +42,20 @@
                                                                          :decision decision}]))
                         (swap! es-atom logic/add-event [:choose-option {:index option-index
                                                                         :decision decision}])))
+        on-trade (fn [trade]
+                   (if save
+                     (save (logic/add-event @es-atom [:make-trade {:trade trade}]))
+                     (swap! es-atom logic/add-event [:make-trade {:trade trade}])))
+        on-stop-trading #(if save
+                           (save (logic/add-event @es-atom [:stop-trading]))
+                           (swap! es-atom logic/add-event [:stop-trading]))
         ;; TODO
         on-add-player #(log %)]
     (fn []
       (art/status-bar-el @re-state
                          on-decision
+                         on-trade
+                         on-stop-trading
                          on-end-turn
                          on-start-game
                          on-add-player))))

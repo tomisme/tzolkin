@@ -254,8 +254,47 @@
        [:input {:type "text" :placeholder "Name.."}]]
       [:div.ui.submit.button {:on-click on-submit-clicked} "Add Player"]]]))
 
+(defn trade-window-el
+  [player on-trade on-stop-trading]
+  (let [materials (:materials player)
+        resources (filter (fn [[m _]]
+                            (contains? (set (:resources spec)) m))
+                          materials)
+        corn (:corn materials)]
+    [:div
+     [:div.ui.center.aligned.compact.segment
+      [:div.ui.top.attached.label "Trade"]
+      (into [:div
+             [:p {:style {:margin-bottom 5}}
+              corn (:corn symbols)]]
+        (map
+         (fn [[k v]]
+           [:div {:style {:padding 3}}
+            [:button.ui.icon.button {:on-click #(on-trade [:buy k])}
+             [:i.plus.icon]]
+            [:span {:style {:padding 4}}
+             v (get symbols k)
+             " (" (get-in spec [:trade-values k]) (:corn symbols) "ea.)"]
+            [:button.ui.icon.button {:on-click #(on-trade [:sell k])}
+             [:i.minus.icon]]])
+         resources))]
+     [:button.ui.button {:on-click on-stop-trading}
+      "Finish Trading"]]))
+
+(defn active-player-command-bar-el
+  [active active-player on-decision on-trade on-stop-trading color-str]
+  (if (:trading? active)
+    [:div
+     [:i.large.chevron.right.icon]
+     (trade-window-el active-player on-trade on-stop-trading)]
+    (let [decision (first (:decisions active))]
+      (if decision
+        (decisions-el active active-player on-decision)
+        [:div {:class (str "ui inverted segment " color-str)}
+         (active-player-status active active-player)]))))
+
 (defn status-bar-el
-  [state on-decision on-end-turn on-start-game on-add-player]
+  [state on-decision on-trade on-stop-trading on-end-turn on-start-game on-add-player]
   (let [turn (:turn state)
         started? (> turn 0)
         num-players (count (:players state))
@@ -285,11 +324,7 @@
      (turn-status-el turn)
      [:div
       (if started?
-        (let [decision (first (:decisions active))]
-          (if decision
-            (decisions-el active active-player on-decision)
-            [:div {:class (str "ui inverted segment " color-str)}
-             (active-player-status active active-player)]))
+        (active-player-command-bar-el active active-player on-decision on-trade on-stop-trading color-str)
         (new-player-form-el on-add-player))
       (map-indexed player-stats-el (:players state))
       (available-buildings buildings on-decision choosing-building?)]]))
@@ -540,6 +575,17 @@
           :build-building " built a building"
           (str "ERROR: no matching choice found for key: " type))))
 
+(defn trade-description
+  [{:keys [trade]}]
+  (let [[type resource] trade]
+    (str (case type
+           :buy " bought a "
+           :sell " sold a ")
+         (get symbols resource)
+         " for "
+         (get-in spec [:trade-values resource])
+         (:corn symbols))))
+
 (defn event-summary-el
   [[type data] state on-es-reset es-index]
   (let [active-pid (get-in state [:active :pid])
@@ -560,6 +606,8 @@
       :remove-worker [:span (event-player-el active-player) " removed a worker from " (get symbols (:gear data))]
       :end-turn      [:span (event-player-el active-player) "'s turn " turn]
       :choose-option [:span (event-player-el active-player) (event-summary-choice data)]
+      :make-trade    [:span (event-player-el active-player) (trade-description data)]
+      :stop-trading  [:span (event-player-el active-player) " finished trading"]
       (str "ERROR: no matching event for key: " type))
     [:div.date
      [:a {:on-click #(log [[type data] state])} "inspect state"]
@@ -589,22 +637,3 @@
   (if connected?
     [:p "Connected to server " [:i.green.check.icon]]
     [:p "Connecting to server..."]))
-
-(defn trade-window-el
-  [corn resources on-trade]
-  [:div.ui.center.aligned.compact.segment
-   [:div.ui.top.attached.label "Trade"]
-   (into [:div
-          [:p {:style {:margin-bottom 5}}
-           corn (:corn symbols)]]
-     (map
-      (fn [[k v]]
-        [:div {:style {:padding 3}}
-         [:button.ui.icon.button {:on-click #(on-trade [:buy k])}
-          [:i.plus.icon]]
-         [:span {:style {:padding 4}}
-          v (get symbols k)
-          " (" (get-in spec [:trade-values k]) (:corn symbols) "ea.)"]
-         [:button.ui.icon.button {:on-click #(on-trade [:sell k])}
-          [:i.minus.icon]]])
-      resources))])
