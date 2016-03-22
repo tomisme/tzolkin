@@ -446,8 +446,8 @@
       (vec (take pos es))
       es)))
 
-(defn reduce-es
-  [initial-state events]
+(defn gen-es
+  [events]
   (:stream
    (reduce
     (fn [prev event]
@@ -455,5 +455,5 @@
         {:stream (conj (:stream prev) [event state])
          :state state}))
     {:stream []
-     :state initial-state}
+     :state {}}
     events)))

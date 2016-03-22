@@ -49,7 +49,7 @@
              (update :turn + 2)))))
 
 (def test-es-atom
-  (rg/atom (logic/reduce-es {} game/test-events)))
+  (rg/atom (logic/gen-es game/test-events)))
 
 (def test-local-state-atom
   (rg/atom {:fb-connected? false}))
