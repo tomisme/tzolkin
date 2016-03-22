@@ -446,10 +446,6 @@
       (vec (take pos es))
       es)))
 
-(defn reduce-events
-  [prev-state events]
-  (reduce handle-event prev-state events))
-
 (defn reduce-es
   [initial-state events]
   (:stream

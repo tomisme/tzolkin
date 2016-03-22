@@ -11,23 +11,27 @@
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
+(defn reduce-events
+  [prev-state events]
+  (reduce logic/handle-event prev-state events))
+
 (def s
-  (logic/reduce-events {}
-                       [[:new-game]
-                        [:add-player {:name "Elisa" :color :red}]
-                        [:add-player {:name "Tom"   :color :blue}]
-                        [:start-game {:test true}]]))
+  (reduce-events {}
+                 [[:new-game]
+                  [:add-player {:name "Elisa" :color :red}]
+                  [:add-player {:name "Tom"   :color :blue}]
+                  [:start-game {:test true}]]))
 
 (deftest es-tests
-  ;; TODO fixme
+  ; TODO fixme
   ; (testing
-  ;   (nod (logic/reduce-events s [[:place-worker {:gear :uxe}]
-  ;                                [:place-worker {:gear :uxe}]
-  ;                                [:place-worker {:gear :uxe}]
-  ;                                [:end-turn]
-  ;                                [:place-worker {:gear :yax}]
-  ;                                [:place-worker {:gear :yax}]
-  ;                                [:end-turn]])
+  ;   (nod (reduce-events s [[:place-worker {:gear :uxe}]
+  ;                          [:place-worker {:gear :uxe}]
+  ;                          [:place-worker {:gear :uxe}]
+  ;                          [:end-turn]
+  ;                          [:place-worker {:gear :yax}]
+  ;                          [:place-worker {:gear :yax}]
+  ;                          [:end-turn]])
   ;        (-> s
   ;            (update :gears assoc :uxe (into [:red :red :red] (repeat 7 :none)))
   ;            (update :gears assoc :yax (into [:blue :blue] (repeat 8 :none)))
@@ -37,10 +41,10 @@
   ;            (update-in [:players 0 :workers] - 3)
   ;            (update-in [:players 1 :workers] - 2))))
   (testing
-    (nod (logic/reduce-events s [[:end-turn {:pid 0}]
-                                 [:end-turn {:pid 1}]
-                                 [:end-turn {:pid 0}]
-                                 [:end-turn {:pid 1}]])
+    (nod (reduce-events s [[:end-turn {:pid 0}]
+                           [:end-turn {:pid 1}]
+                           [:end-turn {:pid 0}]
+                           [:end-turn {:pid 1}]])
          (-> s
              (update :turn + 2)))))
 
