@@ -240,7 +240,7 @@
                     (case (:type turn)
                       :normal [:i.circle.thin.icon]
                       :points-food-day [:i.add.circle.icon]
-                      :resource-food-day [:i.remove.circle.icon])
+                      :mats-food-day [:i.remove.circle.icon])
                     [:i.circle.icon]))
                 (:turns spec))))
 

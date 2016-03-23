@@ -19,13 +19,31 @@
   ")
 
 (deftest food-day-tests
-  (testing "temple materials"
-    (nod (logic/fd-materials-earned :kuku 5)
-         {:wood 2
-          :skull 1})
-    (nod (logic/fd-materials-earned :kuku 2)
-         {:wood 1})
-    (nod (logic/fd-materials-earned :kuku 0)
-         {})
-    (nod (logic/fd-materials-earned :quet 3)
-         {:gold 1})))
+  (testing "Helpers"
+    (nod (-> s
+             (update-in [:players 0 :materials :corn] + 8)
+             (update-in [:players 0 :workers] inc)
+             (update-in [:players 1 :materials :corn] + 6)
+             (logic/pay-for-workers))
+         (-> s
+             (update-in [:players 0 :workers] inc)))
+    (nod (-> s
+             (logic/adjust-temples 0 {:kuku 4 :quet 2})
+             (logic/give-players-fd-mats))
+         (-> s
+             (logic/adjust-temples 0 {:kuku 4 :quet 2})
+             (logic/adjust-materials 0 {:skull 1 :wood 2 :gold 1}))))
+  (testing ":mats-food-day"
+    (nod (-> s
+             (assoc :turn 8)
+             (logic/adjust-temples 0 {:kuku 4 :quet 2})
+             (logic/adjust-temples 1 {:chac 3})
+             (logic/adjust-materials 0 {:corn 10})
+             (logic/adjust-materials 1 {:corn 6})
+             (logic/food-day))
+         (-> s
+             (assoc :turn 8)
+             (logic/adjust-temples 0 {:kuku 4 :quet 2})
+             (logic/adjust-temples 1 {:chac 3})
+             (logic/adjust-materials 0 {:skull 1 :wood 2 :gold 1 :corn 4})
+             (logic/adjust-materials 1 {:stone 2})))))

@@ -384,15 +384,16 @@
    :theo {}})
 
 (def turns
-  (flatten
-    [(repeat 7 {:age 1 :type :normal})
-     {:age 1 :type :resource-food-day}
-     (repeat 5 {:age 1 :type :normal})
-     {:age 1 :type :points-food-day}
-     (repeat 6 {:age 2 :type :normal})
-     {:age 2 :type :resource-food-day}
-     (repeat 5 {:age 2 :type :normal})
-     {:age 2 :type :points-food-day}]))
+  (vec
+    (flatten
+      [(repeat 7 {:age 1 :type :normal})
+       {:age 1 :type :mats-food-day}
+       (repeat 5 {:age 1 :type :normal})
+       {:age 1 :type :points-food-day}
+       (repeat 6 {:age 2 :type :normal})
+       {:age 2 :type :mats-food-day}
+       (repeat 5 {:age 2 :type :normal})
+       {:age 2 :type :points-food-day}])))
 
 (def player-starting-stuff
   {:materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}

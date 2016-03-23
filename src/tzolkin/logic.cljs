@@ -255,22 +255,47 @@
     :players []}
    pl)
 
-(defn fd-materials-earned
-  "Returns the materials earned by a player for ending 1st/3rd food day at
-   position 'pos' on 'temple'"
-  [temple pos]
-  (frequencies
-    (reduce
-     (fn [materials step]
-       (if-let [material (:material step)]
-         (conj materials material)
-         materials))
-     []
-     (take (inc pos) (get-in spec [:temples temple :steps])))))
+(defn fd-mats
+  "Takes a player and returns a map of the materials they recieve from their
+   position on each temple"
+  [player]
+  (apply merge
+    (for [[temple step] (:temples player)]
+      (frequencies
+        (reduce
+         (fn [materials step]
+           (if-let [material (:material step)]
+             (conj materials material)
+             materials))
+         '()
+         (take (inc step) (get-in spec [:temples temple :steps])))))))
+
+(defn give-players-fd-mats
+  [state]
+  (update state :players (fn [players]
+                           (for [p players]
+                             (update p :materials change-map + (fd-mats p))))))
+
+(defn pay-for-workers
+  [state]
+  ;; TODO farms & loss of points for lack of food
+  (let [cost (fn [p] (* 2 (:workers p)))]
+    (update state
+            :players
+            #(for [p %]
+               (update-in p [:materials :corn] - (cost p))))))
+
+(defn food-day
+  [state]
+  (let [turn-details (get-in spec [:turns (dec (:turn state))])
+        turn-type (:type turn-details)]
+    (-> (cond-> state
+          (= :mats-food-day turn-type) give-players-fd-mats)
+        pay-for-workers)))
 
 (defn finish-game
   [state]
-  (.alert js/window "Game Over!"))
+  (do (.alert js/window "Game Over!") state))
 
 ;; ==================
 ;; = Event Handlers =
@@ -364,10 +389,13 @@
 (defn end-turn
   [state]
   (let [turn (:turn state)
-        test? (:test state)
         max-turn (:total-turns spec)
+        test? (:test? state)
         pid (-> state :active :pid)
-        last-player? (= (dec (count (:players state))) pid)]
+        last-player? (= (dec (count (:players state))) pid)
+        turn-details (get-in spec [:turns (dec turn)])
+        turn-type (:type turn-details)
+        food-day? (contains? #{:mats-food-day :points-food-day} turn-type)]
     (if (get-in state [:active :decisions])
       (update state :errors conj "Can't end turn - There's still a decision to be made")
       (if (and last-player? (= turn max-turn))
@@ -377,6 +405,7 @@
           (-> (cond-> state
                       last-player? (update :turn inc)
                       last-player? (update :active assoc :pid 0)
+                      (and last-player? food-day?) food-day
                       (not last-player?) (update-in [:active :pid] inc)
                       (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
               (update :active assoc :placed 0)
@@ -398,7 +427,7 @@
          (update :errors conj "Can't start game - game has already started"))
      (-> (cond-> state
            (not test?) (choose-starter-tiles 0)
-           test? (assoc :test true))
+           test? (assoc :test? true))
          (update :turn inc)
          setup-buildings-monuments))))
 
@@ -429,7 +458,7 @@
   (let [started? (> (:turn state) 0)]
    (cond-> state
      (and (= :new-game e)   (not started?)) init-game
-     (and (= :start-game e) (not started?)) (start-game (:test data))
+     (and (= :start-game e) (not started?)) (start-game (:test? data))
      (and (= :add-player e) (not started?)) (add-player (:name data) (:color data))
      (and (= :make-trade e)       started?) (make-trade (:trade data))
      (and (= :stop-trading e)     started?) stop-trading
