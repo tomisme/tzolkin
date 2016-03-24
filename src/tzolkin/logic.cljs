@@ -254,23 +254,23 @@
          '()
          (take (inc step) (get-in spec [:temples temple :steps])))))))
 
-;; TODO points for highest positioms
+;; TODO points for highest positioms, farms and lost vp for starving workers
 (defn food-day
   [state]
   (let [turn-details (get-in spec [:turns (dec (:turn state))])
         turn-type (:type turn-details)
-        ;; TODO farms and lost vp for starving workers
         corn-cost (fn [p] (* 2 (:workers p)))
         mats? (= :mats-food-day turn-type)
         points? (= :points-food-day turn-type)]
     (update state
             :players
             (fn [players]
-              (vec
-                (for [p players]
+              (mapv
+                (fn [p]
                   (cond-> (update-in p [:materials :corn] - (corn-cost p))
                     mats? (update :materials change-map + (fd-mats p))
-                    points? (update :points + (fd-points p)))))))))
+                    points? (update :points + (fd-points p))))
+                players)))))
 
 (defn finish-game
   [state]
