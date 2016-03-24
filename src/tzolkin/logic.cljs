@@ -219,31 +219,6 @@
 ;; =  Food Day / Game End =
 ;; ========================
 
-(defn apply-temple-rewards
-  [state type age]
-  {:pre [(contains? #{:points :materials} type)
-         (contains? #{1 2} age)]}
-  (update state
-          :players
-          (reduce
-           (fn [blob p]
-             ())
-           {})))
-
-          ; #(vec (for [p %]
-          ;         (let [step (log (get-in p [:temples :chac]))
-          ;               points (log (get-in spec [:temples :chac :steps step :points]))]
-          ;           (update p :points + points))))))
-
-#_(def pl [{:points 5
-            :temples {:chac 0, :quet 1, :kuku 1}}
-           {:points 5
-            :temples {:chac 1, :quet 1, :kuku 1}}])
-
-#_(def s {:players pl})
-
-#_(log (apply-temple-rewards s :points 2))
-
 #_(reduce
    (fn [m p]
      (let [player-step (get-in p [:temples :chac])
@@ -256,9 +231,17 @@
     :players []}
    pl)
 
+(defn fd-points
+  "Takes a player, returns the number of points earned for temple positons"
+  [player]
+  (apply +
+         (map
+          (fn [[temple step]]
+            (get-in spec [:temples temple :steps step :points]))
+          (:temples player))))
+
 (defn fd-mats
-  "Takes a player and returns a map of the materials they recieve from their
-   position on each temple"
+  "Takes a player, returns a map of materials earned for temple postions"
   [player]
   (apply merge
     (for [[temple step] (:temples player)]
@@ -271,28 +254,23 @@
          '()
          (take (inc step) (get-in spec [:temples temple :steps])))))))
 
-(defn give-players-fd-mats
-  [state]
-  (update state :players (fn [players]
-                           (for [p players]
-                             (update p :materials change-map + (fd-mats p))))))
-
-(defn pay-for-workers
-  [state]
-  ;; TODO farms & loss of points for lack of food
-  (let [cost (fn [p] (* 2 (:workers p)))]
-    (update state
-            :players
-            #(for [p %]
-               (update-in p [:materials :corn] - (cost p))))))
-
+;; TODO points for highest positioms
 (defn food-day
   [state]
   (let [turn-details (get-in spec [:turns (dec (:turn state))])
-        turn-type (:type turn-details)]
-    (-> (cond-> state
-          (= :mats-food-day turn-type) give-players-fd-mats)
-        pay-for-workers)))
+        turn-type (:type turn-details)
+        ;; TODO farms and lost vp for starving workers
+        corn-cost (fn [p] (* 2 (:workers p)))
+        mats? (= :mats-food-day turn-type)
+        points? (= :points-food-day turn-type)]
+    (update state
+            :players
+            (fn [players]
+              (vec
+                (for [p players]
+                  (cond-> (update-in p [:materials :corn] - (corn-cost p))
+                    mats? (update :materials change-map + (fd-mats p))
+                    points? (update :points + (fd-points p)))))))))
 
 (defn finish-game
   [state]

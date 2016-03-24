@@ -18,21 +18,26 @@
   - 2nd and 4th foods days, give points depending on temples
   ")
 
+(defcard-doc
+  (-> s
+      (assoc :turn 14)
+      (logic/adjust-temples 0 {:chac 4 :quet 2 :kuku 5})
+      logic/food-day
+      :players
+      (nth 0)))
+
 (deftest food-day-tests
-  (testing "Helpers"
+  (testing ":points-food-day"
     (nod (-> s
-             (update-in [:players 0 :materials :corn] + 8)
-             (update-in [:players 0 :workers] inc)
-             (update-in [:players 1 :materials :corn] + 6)
-             (logic/pay-for-workers))
+             (assoc :turn 14)
+             (logic/adjust-temples 0 {:chac 4 :quet 2 :kuku 5})
+             (logic/adjust-materials 0 {:corn 6})
+             (logic/adjust-materials 1 {:corn 6})
+             (logic/food-day))
          (-> s
-             (update-in [:players 0 :workers] inc)))
-    (nod (-> s
-             (logic/adjust-temples 0 {:kuku 4 :quet 2})
-             (logic/give-players-fd-mats))
-         (-> s
-             (logic/adjust-temples 0 {:kuku 4 :quet 2})
-             (logic/adjust-materials 0 {:skull 1 :wood 2 :gold 1}))))
+             (assoc :turn 14)
+             (logic/adjust-temples 0 {:chac 4 :quet 2 :kuku 5})
+             (logic/adjust-points 0 18))))
   (testing ":mats-food-day"
     (nod (-> s
              (assoc :turn 8)
