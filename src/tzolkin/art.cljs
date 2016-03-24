@@ -175,7 +175,8 @@
        [:div {:class (str "ui inverted segment " color-str)}
         msg]
        (into [:div {:class (when (= :starters type) "ui cards")}
-              [:i.large.chevron.right.icon]]
+              [:div.basic.ui.segment
+               [:i.large.chevron.right.icon]]]
              (map-indexed
                (fn [index option]
                  (if (= :starters type)

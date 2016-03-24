@@ -303,29 +303,40 @@
 ;; ==================
 
 (defn handle-decision
+  "Decisions are handled last in first out"
   [{:keys [active] :as state} index]
   (let [pid      (:pid active)
         decision (first (:decisions active))
         type     (:type decision)
         options  (:options decision)
         choice   (get options index)
-        next-dec #(update-in % [:active :decisions] rest)]
+        pop-dec  #(update-in % [:active :decisions] rest)]
     (case type
-      :starters         (-> (gain-starter state pid choice) next-dec)
-      :gain-materials   (-> (adjust-materials state pid choice) next-dec)
-      :gain-resource    (-> (adjust-materials state pid choice) next-dec)
+      :starters         (if (= (:num-starters spec) (count options))
+                          (-> (gain-starter state pid choice)
+                              pop-dec
+                              (add-decision pid :starters (remove-from-vec options index)))
+                          (-> (gain-starter state pid choice)
+                              pop-dec))
+      :gain-materials   (-> (adjust-materials state pid choice)
+                            pop-dec)
+      :gain-resource    (-> (adjust-materials state pid choice)
+                            pop-dec)
       :pay-resource     (if (cost-payable? state pid choice)
                           (-> (adjust-materials state pid (negatise-map choice))
-                              next-dec)
+                              pop-dec)
                           (update state :errors conj (str "Can't pay resource cost: " choice)))
       :build-building   (if (cost-payable? state pid (:cost choice))
                           (-> (gain-building state pid choice)
                               (update :buildings remove-from-vec index)
-                              next-dec)
+                              pop-dec)
                           (update state :errors conj (str "Can't buy building: " choice)))
-      :tech             (-> (adjust-tech state pid choice) next-dec)
-      :temple           (-> (adjust-temples state pid choice) next-dec)
-      :two-diff-temples (-> (adjust-temples state pid choice) next-dec))))
+      :tech             (-> (adjust-tech state pid choice)
+                            pop-dec)
+      :temple           (-> (adjust-temples state pid choice)
+                            pop-dec)
+      :two-diff-temples (-> (adjust-temples state pid choice)
+                            pop-dec))))
 
 (defn place-worker
   [state gear]
