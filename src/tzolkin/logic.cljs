@@ -395,17 +395,18 @@
         last-player? (= (dec (count (:players state))) pid)
         turn-details (get-in spec [:turns (dec turn)])
         turn-type (:type turn-details)
-        food-day? (contains? #{:mats-food-day :points-food-day} turn-type)]
-    (if (get-in state [:active :decisions])
-      (update state :errors conj "Can't end turn - There's still a decision to be made")
+        food-day? (contains? #{:mats-food-day :points-food-day} turn-type)
+        decision (get-in state [:active :decisions])]
+    (if (not (empty? decision))
+      (update state :errors conj (str "Can't end turn - There's still a decision to be made: " decision))
       (if (and last-player? (= turn max-turn))
         (finish-game state)
         (if (and (> turn 0)
                  (<= turn max-turn))
           (-> (cond-> state
+                      (and last-player? food-day?) food-day
                       last-player? (update :turn inc)
                       last-player? (update :active assoc :pid 0)
-                      (and last-player? food-day?) food-day
                       (not last-player?) (update-in [:active :pid] inc)
                       (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
               (update :active assoc :placed 0)
