@@ -61,7 +61,11 @@
          (-> s
            (update-in [:players 0 :buildings] conj {:build :monument})
            (update-in [:active :decisions] conj {:type :build-monument
-                                                 :options (:monuments s)})))))
+                                                 :options (:monuments s)})))
+    (nod (logic/gain-building s 0 {:trade true})
+         (-> s
+             (update-in [:players 0 :buildings] conj {:trade true})
+             (update :active assoc :trading? true)))))
 
 (def random-building
   (first (shuffle (:buildings spec))))

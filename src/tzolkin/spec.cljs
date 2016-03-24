@@ -301,8 +301,8 @@
          :regular-actions 5
          :actions [[:temples {:cost {:corn 3}
                               :choose :any}]
-                   [:trade {}]
-                   [:gain-worker {}]
+                   [:trade true]
+                   [:gain-worker true]
                    [:build {:type :with-corn}]
                    [:choose-action {:cost {:corn 1}
                                     :gear :non-chi}]

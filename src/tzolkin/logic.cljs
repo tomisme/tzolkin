@@ -119,7 +119,7 @@
 ;; =  Trading =
 ;; ============
 
-(defn trade
+(defn start-trading
   [state pid]
   (update state :active assoc :trading? true))
 
@@ -142,10 +142,11 @@
 
 (defn gain-building
   [state pid building]
-  (let [{:keys [cost tech temples materials #_trade build points
+  (let [{:keys [cost tech temples materials trade build points
                 gain-worker #_free-action-for-corn]} building]
     (-> (cond-> state
           build       (build-builder-building pid build)
+          trade       (start-trading pid)
           points      (adjust-points pid points)
           temples     (adjust-temples pid temples)
           materials   (adjust-materials pid materials)
@@ -181,7 +182,7 @@
           build-building?       (add-decision pid :build-building)
           choose-a-temple?      (add-decision pid :temple v)
           choose-two-temples?   (add-decision pid :two-diff-temples v)
-          (= :trade k)          (trade pid)
+          (= :trade k)          (start-trading pid)
 
           (:cost v)             (pay-cost pid (:cost v))))))
 
@@ -416,7 +417,7 @@
 (defn init-game
   [state]
   (conj state {:turn 0
-               :active {:pid 0 :worker-option :none :placed 0 :decisions '() :trading false}
+               :active {:pid 0 :worker-option :none :placed 0 :decisions '() :trading? false}
                :remaining-skulls (:skulls spec)
                :players []
                :gears initial-gears-state}))
