@@ -9,10 +9,16 @@ If you want to have a poke around run `lein figwheel`, open
  - [x] removing/placing workers
  - [x] Yaxchilan (🍈)
  - [x] Palenque (🍏)
- - [x] god tracks
  - [x] Chichen Itza (🍇)
- - [ ] tech tracks
- - [ ] buildings
  - [ ] Tikal (🍓)
  - [ ] Uxmal (🍋)
+ - [x] god tracks
+ - [ ] tech tracks
+ - [x] buildings
+ - [ ] temple rewards
  - [ ] monuments
+ - [ ] jungle
+ - [ ] starting player
+ - [ ] dummy workers
+ - [ ] beg for corn
+ - [ ] double spins
