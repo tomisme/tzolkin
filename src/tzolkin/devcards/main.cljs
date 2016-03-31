@@ -1,11 +1,5 @@
 (ns tzolkin.devcards.main
   (:require
-   [tzolkin.art   :as art]
-   [tzolkin.game  :as game]
-   [tzolkin.logic :as logic]
-   [tzolkin.spec  :as spec  :refer [spec]]
-   [tzolkin.utils :as utils :refer [log dif]]
-
    [tzolkin.devcards.actions]
    [tzolkin.devcards.art]
    [tzolkin.devcards.buildings]
@@ -16,10 +10,24 @@
    [tzolkin.devcards.utils]
    [tzolkin.devcards.workers]
 
-   [tzolkin.devcards.game :refer [s]]
-   [tzolkin.devcards.net-game])
+   [tzolkin.devcards.game :as game :refer [s]]
+   [tzolkin.devcards.net-game :as net-game])
 
   (:require-macros
    [tzolkin.macros :as macros]
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
+
+(defn tests
+  []
+  (run-tests 'tzolkin.devcards.actions
+             'tzolkin.devcards.art
+             'tzolkin.devcards.buildings
+             'tzolkin.devcards.decisions
+             'tzolkin.devcards.end
+             'tzolkin.devcards.logic
+             'tzolkin.devcards.spec
+             'tzolkin.devcards.utils
+             'tzolkin.devcards.workers
+             'tzolkin.devcards.game
+             'tzolkin.devcards.net-game))

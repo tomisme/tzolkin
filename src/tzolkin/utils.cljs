@@ -19,7 +19,7 @@
   (map-indexed vector coll))
 
 (defn first-val
-  "Returns the index of the first instance of nil in 'coll'"
+  "Returns the index of the first instance of 'val' in 'coll'"
   [coll val]
   (first (for [[index element] (indexed coll) :when (= element val)] index)))
 

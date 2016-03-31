@@ -89,7 +89,7 @@
 (defn spinning-worker-gear
   [{:keys [workers actions on-worker-click]}]
   (let [rotation-spring (anim/spring spin-test-atom)
-        workers [:blue nil :blue :red nil nil :red nil nil nil]]
+        workers [:blue :none :blue :red :none :none :red :none :none :none]]
     (fn []
       [:svg {:width 300 :height 300}
        [art/gear-el {:cx 150
