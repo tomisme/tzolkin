@@ -1,9 +1,9 @@
-(ns tzolkin.devcards.utils
+(ns tzolkin-devcards.utils
   (:require
    [tzolkin.spec :refer [spec]]
    [tzolkin.logic :as logic]
    [tzolkin.utils :as utils]
-   [tzolkin.devcards.game :refer [s]])
+   [tzolkin-devcards.game :refer [s]])
   (:require-macros
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))

@@ -1,4 +1,4 @@
-(ns tzolkin.devcards.spec
+(ns tzolkin-devcards.spec
   (:require
    [tzolkin.spec  :refer [spec]]
    [tzolkin.logic :as logic]

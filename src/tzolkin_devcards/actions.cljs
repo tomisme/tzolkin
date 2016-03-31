@@ -1,8 +1,8 @@
-(ns tzolkin.devcards.actions
+(ns tzolkin-devcards.actions
   (:require
    [tzolkin.spec :refer [spec]]
    [tzolkin.logic :as logic]
-   [tzolkin.devcards.game :refer [s]]
+   [tzolkin-devcards.game :refer [s]]
    [tzolkin.utils :refer [log]])
   (:require-macros
    [tzolkin.macros :refer [nod]]

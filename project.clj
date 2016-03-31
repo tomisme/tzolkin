@@ -1,6 +1,4 @@
 (defproject tzolkin "0.1.0-SNAPSHOT"
-  :description "FIXME: write this!"
-  :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
@@ -20,7 +18,7 @@
   :clean-targets ^{:protect false} ["resources/public/js/compiled"
                                     "target"]
 
-  :source-paths ["src"]
+  :source-paths ["src/tzolkin"]
 
   :profiles {:dev {:dependencies [[figwheel-sidecar "0.5.0-1"]
                                   [com.cemerick/piggieback "0.2.1"]
@@ -29,23 +27,23 @@
                    :source-paths ["src" "dev"]}}
 
   :cljsbuild {:builds [{:id "devcards"
-                        :source-paths ["src"]
+                        :source-paths ["src/tzolkin" "src/tzolkin_devcards"]
                         :figwheel {:devcards true}
-                        :compiler {:main       "tzolkin.dev-core"
+                        :compiler {:main       "tzolkin-devcards.core"
                                    :asset-path "js/compiled/devcards_out"
                                    :output-to  "resources/public/js/compiled/tzolkin_devcards.js"
                                    :output-dir "resources/public/js/compiled/devcards_out"
                                    :source-map-timestamp true}}
                        {:id "dev"
-                        :source-paths ["src"]
-                        ; :figwheel true
+                        :figwheel {:on-jsload tzolkin.core/render-app}
+                        :source-paths ["src/tzolkin"]
                         :compiler {:main       "tzolkin.core"
                                    :asset-path "js/compiled/out"
                                    :output-to  "resources/public/js/compiled/tzolkin.js"
                                    :output-dir "resources/public/js/compiled/out"
                                    :source-map-timestamp true}}
                        {:id "prod"
-                        :source-paths ["src"]
+                        :source-paths ["src/tzolkin"]
                         :compiler {:main       "tzolkin.core"
                                    :asset-path "js/compiled/out"
                                    :output-to  "resources/public/js/compiled/tzolkin.js"

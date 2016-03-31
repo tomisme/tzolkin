@@ -1,4 +1,4 @@
-(ns tzolkin.devcards.game
+(ns tzolkin-devcards.game
   (:require
    [reagent.core :as rg]
    [tzolkin.spec  :refer [spec]]

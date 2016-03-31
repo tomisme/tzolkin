@@ -1,18 +1,13 @@
 (ns tzolkin.core
-  (:require-macros [reagent.ratom :refer [reaction]])
   (:require
    [reagent.core :as rg]
-   [matchbox.core :as m]
    [tzolkin.game :as game]
-   [tzolkin.art :as art]
    [tzolkin.db :as db]
    [tzolkin.logic :as logic]
-   [tzolkin.art :as art]
-   [tzolkin.spec :refer [spec]]
-   [tzolkin.utils :refer [log]]
-   [devtools.core :as devtools]))
-
-(devtools/install!)
+   [tzolkin.utils :refer [log]]))
+;    [devtools.core :as devtools]))
+;
+; (devtools/install!)
 
 (def es-atom
   (rg/atom (logic/gen-es [[:new-game]])))
@@ -28,8 +23,9 @@
   []
   (game/board es-atom local-state-atom db/save))
 
-(defn main []
+(defn render-app
+  []
   (if-let [app-node (.getElementById js/document "app")]
     (rg/render-component [app-container] app-node)))
 
-(main)
+(render-app)

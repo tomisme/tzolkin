@@ -1,9 +1,9 @@
-(ns tzolkin.devcards.buildings
+(ns tzolkin-devcards.buildings
   (:require
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
    [tzolkin.logic :as logic]
-   [tzolkin.devcards.game :refer [s]]
+   [tzolkin-devcards.game :refer [s]]
    [tzolkin.utils :refer [log]])
   (:require-macros
    [tzolkin.macros :refer [nod]]

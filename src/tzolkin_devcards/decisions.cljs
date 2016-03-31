@@ -1,9 +1,9 @@
-(ns tzolkin.devcards.decisions
+(ns tzolkin-devcards.decisions
   (:require
    [tzolkin.spec :refer [spec]]
    [tzolkin.utils :refer [log]]
    [tzolkin.logic :as logic]
-   [tzolkin.devcards.game :refer [s]])
+   [tzolkin-devcards.game :refer [s]])
   (:require-macros
    [tzolkin.macros :refer [nod]]
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]

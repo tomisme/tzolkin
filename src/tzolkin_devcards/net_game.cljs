@@ -1,4 +1,4 @@
-(ns tzolkin.devcards.net-game
+(ns tzolkin-devcards.net-game
   (:require
    [tzolkin.spec :refer [spec]]
    [tzolkin.logic :as logic]

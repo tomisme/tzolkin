@@ -1,4 +1,4 @@
-(ns tzolkin.devcards.art
+(ns tzolkin-devcards.art
   (:require
    [reagent.core :as rg]
    [timothypratley.reanimated.core :as anim]
@@ -6,7 +6,7 @@
    [tzolkin.art :as art]
    [tzolkin.logic :as logic]
    [tzolkin.game :as game]
-   [tzolkin.devcards.game :refer [s]]
+   [tzolkin-devcards.game :refer [s]]
    [tzolkin.utils :refer [log]])
   (:require-macros
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
