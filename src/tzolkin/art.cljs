@@ -161,6 +161,8 @@
         msg (str (:name active-player)
                  " needs to choose "
                  (case type
+                   :anger-god "which god to anger."
+                   :beg? "whether to beg for corn."
                    :starters "which starter tile to take."
                    :action "which action to take."
                    :gain-materials "which materials to gain."
@@ -183,6 +185,8 @@
                    [:div (starter-card option #(on-decision index decision))]
                    [:button.ui.button {:on-click #(on-decision index decision)}
                      (case type
+                       :anger-god (symbols-str option)
+                       :beg? (if option "Beg for corn" "Don't beg")
                        :action (str option)
                        :gain-materials (symbols-str option)
                        :gain-resource (symbols-str option)
@@ -313,8 +317,6 @@
        [:p
         [:button.ui.button {:on-click on-end-turn}
          "End Turn"]
-        [:button.ui.disabled.button {:on-click #(log "begging!")}
-         "Beg for corn"]
         [:span {:style {:margin-left 15}}
          "Turn " turn "/" (count (:turns spec)) ", " (food-day-str until-food-day)]]
        [:p
@@ -563,6 +565,8 @@
   (let [{:keys [options type]} decision
         choice (get options index)]
     (case type
+          :anger-god (str " chose to anger " (symbols-str choice))
+          :beg? (str " chose " (when-not choice "not ") "to beg for corn")
           :starters " chose a starting tile"
           :action " chose an action..."
           :temple (str " chose to gain favour with " (symbols-str choice))

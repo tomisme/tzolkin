@@ -4,10 +4,10 @@
    [tzolkin.game :as game]
    [tzolkin.db :as db]
    [tzolkin.logic :as logic]
-   [tzolkin.utils :refer [log]]))
-;    [devtools.core :as devtools]))
-;
-; (devtools/install!)
+   [tzolkin.utils :refer [log]]
+   [devtools.core :as devtools]))
+
+(devtools/install!)
 
 (def es-atom
   (rg/atom (logic/gen-es [[:new-game]])))

@@ -80,6 +80,8 @@
    (let [pid (-> state :active :pid)
          num (if (= :tech type) data 1)
          options (case type
+                   :anger-god temple-options
+                   :beg? '(true false)
                    :starters data
                    :action (action-options (:gear data))
                    :temple temple-options
@@ -276,6 +278,26 @@
   [state]
   (do (.alert js/window "Game Over!") state))
 
+;; ================
+;; = Beg for Corn =
+;; ================
+
+(defn possibly-beg-for-corn
+  [state]
+  (let [pid (-> state :active :pid)
+        corn (-> state :players (nth pid) :materials :corn)]
+    (if (< corn 3)
+      (add-decision state pid :beg?)
+      state)))
+
+(defn beg-for-corn
+  [state]
+  (let [pid (-> state :active :pid)
+        corn (-> state :players (nth pid) :materials :corn)]
+    (-> state
+        (adjust-materials pid {:corn (- 3 corn)})
+        (add-decision pid :anger-god))))
+
 ;; ==================
 ;; = Event Handlers =
 ;; ==================
@@ -290,6 +312,7 @@
         choice   (get options index)
         pop-dec  #(update-in % [:active :decisions] rest)]
     (case type
+      :beg?             (if choice (beg-for-corn (pop-dec state)) (pop-dec state))
       :starters         (if (= (:num-starters spec) (count options))
                           (-> (gain-starter state pid choice)
                               pop-dec
@@ -313,6 +336,11 @@
                             pop-dec)
       :temple           (-> (adjust-temples state pid choice)
                             pop-dec)
+      :anger-god        (let [temple (first (keys choice))]
+                          (if (= 0 (get-in state [:players pid :temples temple]))
+                            (update state :errors conj (str "Can't anger " temple))
+                            (-> (adjust-temples state pid (negatise-map choice))
+                              pop-dec)))
       :two-diff-temples (-> (adjust-temples state pid choice)
                             pop-dec))))
 
@@ -398,6 +426,7 @@
                       last-player? (update :turn inc)
                       last-player? (update :active assoc :pid 0)
                       (not last-player?) (update-in [:active :pid] inc)
+                      (not test?) (possibly-beg-for-corn)
                       (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
               (update :active assoc :placed 0)
               (update :active assoc :worker-option :none))
@@ -417,6 +446,7 @@
      (-> state
          (update :errors conj "Can't start game - game has already started"))
      (-> (cond-> state
+           (not test?) (possibly-beg-for-corn)
            (not test?) (choose-starter-tiles 0)
            test? (assoc :test? true))
          (update :turn inc)

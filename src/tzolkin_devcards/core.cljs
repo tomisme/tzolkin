@@ -2,7 +2,8 @@
   (:require
    [devcards.core :as devcards]
    [devtools.core :as devtools]
-   [tzolkin.utils :refer [log]]
+   [tzolkin.logic :as logic]
+   [tzolkin.utils :as utils :refer [log]]
    [tzolkin-devcards.actions]
    [tzolkin-devcards.art]
    [tzolkin-devcards.buildings]
@@ -12,12 +13,11 @@
    [tzolkin-devcards.spec]
    [tzolkin-devcards.utils]
    [tzolkin-devcards.workers]
-   [tzolkin-devcards.game :as game :refer [s]]
-   [tzolkin-devcards.net-game :as net-game])
+   [tzolkin-devcards.game :refer [s]]
+   [tzolkin-devcards.net-game])
   (:require-macros
-   [tzolkin.macros :as macros]
-   [devcards.core :as dc :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is run-tests]]))
+   [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
+   [cljs.test :refer [run-tests]]))
 
 (defn setup-dev!
   []
