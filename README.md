@@ -20,5 +20,5 @@ If you want to have a poke around run `lein figwheel`, open
  - [ ] jungle
  - [ ] starting player
  - [ ] dummy workers
- - [ ] beg for corn
+ - [x] beg for corn
  - [ ] double spins
