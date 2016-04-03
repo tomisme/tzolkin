@@ -97,6 +97,21 @@
   ([state pid type]
    (add-decision state pid type {})))
 
+(defn check-for-bad-beg
+  [state]
+  (let [pid (-> state :active :pid)
+        begging-decision? (= :beg? (:type (first (get-in state [:active :decisions]))))
+        too-much-corn? (< 2 (get-in state [:players pid :materials :corn]))]
+    (if (and begging-decision? too-much-corn?)
+      (update-in state [:active :decisions] rest)
+      state)))
+
+(defn next-dec
+  [state]
+  (-> state
+      (update-in [:active :decisions] rest)
+      check-for-bad-beg))
+
 ;; ==========
 ;; =  Costs =
 ;; ==========
@@ -309,40 +324,39 @@
         decision (first (:decisions active))
         type     (:type decision)
         options  (:options decision)
-        choice   (get options index)
-        pop-dec  #(update-in % [:active :decisions] rest)]
+        choice   (get options index)]
     (case type
-      :beg?             (if choice (beg-for-corn (pop-dec state)) (pop-dec state))
+      :beg?             (if choice (beg-for-corn (next-dec state)) (next-dec state))
       :starters         (if (= (:num-starters spec) (count options))
                           (-> (gain-starter state pid choice)
-                              pop-dec
+                              next-dec
                               (add-decision pid :starters (remove-from-vec options index)))
                           (-> (gain-starter state pid choice)
-                              pop-dec))
+                              next-dec))
       :gain-materials   (-> (adjust-materials state pid choice)
-                            pop-dec)
+                            next-dec)
       :gain-resource    (-> (adjust-materials state pid choice)
-                            pop-dec)
+                            next-dec)
       :pay-resource     (if (cost-payable? state pid choice)
                           (-> (adjust-materials state pid (negatise-map choice))
-                              pop-dec)
+                              next-dec)
                           (update state :errors conj (str "Can't pay resource cost: " choice)))
       :build-building   (if (cost-payable? state pid (:cost choice))
                           (-> (gain-building state pid choice)
                               (update :buildings remove-from-vec index)
-                              pop-dec)
+                              next-dec)
                           (update state :errors conj (str "Can't buy building: " choice)))
       :tech             (-> (adjust-tech state pid choice)
-                            pop-dec)
+                            next-dec)
       :temple           (-> (adjust-temples state pid choice)
-                            pop-dec)
+                            next-dec)
       :anger-god        (let [temple (first (keys choice))]
                           (if (= 0 (get-in state [:players pid :temples temple]))
                             (update state :errors conj (str "Can't anger " temple))
                             (-> (adjust-temples state pid (negatise-map choice))
-                              pop-dec)))
+                              next-dec)))
       :two-diff-temples (-> (adjust-temples state pid choice)
-                            pop-dec))))
+                            next-dec))))
 
 (defn place-worker
   [state gear]
