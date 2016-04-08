@@ -374,7 +374,7 @@
         placed (get-in state [:active :placed])
         corn-cost (+ position placed)]
     (if (and (> remaining-workers 0)
-             (not (get-in state [:active :decision]))
+             (empty? (get-in state [:active :decisions]))
              (>= remaining-corn corn-cost)
              (< position max-position)
              (or (= :place worker-option) (= :none worker-option)))
