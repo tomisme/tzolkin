@@ -124,4 +124,5 @@
          (for [[k _] (:gears spec)]
            [worker-gear-wrapper es-atom re-state k save]))]
      [:div.four.wide.column
-       [temples-wrapper es-atom re-state]]]))
+       [temples-wrapper es-atom re-state]
+       [art/tech-tracks-el]]]))

@@ -9,6 +9,7 @@
    :blue "#69D2E7"
    :orange "#EB6841"
    :yellow "#EDC951"
+   :water "#73BDF8"
    :yax "#E2DF9A"
    :tik "#F23A65"
    :uxe "#EBE54D"
@@ -87,8 +88,9 @@
            (str until-food-day " spins until Food Day!"))])
 
 (defn points-el
-  [num]
-  [:div.ui.label num])
+  [points]
+  [:div.ui.label {:style {:padding ".3rem .51rem"}}
+   points])
 
 (defn farm-el
   [farms]
@@ -346,7 +348,7 @@
                 2 "2x tech")
     :build (case (:type data)
                  :single "build"
-                 :double-or-monument "bld x2/mon"
+                 :double-or-monument "bld 2/mon"
                  :with-corn (str "bld w/" (:corn symbols)))
     :temples (case (:choose data)
                    :any (str (symbols-str (:cost data)) ": tmpl")
@@ -422,6 +424,18 @@
                            [:rotate {:deg (+ deg (* block-num 2))
                                      :x cx
                                      :y cy}])}]))
+   ;; Water?
+   (if (= :pal gear)
+     (for [water-line (range 41)
+           :let [width (* r 0.03)
+                 deg (+ 38 (* water-line (/ 8 teeth)))]]
+       ^{:key water-line}
+       [:rect {:x (- cx (/ width 2))
+               :y (+ cy (* r 1.4))
+               :width width
+               :height (* r 0.45)
+               :style {:fill (:water color-strings)}
+               :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}]))
    ;; Labels
    (map-indexed (fn [index action]
                   (let [x cx
@@ -502,7 +516,7 @@
 
 (defn worker-gear
   [{:keys [gear workers on-worker-click on-center-click actions rotation]}]
-  (let [x 350]
+  (let [x 340]
     [:svg {:width x :height (* x 0.9)}
      [gear-el {:cx (/ x 2)
                :cy (/ x 2)
@@ -526,19 +540,23 @@
   [:div.ui.equal.width.grid
    (for [[t temple] (:temples spec)]
      ^{:key t}
-     [:div.bottom.aligned.column
-      [:div.ui.center.aligned.segment
-       [:span {:style {:font-size 32}} (get symbols t)]
+     [:div.bottom.aligned.column {:style {:padding "0.7rem"}}
+      [:div.ui.center.aligned.segment {:style {:padding "0.5rem"}}
+       [:div {:style {:margin "1rem"}}
+        [:span {:style {:font-size "3rem"}}
+         (get symbols t)]]
        (reverse
         (map-indexed
          (fn [step-index {:keys [points material]}]
            (let [color (when (= step-index 1) "secondary ")]
              [:div {:key (str t step-index)
                     :class (str color "ui center aligned segment")
-                    :style {:height 50
+                    :style {:height 30
                             :padding "0.8em"
                             :padding-left 0
                             :padding-right 0
+                            :padding-top "0.34em"
+                            :margin "0.5rem"
                             :z-index 1}}
               [:span
                (map-indexed
@@ -546,13 +564,116 @@
                   (when (= (get temples t) step-index)
                     (player-circle-el color)))
                 players)]
-              [:div.ui.top.left.attached.label {:style {:z-index -1}}
+              [:div.ui.top.left.attached.label {:style {:z-index -1
+                                                        :width "3rem"}}
                points]
                ;(points-el points)]
               (if material
                 [:div.ui.top.right.attached.label {:style {:z-index -1}}
                  (get symbols material)])]))
          (:steps temple)))]])])
+
+(defn tech-label
+  [gear & content]
+  [:div {:style {:background-color (get color-strings gear)
+                 :border-color (get color-strings gear)
+                 :display "inline-block"
+                 :padding ".3rem .4rem"
+                 :border-radius ".28rem"}}
+   content])
+
+(defn tech-tracks-el
+  [{:keys [players]}]
+  [:div.ui.grid {:style {:margin "0.15rem"}}
+   [:div.row {:style {:padding "0.1rem"}}
+    [:div.two.wide.column {:style {:padding "0.2rem"}}]
+    [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
+      [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
+       (:resource symbols)]]
+    [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
+      [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
+       (:resource symbols) (:resource symbols)]]
+    [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
+      [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
+       (:resource symbols) (:resource symbols) (:resource symbols)]]
+    [:div.two.wide.center.aligned.column {:style {:padding "0.2rem"}}
+      [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
+       (:resource symbols)]]]
+   [:div.row {:style {:padding "0.1rem"}}
+    [:div.two.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       [:div.top.attached.ui.label "agri"]]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (tech-label :pal
+        [:i.plus.icon] (:corn symbols))]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (tech-label :water
+        [:i.plus.icon] (:corn symbols))
+       [:br]
+       "no burn"]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (tech-label :pal
+        [:i.plus.icon] (:corn symbols) (:corn symbols))]]
+    [:div.two.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (:chac symbols) "/" (:quet symbols) "/" (:kuku symbols)]]]
+   [:div.row {:style {:padding "0.1rem"}}
+    [:div.two.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       [:div.top.attached.ui.label "extr"]]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (tech-label :yax
+        [:i.plus.icon] (:wood symbols))
+       (tech-label :pal
+        [:i.plus.icon] (:wood symbols))]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (tech-label :yax
+        [:i.plus.icon] (:stone symbols))]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (tech-label :yax
+        [:i.plus.icon] (:gold symbols))]]
+    [:div.two.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (:resource symbols) (:resource symbols)]]]
+   [:div.row {:style {:padding "0.1rem"}}
+    [:div.two.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       [:div.top.attached.ui.label "arch"]]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (:corn symbols) [:br] "w/ build"]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (points-el 2) [:br] "w/ build"]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       [:i.minus.icon] (:resource symbols) [:br] "w/ build"]]
+    [:div.two.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (points-el 3)]]]
+   [:div.row {:style {:padding "0.1rem"}}
+    [:div.two.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       [:div.top.attached.ui.label "theo"]]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (:chi symbols) [:i.chevron.right.icon]]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (:resource symbols) ":" [:br]
+       (:chac symbols) "/" (:quet symbols) "/" (:kuku symbols)]]
+    [:div.four.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       [:i.plus.icon] (:skull symbols)]]
+    [:div.two.wide.column {:style {:padding "0.2rem"}}
+      [:div.ui.segment {:style {:height "7rem"}}
+       (:skull symbols)]]]])
 
 (defn event-player-el
   [player]

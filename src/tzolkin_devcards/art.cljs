@@ -121,6 +121,10 @@
 (defcard-rg temple-art-test
   (art/temples-el s))
 
+(defcard-rg tech-art-test
+  [:div {:style {:width 480}}
+   (art/tech-tracks-el s)])
+
 (defcard-rg status-bar-test
   (art/status-bar-el s #(log [%1 %2]) #(log "trading!") #(log "stopping trading") #(log "end turn!") #(log "start game!") #(log "add player")))
 
