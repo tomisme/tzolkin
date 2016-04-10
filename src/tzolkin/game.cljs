@@ -7,26 +7,26 @@
    [tzolkin.art   :as art]
    [tzolkin.utils :refer [log]]))
 
-(defn worker-gear-wrapper
-  [es-atom re-state gear save]
-  (let [on-worker-click (fn [slot]
-                          (if save
-                            (save (logic/add-event @es-atom [:remove-worker {:gear gear
-                                                                             :slot slot}]))
-                            (swap! es-atom logic/add-event [:remove-worker {:gear gear
-                                                                            :slot slot}])))
-        on-center-click (fn []
-                          (if save
-                            (save (logic/add-event @es-atom [:place-worker {:gear gear}]))
-                            (swap! es-atom logic/add-event [:place-worker {:gear gear}])))
-        teeth (get-in spec [:gears gear :teeth])]
-    (fn []
-      (art/worker-gear {:workers (get-in @re-state [:gears gear])
-                        :gear gear
-                        :rotation (* (/ 360 teeth) (:turn @re-state))
-                        :actions (get-in spec [:gears gear :actions])
-                        :on-center-click on-center-click
-                        :on-worker-click on-worker-click}))))
+(defn worker-gears-wrapper
+  [es-atom re-state save]
+  (let [data (into {}
+               (for [[gear _] (:gears spec)]
+                 [gear
+                  {:on-worker-click (fn [slot]
+                                      (if save
+                                        (save (logic/add-event @es-atom [:remove-worker {:gear gear
+                                                                                         :slot slot}]))
+                                        (swap! es-atom logic/add-event [:remove-worker {:gear gear
+                                                                                        :slot slot}])))
+                   :on-center-click (fn []
+                                      (if save
+                                        (save (logic/add-event @es-atom [:place-worker {:gear gear}]))
+                                        (swap! es-atom logic/add-event [:place-worker {:gear gear}])))
+                   :teeth (get-in spec [:gears gear :teeth])
+                   :workers (get-in @re-state [:gears gear])
+                   :rotation (* (/ 360 (get-in spec [:gears gear :teeth])) (:turn @re-state))
+                   :actions (get-in spec [:gears gear :actions])}]))]
+    [art/gear-layout-el data]))
 
 (defn status-bar-wrapper
   [es-atom re-state save]
@@ -119,10 +119,11 @@
        [:button.ui.button {:on-click #(save (logic/gen-es nil))}
          "nil state"]
        [fb-conn-indicator-wrapper local-state-atom]]
-     [:div.seven.wide.column
-       (into [:div]
-         (for [[k _] (:gears spec)]
-           [worker-gear-wrapper es-atom re-state k save]))]
+     [:div.seven.wide.column {:style {:padding-left 0}}
+      [worker-gears-wrapper es-atom re-state save]]
+       ; (into [:div]
+       ;   (for [[k _] (:gears spec)]
+       ;     [worker-gear-wrapper es-atom re-state k save]))]
      [:div.four.wide.column
        [temples-wrapper es-atom re-state]
        [art/tech-tracks-el]]]))

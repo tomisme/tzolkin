@@ -390,7 +390,7 @@
   [cx cy r teeth actions gear]
   [:g
    [:circle {:style {:fill (get color-strings gear)}
-             :r (* r 1.85)
+             :r (* r (if (= :chi gear) 1.79 1.85))
              :cx cx
              :cy cy}]
    [:circle {:style {:fill "white"}
@@ -403,7 +403,7 @@
                deg (* tooth (/ 360 teeth))]]
      ^{:key tooth}
      [:rect {:x (- cx (/ width 2))
-             :y (+ cy (/ r 3))
+             :y (+ cy (/ r 3.6))
              :width width
              :height (* r 1.6)
              :style {:fill "white"}
@@ -416,7 +416,7 @@
      (for [block-num (range (- 27 teeth))]
        ^{:key (str tooth "-" block-num)}
        [:rect {:x (- cx width)
-               :y (+ cy (/ r 3))
+               :y (+ cy (/ r 3.6))
                :width width
                :height (* r 1.6)
                :style {:fill "white"}
@@ -449,14 +449,14 @@
                     ^{:key index}
                     [:text {:x x
                             :y y
-                            :font-size 16
+                            :font-size "1rem"
                             :text-anchor "middle"
                             :transform transform}
                      (action-label action)]))
                 actions)])
 
 (defn worker-slots
-  [cx cy r teeth workers on-click]
+  [cx cy r teeth workers on-click gear]
   [:g
    (map-indexed
     (fn [index worker]
@@ -471,9 +471,9 @@
         [:g
          [:circle {:style {:fill color}
                    :on-click #(on-click index)
-                   :r (/ r 5)
+                   :r (/ r (if (= :chi gear) 6.2 5))
                    :cx (+ cx 0)
-                   :cy (+ cy (* r 0.75))
+                   :cy (+ cy (* r (if (= :chi gear) 0.78 0.75)))
                    :transform transform}]]))
     ;; slot indexes for testing
     ; [:text {:style {:pointer-events "none"}
@@ -484,13 +484,15 @@
 (defn gear-el
   [{:keys [cx cy r teeth rotation workers on-worker-click on-center-click
            tooth-height-factor tooth-width-factor gear actions]}]
-  [:g
+  [:g {:transform (transform-str [:rotate {:deg (/ 360 teeth)
+                                           :x cx
+                                           :y cy}])}
    (action-labels cx cy r teeth actions gear)
    (corn-cost-labels cx cy r teeth)
    [:g {:transform (transform-str [:rotate {:deg (if rotation rotation 0) :x cx :y cy}])}
     [:circle {:cx cx :cy cy :r r}]
     (for [tooth (range teeth)
-          :let [width (* r 0.35 tooth-width-factor)
+          :let [width (* r (if (= :chi gear) 0.29 0.35) tooth-width-factor)
                 deg (* tooth (/ 360 teeth))]]
       ^{:key tooth}
       [:rect {:x (- cx (/ width 2))
@@ -501,35 +503,64 @@
               :height (+ (/ r 3) (* r 0.7 tooth-height-factor))
               :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
     (if workers
-      (worker-slots cx cy r teeth workers on-worker-click))]
+      (worker-slots cx cy r teeth workers on-worker-click gear))]
    [:circle {:style {:fill (get color-strings gear)}
              :cx cx
              :cy cy
-             :r (/ r 2.1)
+             :r (/ r (if (= :chi gear) 1.8 2.1))
              :on-click on-center-click}]
    [:text {:style {:pointer-events "none"}
            :x cx
            :y (* cy 1.11)
            :font-size (* r 0.65)
-           :text-anchor "middle"}
+           :text-anchor "middle"
+           :transform (transform-str [:rotate {:deg (-
+                                                     (* (if gear
+                                                          (-> spec :gears gear :location)
+                                                          0)
+                                                        (/ 360 -26))
+                                                     (/ 360 teeth))
+                                               :x cx
+                                               :y cy}])}
     (get symbols gear)]])
 
 (defn worker-gear
-  [{:keys [gear workers on-worker-click on-center-click actions rotation]}]
-  (let [x 340]
-    [:svg {:width x :height (* x 0.9)}
-     [gear-el {:cx (/ x 2)
-               :cy (/ x 2)
-               :r (/ x 4)
-               :rotation rotation
-               :teeth (get-in spec [:gears gear :teeth])
-               :tooth-height-factor 1.15
-               :tooth-width-factor 0.75
-               :workers workers
-               :gear gear
-               :actions actions
-               :on-center-click on-center-click
-               :on-worker-click on-worker-click}]]))
+  [{:keys [gear workers on-worker-click on-center-click actions rotation size]}]
+  [gear-el {:cx (/ size 2)
+            :cy (/ size 5)
+            :r (if (= :chi gear) 100 80)
+            :rotation rotation
+            :teeth (get-in spec [:gears gear :teeth])
+            :tooth-height-factor 1.15
+            :tooth-width-factor 0.75
+            :workers workers
+            :gear gear
+            :actions actions
+            :on-center-click on-center-click
+            :on-worker-click on-worker-click}])
+
+(defn gear-layout-el
+  [gear-data]
+  (let [size 850]
+    [:svg {:width size :height size}
+           ;; for testing
+           ; :style {:background-color "pink"}}
+     (map
+      (fn [gear]
+        (let [loc (-> spec :gears gear :location)]
+          [:g {:key gear
+               :transform (transform-str [:rotate {:deg (* loc (/ 360 26))
+                                                   :x (/ size 2)
+                                                   :y (/ size 1.95)}])}
+           (worker-gear {:gear gear
+                         :size size
+                         :workers (-> gear-data gear :workers)
+                         :on-worker-click (-> gear-data gear :on-worker-click)
+                         :on-center-click (-> gear-data gear :on-center-click)
+                         :teeth (-> gear-data gear :teeth)
+                         :rotation (-> gear-data gear :rotation)
+                         :actions (-> gear-data gear :actions)})]))
+      '(:pal :yax :tik :uxe :chi))]))
 
 (defn player-circle-el
   [color]
@@ -537,10 +568,10 @@
 
 (defn temples-el
   [{:keys [players]}]
-  [:div.ui.equal.width.grid
+  [:div.ui.equal.width.grid {:style {:padding "0.5rem"}}
    (for [[t temple] (:temples spec)]
      ^{:key t}
-     [:div.bottom.aligned.column {:style {:padding "0.7rem"}}
+     [:div.bottom.aligned.column {:style {:padding "0.8rem"}}
       [:div.ui.center.aligned.segment {:style {:padding "0.5rem"}}
        [:div {:style {:margin "1rem"}}
         [:span {:style {:font-size "3rem"}}
@@ -580,7 +611,7 @@
                  :display "inline-block"
                  :padding ".3rem .4rem"
                  :border-radius ".28rem"}}
-   content])
+   (into [:span] content)])
 
 (defn tech-tracks-el
   [{:keys [players]}]

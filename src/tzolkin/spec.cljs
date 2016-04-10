@@ -310,7 +310,7 @@
                    [:choose-action {:gear :uxe}]]}
    :chi {:name "Chichen Itza"
          :teeth 13
-         :location 16
+         :location 16.7
          :regular-actions 9
          :actions [[:skull-action {:points 4
                                    :temple :chac}]
