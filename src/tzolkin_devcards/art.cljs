@@ -72,12 +72,12 @@
         [:div.ten.wide.column
          [:svg {:width (* size 5)
                 :height (* size 5)}
-          [art/gear-el {:cx (* size 2)
+          [art/gear-svg {:cx (* size 2)}
                         :cy (* size 2)
                         :r size
                         :teeth teeth
                         :tooth-width-factor tooth-width-factor
-                        :tooth-height-factor tooth-height-factor}]]]]]))
+                        :tooth-height-factor tooth-height-factor]]]]]))
   (rg/atom {:size 75
             :teeth 12
             :tooth-width-factor 1
@@ -92,7 +92,7 @@
         workers [:blue :none :blue :red :none :none :red :none :none :none]]
     (fn []
       [:svg {:width 300 :height 300}
-       [art/gear-el {:cx 150
+       [art/gear-svg {:cx 150
                      :cy 150
                      :r 75
                      :teeth 10
@@ -146,18 +146,17 @@
                        :chi {:workers (vec (repeat 13 :none))}}))
 
 (def jungle-atom
-  (rg/atom [{:corn-tiles 2
+  (rg/atom [{:corn-tiles 4}
+            {:corn-tiles 3
              :wood-tiles 2}
+            {:corn-tiles 3
+             :wood-tiles 1}
             {:corn-tiles 2
-             :wood-tiles 2}
-            {:corn-tiles 2
-             :wood-tiles 2}
-            {:corn-tiles 2
-             :wood-tiles 2}]))
+             :wood-tiles 0}]))
 
 (defcard-rg jungle-test
   [:svg {:width 280 :height 210}
    [:g {:transform "translate(0 50)"}
-    (art/jungle-el 200 120 85 10 @jungle-atom)]]
+    (art/jungle-svg 200 120 85 10 @jungle-atom)]]
   jungle-atom
   {:inspect-data true})

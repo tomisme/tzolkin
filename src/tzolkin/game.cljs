@@ -85,12 +85,12 @@
 
 (def new-game-events
   [[:new-game]
-   [:add-player {:name "Aaron" :color :red}]
+   [:add-player {:name "Elisa" :color :red}]
    [:add-player {:name "Tom" :color :blue}]])
 
 (def test-events
   [[:new-game]
-   [:add-player {:name "Aaron" :color :red}]
+   [:add-player {:name "Elisa" :color :red}]
    [:add-player {:name "Tom" :color :blue}]
    [:give-stuff {:pid 0 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
    [:give-stuff {:pid 1 :k :materials :changes {:corn 99 :wood 99 :stone 99 :gold 99}}]
