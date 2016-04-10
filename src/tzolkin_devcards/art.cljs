@@ -144,3 +144,20 @@
                        :uxe {:workers (vec (repeat 10 :none))}
                        :tik {:workers (vec (repeat 10 :none))}
                        :chi {:workers (vec (repeat 13 :none))}}))
+
+(def jungle-atom
+  (rg/atom [{:corn-tiles 2
+             :wood-tiles 2}
+            {:corn-tiles 2
+             :wood-tiles 2}
+            {:corn-tiles 2
+             :wood-tiles 2}
+            {:corn-tiles 2
+             :wood-tiles 2}]))
+
+(defcard-rg jungle-test
+  [:svg {:width 280 :height 210}
+   [:g {:transform "translate(0 50)"}
+    (art/jungle-el 200 120 85 10 @jungle-atom)]]
+  jungle-atom
+  {:inspect-data true})

@@ -481,9 +481,34 @@
     ;   index]
     workers)])
 
+(defn jungle-el
+  [cx cy r teeth jungle]
+  (let [width (/ r 1.5)
+        step (/ 360 teeth)]
+    [:g
+     (map-indexed
+      (fn [index box]
+        [:rect {:key index
+                :stroke (get color-strings :pal)
+                :stroke-width (/ width 20)
+                :fill (get color-strings :pal)
+                :fill-opacity "0.5"
+                :x (- cx (/ width 2))
+                :y (- (* r -0.15) (/ width 2))
+                :rx (/ r 10)
+                :ry (/ r 10)
+                :width width
+                :height width
+                :transform (transform-str [:rotate {:deg (-
+                                                          (* index step)
+                                                          (* 2.5 step))
+                                                    :x cx
+                                                    :y cy}])}])
+      jungle)]))
+
 (defn gear-el
   [{:keys [cx cy r teeth rotation workers on-worker-click on-center-click
-           tooth-height-factor tooth-width-factor gear actions]}]
+           tooth-height-factor tooth-width-factor gear actions jungle]}]
   [:g {:transform (transform-str [:rotate {:deg (/ 360 teeth)
                                            :x cx
                                            :y cy}])}
@@ -522,10 +547,11 @@
                                                      (/ 360 teeth))
                                                :x cx
                                                :y cy}])}
-    (get symbols gear)]])
+    (get symbols gear)]
+   (when (= :pal gear) (jungle-el cx cy r teeth jungle))])
 
 (defn worker-gear
-  [{:keys [gear workers on-worker-click on-center-click actions rotation size]}]
+  [{:keys [gear workers on-worker-click on-center-click actions rotation size jungle]}]
   [gear-el {:cx (/ size 2)
             :cy (/ size 5)
             :r (if (= :chi gear) 100 80)
@@ -535,13 +561,23 @@
             :tooth-width-factor 0.75
             :workers workers
             :gear gear
+            :jungle jungle
             :actions actions
             :on-center-click on-center-click
             :on-worker-click on-worker-click}])
 
 (defn gear-layout-el
   [gear-data]
-  (let [size 850]
+  (let [size 850
+        ;; TODO
+        jungle [{:corn-tiles 2
+                 :wood-tiles 2}
+                {:corn-tiles 2
+                 :wood-tiles 2}
+                {:corn-tiles 2
+                 :wood-tiles 2}
+                {:corn-tiles 2
+                 :wood-tiles 2}]]
     [:svg {:width size :height size}
            ;; for testing
            ; :style {:background-color "pink"}}
@@ -554,6 +590,7 @@
                                                    :y (/ size 1.95)}])}
            (worker-gear {:gear gear
                          :size size
+                         :jungle (if (= :pal gear) jungle)
                          :workers (-> gear-data gear :workers)
                          :on-worker-click (-> gear-data gear :on-worker-click)
                          :on-center-click (-> gear-data gear :on-center-click)
