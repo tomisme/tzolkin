@@ -20,6 +20,8 @@
                  [[:new-game]
                   [:add-player {:name "Elisa" :color :red}]
                   [:add-player {:name "Tom"   :color :blue}]
+                  [:add-player {:name "Aaron" :color :orange}]
+                  [:add-player {:name "Jess"  :color :yellow}]
                   [:start-game {:test? true}]]))
 
 (deftest es-tests
@@ -41,12 +43,12 @@
   ;            (update-in [:players 0 :workers] - 3)
   ;            (update-in [:players 1 :workers] - 2))))
   (testing
-    (nod (reduce-events s [[:end-turn {:pid 0}]
-                           [:end-turn {:pid 1}]
-                           [:end-turn {:pid 0}]
-                           [:end-turn {:pid 1}]])
+    (nod (reduce-events s [[:end-turn]
+                           [:end-turn]
+                           [:end-turn]
+                           [:end-turn]])
          (-> s
-             (update :turn + 2)))))
+             (update :turn + 1)))))
 
 (def test-es-atom
   (rg/atom (logic/gen-es game/test-events)))

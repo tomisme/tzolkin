@@ -33,6 +33,8 @@
              (logic/adjust-temples 0 {:chac 4 :quet 2 :kuku 5})
              (logic/adjust-materials 0 {:corn 6})
              (logic/adjust-materials 1 {:corn 6})
+             (logic/adjust-materials 2 {:corn 6})
+             (logic/adjust-materials 3 {:corn 6})
              (logic/food-day))
          (-> s
              (assoc :turn 14)
@@ -45,6 +47,8 @@
              (logic/adjust-temples 1 {:chac 3})
              (logic/adjust-materials 0 {:corn 10})
              (logic/adjust-materials 1 {:corn 6})
+             (logic/adjust-materials 2 {:corn 6})
+             (logic/adjust-materials 3 {:corn 6})
              (logic/food-day))
          (-> s
              (assoc :turn 8)
@@ -58,10 +62,11 @@
              (logic/adjust-temples 1 {:chac 3})
              (logic/adjust-materials 0 {:corn 10})
              (logic/adjust-materials 1 {:corn 6})
-             (logic/end-turn)
-             (logic/end-turn))
+             (logic/adjust-materials 2 {:corn 6})
+             (logic/adjust-materials 3 {:corn 6})
+             (logic/food-day))
          (-> s
-             (assoc :turn 9)
+             (assoc :turn 8)
              (logic/adjust-temples 0 {:kuku 4 :quet 2})
              (logic/adjust-temples 1 {:chac 3})
              (logic/adjust-materials 0 {:skull 1 :wood 2 :gold 1 :corn 4})

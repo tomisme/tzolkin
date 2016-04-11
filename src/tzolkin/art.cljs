@@ -684,9 +684,35 @@
                  :border-radius ".28rem"}}
    (into [:span] content)])
 
+(defn tech-player-circles
+  [players track step]
+  (map
+   (fn [player]
+     (when (= (get-in player [:tech track]) step)
+       (player-circle-el (:color player))))
+   players))
+
+(defn tech-first-col
+  [players track]
+  [:div.two.wide.column {:style {:padding "0.2rem"}}
+    [:div.ui.segment {:style {:height "7rem"
+                              :padding-left "0.25em"
+                              :padding-right "0.25em"}}
+     [:div.top.attached.ui.label (name track)]
+     (tech-player-circles players track 0)]])
+
+(defn tech-player-box
+  [players track step]
+  [:div {:style {:top "auto"
+                 :bottom "0.2rem"
+                 :left "0.5rem"
+                 :position "absolute"
+                 :width "100%"}}
+   (tech-player-circles players track step)])
+
 (defn tech-tracks-el
-  [{:keys [players]}]
-  [:div.ui.grid {:style {:margin "0.15rem"}}
+  [players]
+  [:div.ui.grid {:style {:margin 0}}
    [:div.row {:style {:padding "0.1rem"}}
     [:div.two.wide.column {:style {:padding "0.2rem"}}]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
@@ -702,77 +728,81 @@
       [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
        (:resource symbols)]]]
    [:div.row {:style {:padding "0.1rem"}}
-    [:div.two.wide.column {:style {:padding "0.2rem"}}
-      [:div.ui.segment {:style {:height "7rem"}}
-       [:div.top.attached.ui.label "agri"]]]
+    (tech-first-col players :agri)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :pal
-        [:i.plus.icon] (:corn symbols))]]
+        [:i.plus.icon] (:corn symbols))
+       (tech-player-box players :agri 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :water
         [:i.plus.icon] (:corn symbols))
        [:br]
-       "no burn"]]
+       "no tile req."
+       (tech-player-box players :agri 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :pal
-        [:i.plus.icon] (:corn symbols) (:corn symbols))]]
+        [:i.plus.icon] (:corn symbols) (:corn symbols))
+       (tech-player-box players :agri 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (:chac symbols) "/" (:quet symbols) "/" (:kuku symbols)]]]
    [:div.row {:style {:padding "0.1rem"}}
-    [:div.two.wide.column {:style {:padding "0.2rem"}}
-      [:div.ui.segment {:style {:height "7rem"}}
-       [:div.top.attached.ui.label "extr"]]]
+    (tech-first-col players :extr)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :yax
         [:i.plus.icon] (:wood symbols))
        (tech-label :pal
-        [:i.plus.icon] (:wood symbols))]]
+        [:i.plus.icon] (:wood symbols))
+       (tech-player-box players :extr 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :yax
-        [:i.plus.icon] (:stone symbols))]]
+        [:i.plus.icon] (:stone symbols))
+       (tech-player-box players :extr 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :yax
-        [:i.plus.icon] (:gold symbols))]]
+        [:i.plus.icon] (:gold symbols))
+       (tech-player-box players :extr 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (:resource symbols) (:resource symbols)]]]
    [:div.row {:style {:padding "0.1rem"}}
-    [:div.two.wide.column {:style {:padding "0.2rem"}}
-      [:div.ui.segment {:style {:height "7rem"}}
-       [:div.top.attached.ui.label "arch"]]]
+    (tech-first-col players :arch)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (:corn symbols) [:br] "w/ build"]]
+       (:corn symbols) [:br] "w/ build"
+       (tech-player-box players :arch 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (points-el 2) [:br] "w/ build"]]
+       (points-el 2) [:br] "w/ build"
+       (tech-player-box players :arch 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [:i.minus.icon] (:resource symbols) [:br] "w/ build"]]
+       [:i.minus.icon] (:resource symbols) [:br] "w/ build"
+       (tech-player-box players :arch 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (points-el 3)]]]
    [:div.row {:style {:padding "0.1rem"}}
-    [:div.two.wide.column {:style {:padding "0.2rem"}}
-      [:div.ui.segment {:style {:height "7rem"}}
-       [:div.top.attached.ui.label "theo"]]]
+    (tech-first-col players :theo)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (:chi symbols) [:i.chevron.right.icon]]]
+       (:chi symbols) [:i.chevron.right.icon]
+       (tech-player-box players :theo 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (:resource symbols) ":" [:br]
-       (:chac symbols) "/" (:quet symbols) "/" (:kuku symbols)]]
+       (:chac symbols) "/" (:quet symbols) "/" (:kuku symbols)
+       (tech-player-box players :theo 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [:i.plus.icon] (:skull symbols)]]
+       [:i.plus.icon] (:skull symbols)
+       (tech-player-box players :theo 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (:skull symbols)]]]])

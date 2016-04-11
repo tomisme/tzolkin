@@ -72,12 +72,12 @@
         [:div.ten.wide.column
          [:svg {:width (* size 5)
                 :height (* size 5)}
-          [art/gear-svg {:cx (* size 2)}
-                        :cy (* size 2)
-                        :r size
-                        :teeth teeth
-                        :tooth-width-factor tooth-width-factor
-                        :tooth-height-factor tooth-height-factor]]]]]))
+          [art/gear-svg {:cx (* size 2)
+                         :cy (* size 2)
+                         :r size
+                         :teeth teeth
+                         :tooth-width-factor tooth-width-factor
+                         :tooth-height-factor tooth-height-factor}]]]]]))
   (rg/atom {:size 75
             :teeth 12
             :tooth-width-factor 1
@@ -93,14 +93,14 @@
     (fn []
       [:svg {:width 300 :height 300}
        [art/gear-svg {:cx 150
-                     :cy 150
-                     :r 75
-                     :teeth 10
-                     :tooth-height-factor 1.15
-                     :tooth-width-factor 0.75
-                     :workers workers
-                     :gear :tik
-                     :rotation @rotation-spring}]])))
+                      :cy 150
+                      :r 75
+                      :teeth 10
+                      :tooth-height-factor 1.15
+                      :tooth-width-factor 0.75
+                      :workers workers
+                      :gear :tik
+                      :rotation @rotation-spring}]])))
 
 (defcard-rg spinning-worker-gear-test
   [:div
@@ -119,11 +119,21 @@
   [art/game-log-el {:stream test-event-stream}])
 
 (defcard-rg temple-art-test
-  (art/temples-el s))
+  [:div {:style {:width 462}}
+   (art/temples-el s)])
 
 (defcard-rg tech-art-test
-  [:div {:style {:width 480}}
-   (art/tech-tracks-el s)])
+  [:div {:style {:width 480
+                 :font-size 14}}
+   (art/tech-tracks-el (-> (:players s)
+                           (assoc-in [0 :tech :arch] 1)
+                           (assoc-in [1 :tech :arch] 1)
+                           (assoc-in [2 :tech :arch] 1)
+                           (assoc-in [3 :tech :arch] 1)
+                           (assoc-in [0 :tech :theo] 1)
+                           (assoc-in [1 :tech :theo] 1)
+                           (assoc-in [2 :tech :theo] 1)
+                           (assoc-in [3 :tech :theo] 1)))])
 
 (defcard-rg status-bar-test
   (art/status-bar-el s #(log [%1 %2]) #(log "trading!") #(log "stopping trading") #(log "end turn!") #(log "start game!") #(log "add player")))

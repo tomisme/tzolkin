@@ -83,6 +83,12 @@
   [es-atom re-state]
   (art/temples-el @re-state))
 
+(defn tech-tracks-wrapper
+  [es-atom re-state]
+  (let [players (reaction (log (:players @re-state)))]
+    (fn []
+      (art/tech-tracks-el @players))))
+
 (def new-game-events
   [[:new-game]
    [:add-player {:name "Elisa" :color :red}]
@@ -121,9 +127,6 @@
        [fb-conn-indicator-wrapper local-state-atom]]
      [:div.seven.wide.column {:style {:padding-left 0}}
       [worker-gears-wrapper es-atom re-state save]]
-       ; (into [:div]
-       ;   (for [[k _] (:gears spec)]
-       ;     [worker-gear-wrapper es-atom re-state k save]))]
      [:div.four.wide.column
        [temples-wrapper es-atom re-state]
-       [art/tech-tracks-el]]]))
+       [tech-tracks-wrapper es-atom re-state]]]))

@@ -24,7 +24,7 @@
   (devtools/install!)
   (enable-console-print!))
 
-; (setup-dev!)
+(setup-dev!)
 
 (defn tests
   []
