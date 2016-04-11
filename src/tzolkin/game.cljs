@@ -89,10 +89,17 @@
     (fn []
       (art/tech-tracks-el @players))))
 
-(def new-game-events
+(def new-2p-game-events
   [[:new-game]
    [:add-player {:name "Elisa" :color :red}]
    [:add-player {:name "Tom" :color :blue}]])
+
+(def new-4p-game-events
+  [[:new-game]
+   [:add-player {:name "Elisa" :color :red}]
+   [:add-player {:name "Tom"   :color :blue}]
+   [:add-player {:name "Aaron" :color :orange}]
+   [:add-player {:name "Jess"  :color :yellow}]])
 
 (def test-events
   [[:new-game]
@@ -113,13 +120,15 @@
   [es-atom local-state-atom save]
   (let [re-state (reaction (logic/current-state @es-atom))]
     [:div.ui.grid {:style {:margin 0}}
-     [:div.five.wide.column
+     [:div.four.wide.column
        [status-bar-wrapper es-atom re-state save]
        [game-log-wrapper es-atom save]
        [:button.ui.button {:on-click #(save (logic/gen-es test-events))}
          "test events"]
-       [:button.ui.button {:on-click #(save (logic/gen-es new-game-events))}
+       [:button.ui.button {:on-click #(save (logic/gen-es new-2p-game-events))}
          "new 2p game"]
+       [:button.ui.button {:on-click #(save (logic/gen-es new-4p-game-events))}
+         "new 4p game"]
        [:button.ui.button {:on-click #(save (logic/gen-es [[:new-game]]))}
          "new empty game"]
        [:button.ui.button {:on-click #(save (logic/gen-es nil))}
