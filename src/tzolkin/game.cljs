@@ -85,7 +85,7 @@
 
 (defn tech-tracks-wrapper
   [es-atom re-state]
-  (let [players (reaction (log (:players @re-state)))]
+  (let [players (reaction (:players @re-state))]
     (fn []
       (art/tech-tracks-el @players))))
 

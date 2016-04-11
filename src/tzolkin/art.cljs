@@ -635,11 +635,14 @@
 
 (defn player-circle-el
   [color]
-  [:i {:key color :class (str (name color) " circle icon")}])
+  [:i {:key color
+       :class (str (name color) " circle icon")
+       :style {:width "1.1rem"}}])
 
 (defn temples-el
   [{:keys [players]}]
-  [:div.ui.equal.width.grid {:style {:padding "0.5rem"}}
+  [:div.ui.equal.width.grid {:style {:padding "0.5rem"
+                                     :font-size 16}}
    (for [[t temple] (:temples spec)]
      ^{:key t}
      [:div.bottom.aligned.column {:style {:padding "0.8rem"}}
@@ -653,12 +656,11 @@
            (let [color (when (= step-index 1) "secondary ")]
              [:div {:key (str t step-index)
                     :class (str color "ui center aligned segment")
-                    :style {:height 30
-                            :padding "0.8em"
-                            :padding-left 0
-                            :padding-right 0
-                            :padding-top "0.34em"
+                    :style {:height "2.4rem"
+                            :padding-top "0.22rem"
                             :margin "0.5rem"
+                            :margin-left 0
+                            :margin-right 0
                             :z-index 1}}
               [:span
                (map-indexed
@@ -666,12 +668,13 @@
                   (when (= (get temples t) step-index)
                     (player-circle-el color)))
                 players)]
-              [:div.ui.top.left.attached.label {:style {:z-index -1
-                                                        :width "3rem"}}
-               points]
-               ;(points-el points)]
+              (when (not= 1 step-index)
+                [:div {:style {:position "absolute"
+                               :left "0.5rem"}}
+                 (points-el points)])
               (if material
-                [:div.ui.top.right.attached.label {:style {:z-index -1}}
+                [:div {:style {:position "absolute"
+                               :right "0.5rem"}}
                  (get symbols material)])]))
          (:steps temple)))]])])
 
@@ -680,7 +683,7 @@
   [:div {:style {:background-color (get color-strings gear)
                  :border-color (get color-strings gear)
                  :display "inline-block"
-                 :padding ".3rem .4rem"
+                 :padding ".28rem .3rem"
                  :border-radius ".28rem"}}
    (into [:span] content)])
 
@@ -696,8 +699,8 @@
   [players track]
   [:div.two.wide.column {:style {:padding "0.2rem"}}
     [:div.ui.segment {:style {:height "7rem"
-                              :padding-left "0.25em"
-                              :padding-right "0.25em"}}
+                              :padding-left "0.4em"
+                              :padding-right 0}}
      [:div.top.attached.ui.label (name track)]
      (tech-player-circles players track 0)]])
 
@@ -705,14 +708,14 @@
   [players track step]
   [:div {:style {:top "auto"
                  :bottom "0.2rem"
-                 :left "0.5rem"
                  :position "absolute"
                  :width "100%"}}
    (tech-player-circles players track step)])
 
 (defn tech-tracks-el
   [players]
-  [:div.ui.grid {:style {:margin 0}}
+  [:div.ui.grid {:style {:margin 0
+                         :font-size 16}}
    [:div.row {:style {:padding "0.1rem"}}
     [:div.two.wide.column {:style {:padding "0.2rem"}}]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
@@ -738,8 +741,8 @@
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :water
         [:i.plus.icon] (:corn symbols))
-       [:br]
-       "no tile req."
+       [:p {:style {:font-size 14}}
+        "no tile req."]
        (tech-player-box players :agri 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
@@ -775,15 +778,21 @@
     (tech-first-col players :arch)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (:corn symbols) [:br] "w/ build"
+       (:corn symbols)
+       [:p {:style {:font-size 14}}
+        "w/ build"]
        (tech-player-box players :arch 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (points-el 2) [:br] "w/ build"
+       (points-el 2)
+       [:p {:style {:font-size 14}}
+        "w/ build"]
        (tech-player-box players :arch 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [:i.minus.icon] (:resource symbols) [:br] "w/ build"
+       [:i.minus.icon] (:resource symbols)
+       [:p {:style {:font-size 14}}
+        "w/ build"]
        (tech-player-box players :arch 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
@@ -797,7 +806,8 @@
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (:resource symbols) ":" [:br]
-       (:chac symbols) "/" (:quet symbols) "/" (:kuku symbols)
+       [:p {:style {:font-size 14}}
+        (:chac symbols) "/" (:quet symbols) "/" (:kuku symbols)]
        (tech-player-box players :theo 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}

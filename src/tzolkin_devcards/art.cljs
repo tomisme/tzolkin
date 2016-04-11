@@ -123,8 +123,7 @@
    (art/temples-el s)])
 
 (defcard-rg tech-art-test
-  [:div {:style {:width 480
-                 :font-size 14}}
+  [:div {:style {:width 480}}
    (art/tech-tracks-el (-> (:players s)
                            (assoc-in [0 :tech :arch] 1)
                            (assoc-in [1 :tech :arch] 1)
