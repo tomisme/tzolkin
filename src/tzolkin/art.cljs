@@ -171,6 +171,7 @@
                    :starters "which starter tile to take."
                    :action "which action to take."
                    :gain-materials "which materials to gain."
+                   :jungle-mats "which materials to gain."
                    :gain-resource "which resource to gain."
                    :pay-resource "which resource to pay."
                    :build-building "which building to build."
@@ -194,6 +195,7 @@
                        :beg? (if option "Beg for corn" "Don't beg")
                        :action (str option)
                        :gain-materials (symbols-str option)
+                       :jungle-mats (symbols-str option)
                        :gain-resource (symbols-str option)
                        :pay-resource (symbols-str option)
                        :build-building index
@@ -341,7 +343,11 @@
   [[k data]]
   (case k
     :gain-materials  (symbols-str data)
-    :choose-mats (str (symbols-str (first data)) "/" (symbols-str (second data)))
+    :jungle-mats (if (> (:jungle-id data) 0)
+                   (str (symbols-str {:corn (:corn data)})
+                        "/"
+                        (symbols-str {:wood (:wood data)}))
+                   (symbols-str {:corn (:corn data)}))
     :choose-action (if (= (:gear data) :non-chi)
                      (str (:corn symbols) ": action")
                      (str (:choose-prev symbols) (get symbols (:gear data))))
@@ -602,16 +608,8 @@
              :on-worker-click on-worker-click}])
 
 (defn gear-layout-el
-  [gear-data]
-  (let [size 850
-        ;; TODO
-        jungle [{:corn-tiles 4}
-                {:corn-tiles 4
-                 :wood-tiles 4}
-                {:corn-tiles 4
-                 :wood-tiles 4}
-                {:corn-tiles 4
-                 :wood-tiles 4}]]
+  [gear-data jungle]
+  (let [size 850]
     [:svg {:width size :height size}
            ;; for testing
            ; :style {:background-color "pink"}}
@@ -657,12 +655,16 @@
              [:div {:key (str t step-index)
                     :class (str color "ui center aligned segment")
                     :style {:height "2.4rem"
-                            :padding-top "0.22rem"
+                            :padding-top "0.24rem"
                             :margin "0.5rem"
                             :margin-left 0
                             :margin-right 0
                             :z-index 1}}
-              [:span
+              [:div {:style {:position "absolute"
+                             :bottom "0.5rem"
+                             :left 0
+                             :right 0
+                             :margin "auto"}}
                (map-indexed
                 (fn [pid {:keys [temples color]}]
                   (when (= (get temples t) step-index)
@@ -707,7 +709,7 @@
 (defn tech-player-box
   [players track step]
   [:div {:style {:top "auto"
-                 :bottom "0.2rem"
+                 :bottom "0.5rem"
                  :position "absolute"
                  :width "100%"}}
    (tech-player-circles players track step)])
@@ -836,6 +838,7 @@
           :pay-resource (str " chose to pay " (symbols-str choice))
           :gain-resource (str " chose to gain " (symbols-str choice))
           :gain-materials (str " chose to gain " (symbols-str choice))
+          :jungle-mats (str " chose to gain " (symbols-str choice))
           :two-diff-temples (str " chose to gain favour with "
                                  (symbols-str choice))
           :tech (str " chose to go up on " (symbols-str choice))

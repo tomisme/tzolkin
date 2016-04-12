@@ -259,13 +259,17 @@
          :location 22
          :regular-actions 5
          :actions [[:gain-materials {:corn 3}]
-                   [:gain-materials {:corn 4}]
-                   [:choose-mats [{:corn 5}
-                                  {:wood 2}]]
-                   [:choose-mats [{:corn 7}
-                                  {:wood 3}]]
-                   [:choose-mats [{:corn 9}
-                                  {:wood 4}]]
+                   [:jungle-mats {:corn 4
+                                  :jungle-id 0}]
+                   [:jungle-mats {:corn 5
+                                  :wood 2
+                                  :jungle-id 1}]
+                   [:jungle-mats {:corn 7
+                                  :wood 3
+                                  :jungle-id 2}]
+                   [:jungle-mats {:corn 9
+                                  :wood 4
+                                  :jungle-id 3}]
                    [:choose-action {:gear :pal}]
                    [:choose-action {:gear :pal}]]}
    :yax {:name "Yaxchilan"

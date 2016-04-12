@@ -9,7 +9,8 @@
 
 (defn worker-gears-wrapper
   [es-atom re-state save]
-  (let [data (into {}
+  (let [jungle (:jungle @re-state)
+        data (into {}
                (for [[gear _] (:gears spec)]
                  [gear
                   {:on-worker-click (fn [slot]
@@ -26,7 +27,7 @@
                    :workers (get-in @re-state [:gears gear])
                    :rotation (* (/ 360 (get-in spec [:gears gear :teeth])) (:turn @re-state))
                    :actions (get-in spec [:gears gear :actions])}]))]
-    [art/gear-layout-el data]))
+    [art/gear-layout-el data jungle]))
 
 (defn status-bar-wrapper
   [es-atom re-state save]

@@ -17,7 +17,7 @@ If you want to have a poke around run `lein figwheel`, open
  - [x] buildings
  - [ ] temple rewards
  - [ ] monuments
- - [ ] jungle
+ - [x] jungle
  - [ ] starting player
  - [ ] dummy workers
  - [x] beg for corn

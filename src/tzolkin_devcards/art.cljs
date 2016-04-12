@@ -148,11 +148,13 @@
   (art/trade-window-el {:materials {:corn 8 :wood 2 :stone 1 :gold 1 :skull 1}} #(log %) #(log %)))
 
 (defcard-rg gear-layout-test
-  (art/gear-layout-el {:pal {:workers (vec (repeat 10 :none))}
-                       :yax {:workers (vec (repeat 10 :none))}
-                       :uxe {:workers (vec (repeat 10 :none))}
-                       :tik {:workers (vec (repeat 10 :none))}
-                       :chi {:workers (vec (repeat 13 :none))}}))
+  (art/gear-layout-el
+   {:pal {:workers (vec (repeat 10 :none))}
+    :yax {:workers (vec (repeat 10 :none))}
+    :uxe {:workers (vec (repeat 10 :none))}
+    :tik {:workers (vec (repeat 10 :none))}
+    :chi {:workers (vec (repeat 13 :none))}}
+   []))
 
 (def jungle-atom
   (rg/atom [{:corn-tiles 4}

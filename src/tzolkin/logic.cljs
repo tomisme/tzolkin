@@ -89,11 +89,13 @@
                    :pay-resource resource-options
                    :gain-resource resource-options
                    :gain-materials data
+                   :jungle-mats (:options data)
                    :build-monument (:monuments state)
                    :build-building (building-options state)
-                   :tech tech-options)]
-     (update-in state [:active :decisions] into (repeat num {:type type
-                                                             :options options}))))
+                   :tech tech-options)
+         decision (cond-> {:type type :options options}
+                    (= :jungle-mats type) (conj [:jungle-id (:jungle-id data)]))]
+     (cond-> (update-in state [:active :decisions] into (repeat num decision)))))
   ([state pid type]
    (add-decision state pid type {})))
 
@@ -162,46 +164,15 @@
   (let [{:keys [cost tech temples materials trade build points
                 gain-worker #_free-action-for-corn]} building]
     (-> (cond-> state
+          tech        (build-tech-building pid tech)
           build       (build-builder-building pid build)
           trade       (start-trading pid)
           points      (adjust-points pid points)
           temples     (adjust-temples pid temples)
           materials   (adjust-materials pid materials)
-          gain-worker (adjust-workers pid 1)
-          tech        (build-tech-building pid tech))
+          gain-worker (adjust-workers pid 1))
         (update-in [:players pid :buildings] conj building)
         (pay-cost pid cost))))
-
-;; ============
-;; =  Actions =
-;; ============
-
-(defn handle-skull-action
-  [state pid {:keys [resource points temple]}]
-  (-> (cond-> state
-        resource (add-decision pid :gain-resource)
-        points   (adjust-points pid points)
-        temple   (adjust-temples pid {temple 1}))
-    (update-in [:players pid :materials :skull] dec)))
-
-(defn handle-action
-  [state pid [k v]]
-  (let [build-building?     (and (= :build k) (= :single (:type v)))
-        choose-a-temple?    (and (= :temples k) (= :any (:choose v)))
-        choose-two-temples? (and (= :temples k) (= :two-different (:choose v)))]
-    (-> (cond-> state
-          (= :skull-action k)   (handle-skull-action pid v)
-          (= :gain-worker k)    (adjust-workers pid 1)
-          (= :gain-materials k) (adjust-materials pid v)
-          (= :choose-action k)  (add-decision pid :action v)
-          (= :tech k)           (add-decision pid :tech (:steps v))
-          (= :choose-mats k)    (add-decision pid :gain-materials v)
-          build-building?       (add-decision pid :build-building)
-          choose-a-temple?      (add-decision pid :temple v)
-          choose-two-temples?   (add-decision pid :two-diff-temples v)
-          (= :trade k)          (start-trading pid)
-
-          (:cost v)             (pay-cost pid (:cost v))))))
 
 ;; ==============
 ;; = Game Start =
@@ -217,6 +188,14 @@
       (assoc :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec)))))
       (assoc :monuments (vec (take (+ 2 (count (:players state)))
                                    (shuffle (:monuments spec)))))))
+
+(defn setup-jungle
+  [state]
+  (let [num (count (:players state))]
+    (assoc state :jungle [{:corn-tiles num}
+                          {:corn-tiles num :wood-tiles num}
+                          {:corn-tiles num :wood-tiles num}
+                          {:corn-tiles num :wood-tiles num}])))
 
 (defn choose-starter-tiles
   [state pid]
@@ -313,6 +292,56 @@
         (adjust-materials pid {:corn (- 3 corn)})
         (add-decision pid :anger-god))))
 
+;; ============
+;; =  Actions =
+;; ============
+
+(defn handle-skull-action
+  [state pid {:keys [resource points temple]}]
+  (-> (cond-> state
+        resource (add-decision pid :gain-resource)
+        points   (adjust-points pid points)
+        temple   (adjust-temples pid {temple 1}))
+    (update-in [:players pid :materials :skull] dec)))
+
+(defn handle-jungle-action
+  [state pid v]
+  (let [player (get-in state [:players :pid])
+        corn (:corn v)
+        wood (:wood v)
+        id (:jungle-id v)
+        corn-tiles (get-in state [:jungle id :corn-tiles])
+        wood-tiles (get-in state [:jungle id :wood-tiles])
+        corn? (and (> corn-tiles 0))
+        wood? (and (> wood-tiles 0))
+        options (cond-> []
+                  corn? (conj {:corn corn})
+                  wood? (conj {:wood wood}))]
+    (if (and corn? (not wood?))
+      (-> (adjust-materials state pid {:corn corn})
+          (update-in [:jungle id :corn-tiles] dec))
+      (add-decision state pid :jungle-mats {:options options :jungle-id id}))))
+
+(defn handle-action
+  [state pid [k v]]
+  (let [build-building?     (and (= :build k) (= :single (:type v)))
+        choose-a-temple?    (and (= :temples k) (= :any (:choose v)))
+        choose-two-temples? (and (= :temples k) (= :two-different (:choose v)))]
+    (-> (cond-> state
+          (= :skull-action k)   (handle-skull-action pid v)
+          (= :gain-worker k)    (adjust-workers pid 1)
+          (= :gain-materials k) (adjust-materials pid v)
+          (= :choose-action k)  (add-decision pid :action v)
+          (= :tech k)           (add-decision pid :tech (:steps v))
+          (= :jungle-mats k)    (handle-jungle-action pid v)
+
+          build-building?       (add-decision pid :build-building)
+          choose-a-temple?      (add-decision pid :temple v)
+          choose-two-temples?   (add-decision pid :two-diff-temples v)
+          (= :trade k)          (start-trading pid)
+
+          (:cost v)             (pay-cost pid (:cost v))))))
+
 ;; ==================
 ;; = Event Handlers =
 ;; ==================
@@ -337,6 +366,26 @@
                             next-dec)
       :gain-resource    (-> (adjust-materials state pid choice)
                             next-dec)
+      :jungle-mats      (let [id (:jungle-id decision)
+                              corn-tiles (get-in state [:jungle id :corn-tiles])
+                              wood-tiles (get-in state [:jungle id :wood-tiles])
+                              corn? (and (> corn-tiles 0))
+                              wood? (and (> wood-tiles 0))]
+                          (if (and (not corn?) (not wood?))
+                            (update state :errors conj "There are no jungle tiles left")
+                            (if (contains? choice :corn)
+                              (if corn?
+                                (cond-> (-> (adjust-materials state pid choice)
+                                            (update-in [:jungle id :corn-tiles] dec)
+                                            next-dec)
+                                  (= corn-tiles wood-tiles) (add-decision pid :anger-god)
+                                  (= corn-tiles wood-tiles) (update-in [:jungle id :wood-tiles] dec))
+                                (update state :errors conj "There are no corn tiles left"))
+                              (if wood?
+                                (-> (adjust-materials state pid choice)
+                                    (update-in [:jungle id :wood-tiles] dec)
+                                    next-dec)
+                                (update state :errors conj "There are no wood tiles left")))))
       :pay-resource     (if (cost-payable? state pid choice)
                           (-> (adjust-materials state pid (negatise-map choice))
                               next-dec)
@@ -464,7 +513,8 @@
            (not test?) (choose-starter-tiles 0)
            test? (assoc :test? true))
          (update :turn inc)
-         setup-buildings-monuments))))
+         setup-buildings-monuments
+         setup-jungle))))
 
 (defn add-player
   [state name color]

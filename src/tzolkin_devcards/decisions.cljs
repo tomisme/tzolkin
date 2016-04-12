@@ -27,6 +27,32 @@
              (logic/handle-decision 1))
          (-> s
              (update-in [:players 0 :materials :stone] + 1))))
+  (testing "jungle materials"
+    (nod (-> s
+             (logic/add-decision 0 :jungle-mats {:options [{:corn 3} {:wood 2}]
+                                                 :jungle-id 1})
+             (logic/handle-decision 1))
+         (-> s
+             (update-in [:players 0 :materials :wood] + 2)
+             (update-in [:jungle 1 :wood-tiles] - 1)))
+    (nod (-> s
+             (update-in [:jungle 2 :wood-tiles] - 1)
+             (logic/add-decision 0 :jungle-mats {:options [{:corn 3} {:wood 2}]
+                                                 :jungle-id 2})
+             (logic/handle-decision 0))
+         (-> s
+             (update-in [:jungle 2 :wood-tiles] - 1)
+             (update-in [:players 0 :materials :corn] + 3)
+             (update-in [:jungle 2 :corn-tiles] - 1)))
+    (nod (-> s
+             (logic/add-decision 0 :jungle-mats {:options [{:corn 3} {:wood 2}]
+                                                 :jungle-id 2})
+             (logic/handle-decision 0))
+         (-> s
+             (update-in [:players 0 :materials :corn] + 3)
+             (update-in [:jungle 2 :corn-tiles] - 1)
+             (update-in [:jungle 2 :wood-tiles] - 1)
+             (logic/add-decision 0 :anger-god))))
   (testing "gain resource"
     (nod (-> s
              (logic/add-decision 0 :gain-resource)
