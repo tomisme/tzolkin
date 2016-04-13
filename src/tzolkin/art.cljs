@@ -142,12 +142,12 @@
 
 (defn starter-card
   [{:keys [materials tech farm temple gain-worker]} on-select]
-  [:div.ui.button.card {:style {:width "7rem"
+  [:div.ui.button.card {:style {:width "6rem"
                                 :margin "0.3rem"
                                 :font-size "0.9rem"
                                 :font-weight "inherit"}
                         :on-click on-select}
-   [:div.center.aligned.content
+   [:div.center.aligned.content {:style {:padding "0.8rem 0"}}
     [:div.description
       (when materials [:p (symbols-str materials)])
       (when tech [:p (get symbols tech)])
@@ -182,28 +182,30 @@
       [:div
        [:div {:class (str "ui inverted segment " color-str)}
         msg]
-       (into [:div {:class (when (= :starters type) "ui cards")}
+       (into [:div {:class (when (= :starters type) "ui cards")
+                    :style {:margin-top "0.5rem"
+                            :margin-bottom "0.5rem"}}
               [:div.basic.ui.segment
                [:i.large.chevron.right.icon]]]
-             (map-indexed
-               (fn [index option]
-                 (if (= :starters type)
-                   [:div (starter-card option #(on-decision index decision))]
-                   [:button.ui.button {:on-click #(on-decision index decision)}
-                     (case type
-                       :anger-god (symbols-str option)
-                       :beg? (if option "Beg for corn" "Don't beg")
-                       :action (str option)
-                       :gain-materials (symbols-str option)
-                       :jungle-mats (symbols-str option)
-                       :gain-resource (symbols-str option)
-                       :pay-resource (symbols-str option)
-                       :build-building index
-                       :build-monument index
-                       :tech (symbols-str option)
-                       :temple (symbols-str option)
-                       :two-diff-temples (symbols-str option))]))
-               decision-options))]))
+         (map-indexed
+           (fn [index option]
+             (if (= :starters type)
+               [:div (starter-card option #(on-decision index decision))]
+               [:button.ui.button {:on-click #(on-decision index decision)}
+                 (case type
+                   :anger-god (symbols-str option)
+                   :beg? (if option "Beg for corn" "Don't beg")
+                   :action (str option)
+                   :gain-materials (symbols-str option)
+                   :jungle-mats (symbols-str option)
+                   :gain-resource (symbols-str option)
+                   :pay-resource (symbols-str option)
+                   :build-building index
+                   :build-monument index
+                   :tech (symbols-str option)
+                   :temple (symbols-str option)
+                   :two-diff-temples (symbols-str option))]))
+           decision-options))]))
 
 (defn active-player-status
   [active active-player]
