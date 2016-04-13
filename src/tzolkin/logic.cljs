@@ -39,8 +39,16 @@
   (player-map-adjustment state pid :temples changes))
 
 (defn adjust-materials
-  [state pid changes]
-  (player-map-adjustment state pid :materials changes))
+  ([state pid changes]
+   (player-map-adjustment state pid :materials changes))
+  ([state pid changes source]
+   (let [player (get-in state [:players pid])
+         agri (-> player :tech :agri)
+         extr (-> player :tech :extr)]
+     (cond-> (adjust-materials state pid changes)
+       (and (>= agri 1) (= :pal source)) (adjust-materials pid {:corn 1})
+       (and (>= agri 2) (= :water source)) (adjust-materials pid {:corn 1})
+       (and (>= agri 3) (= :pal source)) (adjust-materials pid {:corn 2})))))
 
 (defn adjust-tech
   [state pid changes]
@@ -307,20 +315,28 @@
 (defn handle-jungle-action
   [state pid v]
   (let [player (get-in state [:players :pid])
+        agri (-> player :tech :agri)
+        extr (-> player :tech :extr)
         corn (:corn v)
         wood (:wood v)
         id (:jungle-id v)
         corn-tiles (get-in state [:jungle id :corn-tiles])
         wood-tiles (get-in state [:jungle id :wood-tiles])
-        corn? (and (> corn-tiles 0))
-        wood? (and (> wood-tiles 0))
+        corn-tile? (> corn-tiles 0)
+        wood-tile? (> wood-tiles 0)
         options (cond-> []
-                  corn? (conj {:corn corn})
-                  wood? (conj {:wood wood}))]
-    (if (and corn? (not wood?))
-      (-> (adjust-materials state pid {:corn corn})
-          (update-in [:jungle id :corn-tiles] dec))
-      (add-decision state pid :jungle-mats {:options options :jungle-id id}))))
+                  (or corn-tile? (>= agri 2)) (conj {:corn corn})
+                  wood-tile? (conj {:wood wood}))]
+    (if (= 1 (count options))
+      (if corn-tile?
+        (-> (adjust-materials state pid {:corn corn} :pal)
+            (update-in [:jungle id :corn-tiles] dec))
+        (if (>= agri 2)
+          (adjust-materials state pid {:corn corn} :pal)
+          state))
+      (if (or wood-tile? (>= agri 2))
+        (add-decision state pid :jungle-mats {:options options :jungle-id id})
+        state))))
 
 (defn handle-action
   [state pid [k v]]
@@ -330,7 +346,7 @@
     (-> (cond-> state
           (= :skull-action k)   (handle-skull-action pid v)
           (= :gain-worker k)    (adjust-workers pid 1)
-          (= :gain-materials k) (adjust-materials pid v)
+          (= :gain-materials k) (adjust-materials pid (:mats v) (:source v))
           (= :choose-action k)  (add-decision pid :action v)
           (= :tech k)           (add-decision pid :tech (:steps v))
           (= :jungle-mats k)    (handle-jungle-action pid v)
@@ -366,23 +382,31 @@
                             next-dec)
       :gain-resource    (-> (adjust-materials state pid choice)
                             next-dec)
-      :jungle-mats      (let [id (:jungle-id decision)
+      :jungle-mats      (let [agri (get-in state [:players pid :tech :agri])
+                              id (:jungle-id decision)
                               corn-tiles (get-in state [:jungle id :corn-tiles])
                               wood-tiles (get-in state [:jungle id :wood-tiles])
-                              corn? (and (> corn-tiles 0))
-                              wood? (and (> wood-tiles 0))]
-                          (if (and (not corn?) (not wood?))
+                              corn-tile? (and (> corn-tiles 0) (< wood-tiles corn-tiles))
+                              wood-tile? (> wood-tiles 0)]
+                          (if (and (not corn-tile?) (not wood-tile?) (< agri 2))
                             (update state :errors conj "There are no jungle tiles left")
                             (if (contains? choice :corn)
-                              (if corn?
-                                (cond-> (-> (adjust-materials state pid choice)
-                                            (update-in [:jungle id :corn-tiles] dec)
-                                            next-dec)
-                                  (= corn-tiles wood-tiles) (add-decision pid :anger-god)
-                                  (= corn-tiles wood-tiles) (update-in [:jungle id :wood-tiles] dec))
-                                (update state :errors conj "There are no corn tiles left"))
-                              (if wood?
-                                (-> (adjust-materials state pid choice)
+                              (if corn-tile?
+                                (-> (adjust-materials state pid choice :pal)
+                                    (update-in [:jungle id :corn-tiles] dec)
+                                    next-dec)
+                                (if (>= agri 2)
+                                  (-> (adjust-materials state pid choice :pal)
+                                      next-dec)
+                                  (if wood-tile?
+                                    (-> (adjust-materials state pid choice :pal)
+                                        (update-in [:jungle id :corn-tiles] dec)
+                                        (update-in [:jungle id :wood-tiles] dec)
+                                        next-dec
+                                        (add-decision pid :anger-god))
+                                    (update state :errors conj "There are no corn tiles left"))))
+                              (if wood-tile?
+                                (-> (adjust-materials state pid choice :pal)
                                     (update-in [:jungle id :wood-tiles] dec)
                                     next-dec)
                                 (update state :errors conj "There are no wood tiles left")))))

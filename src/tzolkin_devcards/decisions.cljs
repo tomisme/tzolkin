@@ -36,6 +36,17 @@
              (update-in [:players 0 :materials :wood] + 2)
              (update-in [:jungle 1 :wood-tiles] - 1)))
     (nod (-> s
+             (logic/adjust-tech 0 {:agri 3})
+             (update-in [:jungle 2 :wood-tiles] - 1)
+             (logic/add-decision 0 :jungle-mats {:options [{:corn 3} {:wood 2}]
+                                                 :jungle-id 2})
+             (logic/handle-decision 0))
+         (-> s
+             (logic/adjust-tech 0 {:agri 3})
+             (update-in [:jungle 2 :wood-tiles] - 1)
+             (update-in [:players 0 :materials :corn] + 6)
+             (update-in [:jungle 2 :corn-tiles] - 1)))
+    (nod (-> s
              (update-in [:jungle 2 :wood-tiles] - 1)
              (logic/add-decision 0 :jungle-mats {:options [{:corn 3} {:wood 2}]
                                                  :jungle-id 2})
@@ -52,7 +63,15 @@
              (update-in [:players 0 :materials :corn] + 3)
              (update-in [:jungle 2 :corn-tiles] - 1)
              (update-in [:jungle 2 :wood-tiles] - 1)
-             (logic/add-decision 0 :anger-god))))
+             (logic/add-decision 0 :anger-god)))
+    (nod (-> s
+             (logic/adjust-tech 0 {:agri 2})
+             (logic/add-decision 0 :jungle-mats {:options [{:corn 3} {:wood 2}]
+                                                 :jungle-id 2})
+             (logic/handle-decision 0))
+         (-> s
+             (logic/adjust-tech 0 {:agri 2})
+             (update-in [:players 0 :materials :corn] + 4))))
   (testing "gain resource"
     (nod (-> s
              (logic/add-decision 0 :gain-resource)

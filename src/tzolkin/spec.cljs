@@ -258,7 +258,8 @@
          :teeth 10
          :location 22
          :regular-actions 5
-         :actions [[:gain-materials {:corn 3}]
+         :actions [[:gain-materials {:mats {:corn 3}
+                                     :source :water}]
                    [:jungle-mats {:corn 4
                                   :jungle-id 0}]
                    [:jungle-mats {:corn 5
@@ -276,15 +277,20 @@
          :teeth 10
          :location 1
          :regular-actions 5
-         :actions [[:gain-materials {:wood 1}]
-                   [:gain-materials {:stone 1
-                                     :corn 1}]
-                   [:gain-materials {:gold 1
-                                     :corn 2}]
-                   [:gain-materials {:skull 1}]
-                   [:gain-materials {:gold 1
-                                     :stone 1
-                                     :corn 2}]
+         :actions [[:gain-materials {:mats {:wood 1}
+                                     :source :yax}]
+                   [:gain-materials {:mats {:stone 1
+                                            :corn 1}
+                                     :source :yax}]
+                   [:gain-materials {:mats {:gold 1
+                                            :corn 2}
+                                     :source :yax}]
+                   [:gain-materials {:mats {:skull 1}
+                                     :source :yax}]
+                   [:gain-materials {:mats {:gold 1
+                                            :stone 1
+                                            :corn 2}
+                                     :source :yax}]
                    [:choose-action {:gear :yax}]
                    [:choose-action {:gear :yax}]]}
    :tik {:name "Tikal"

@@ -185,13 +185,27 @@
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
-           (update-in s [:players 0 :materials :corn] + 3))))
+           (update-in s [:players 0 :materials :corn] + 3))
+      (nod (-> s
+               (logic/adjust-tech 0 {:agri 2})
+               (logic/handle-action 0 action))
+           (-> s
+               (logic/adjust-tech 0 {:agri 2})
+               (update-in [:players 0 :materials :corn] + 4)))))
   (let [gear :pal
         num 1
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
-           (-> (update-in s [:players 0 :materials :corn] + 4)
+           (-> s
+               (update-in [:players 0 :materials :corn] + 4)
+               (update-in [:jungle 0 :corn-tiles] dec)))
+      (nod (-> s
+               (logic/adjust-tech 0 {:agri 3})
+               (logic/handle-action 0 action))
+           (-> s
+               (logic/adjust-tech 0 {:agri 3})
+               (update-in [:players 0 :materials :corn] + 7)
                (update-in [:jungle 0 :corn-tiles] dec)))))
   (let [gear :pal
         num 2
@@ -201,9 +215,11 @@
            (update-in s [:active :decisions] conj {:type :jungle-mats
                                                    :options [{:corn 5} {:wood 2}]
                                                    :jungle-id 1}))
-      (nod (-> (update-in s [:jungle 1 :wood-tiles] - 4)
+      (nod (-> s
+               (update-in [:jungle 1 :wood-tiles] - 4)
                (logic/handle-action 0 action))
-           (-> (update-in s [:jungle 1 :wood-tiles] - 4)
+           (-> s
+               (update-in [:jungle 1 :wood-tiles] - 4)
                (update-in [:players 0 :materials :corn] + 5)
                (update-in [:jungle 1 :corn-tiles] dec)))))
   (let [gear :pal

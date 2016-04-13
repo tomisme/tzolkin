@@ -342,7 +342,7 @@
 (defn action-label
   [[k data]]
   (case k
-    :gain-materials  (symbols-str data)
+    :gain-materials  (symbols-str (:mats data))
     :jungle-mats (if (> (:jungle-id data) 0)
                    (str (symbols-str {:corn (:corn data)})
                         "/"
