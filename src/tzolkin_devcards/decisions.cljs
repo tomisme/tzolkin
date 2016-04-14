@@ -181,11 +181,16 @@
                                                    :cost {:wood 2 :stone 1}}))))
   (testing "pay-discount"
     (nod (-> s
+             (logic/adjust-materials 0 {:wood 1 :stone 1})
              (logic/add-decision 0 :pay-discount {:cost {:wood 2 :stone 1}})
-
              (logic/handle-decision 0))
-         (-> s
-             (logic/adjust-materials 0 {:wood -1 :stone -1}))))
+         s)
+    (nod (-> s
+             (logic/adjust-materials 0 {:stone 1})
+             (logic/add-decision 0 :pay-discount {:cost {:stone 1}})
+
+             (logic/handle-decision 2))
+         s))
   (testing "tech"
     (nod (-> s
              (logic/add-decision 0 :tech 1)

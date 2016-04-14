@@ -832,6 +832,7 @@
           :action " chose an action..."
           :temple (str " chose to gain favour with " (symbols-str choice))
           :pay-resource (str " chose to pay " (symbols-str choice))
+          :pay-discount (str " chose to reduce building cost by " (symbols-str choice))
           :gain-resource (str " chose to gain " (symbols-str choice))
           :gain-materials (str " chose to gain " (symbols-str choice))
           :jungle-mats (str " chose to gain " (symbols-str choice))
