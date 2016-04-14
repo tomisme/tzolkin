@@ -63,7 +63,7 @@
   symbols. Amounts larger than two represented by a number and a single symbol."
   [materials]
   (apply str (for [[material amount] materials]
-               (if (< amount 3)
+               (if (< amount 2)
                  (apply str (repeat amount (get symbols material)))
                  (str amount (get symbols material))))))
 
