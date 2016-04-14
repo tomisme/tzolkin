@@ -36,6 +36,15 @@
              (update-in [:players 0 :materials :wood] + 2)
              (update-in [:jungle 1 :wood-tiles] - 1)))
     (nod (-> s
+             (logic/adjust-tech 0 {:extr 1})
+             (logic/add-decision 0 :jungle-mats {:options [{:corn 3} {:wood 2}]
+                                                 :jungle-id 1})
+             (logic/handle-decision 1))
+         (-> s
+             (logic/adjust-tech 0 {:extr 1})
+             (update-in [:players 0 :materials :wood] + 3)
+             (update-in [:jungle 1 :wood-tiles] - 1)))
+    (nod (-> s
              (logic/adjust-tech 0 {:agri 3})
              (update-in [:jungle 2 :wood-tiles] - 1)
              (logic/add-decision 0 :jungle-mats {:options [{:corn 3} {:wood 2}]
@@ -106,11 +115,56 @@
              (logic/handle-decision 1))
          (-> s
              (update-in [:players 0 :materials :corn] + 1)
-             (assoc :buildings [{} {:cost {:wood 1 :stone 1}
-                                    :materials {:gold 2}} {}])
+             (assoc :buildings [{}
+                                {:cost {:wood 1 :stone 1}
+                                 :materials {:gold 2}}
+                                {}])
              (logic/add-decision 0 :build-building)
-             (update :errors conj (str "Can't buy building: {:cost {:wood 1, :stone 1}, :materials {:gold 2}}")))))
-
+             (update :errors conj (str "Can't buy building: {:cost {:wood 1, :stone 1}, :materials {:gold 2}}"))))
+    (nod (-> s
+             (logic/adjust-tech 0 {:arch 1})
+             (assoc :buildings [{:materials {:corn 1}}])
+             (logic/add-decision 0 :build-building)
+             (logic/handle-decision 0))
+         (-> s
+             (logic/adjust-tech 0 {:arch 1})
+             (assoc :buildings [])
+             (update-in [:players 0 :buildings] conj {:materials {:corn 1}})
+             (update-in [:players 0 :materials :corn] + 2)))
+    (nod (-> s
+             (logic/adjust-tech 0 {:arch 3})
+             (assoc :buildings [{:materials {:corn 1}}])
+             (logic/add-decision 0 :build-building)
+             (logic/handle-decision 0))
+         (-> s
+             (logic/adjust-tech 0 {:arch 3})
+             (assoc :buildings [])
+             (update-in [:players 0 :buildings] conj {:materials {:corn 1}})
+             (update-in [:players 0 :materials :corn] + 2)
+             (update-in [:players 0 :points] + 2)))
+    (nod (-> s
+             (logic/adjust-tech 0 {:arch 3})
+             (assoc :buildings [{:cost {:wood 1}
+                                 :materials {:corn 1}}])
+             (logic/add-decision 0 :build-building)
+             (logic/handle-decision 0))
+         (-> s
+             (logic/adjust-tech 0 {:arch 3})
+             (assoc :buildings [])
+             (update-in [:players 0 :buildings] conj {:materials {:corn 1}})
+             (update-in [:players 0 :materials :corn] + 2)
+             (update-in [:players 0 :points] + 2)))
+    (nod (-> s
+             (logic/adjust-tech 0 {:arch 3})
+             (assoc :buildings [{:cost {:wood 2 :stone 1}
+                                 :materials {:corn 1}}])
+             (logic/add-decision 0 :build-building)
+             (logic/handle-decision 0))
+         (-> s
+             (logic/adjust-tech 0 {:arch 3})
+             (assoc :buildings [{:cost {:wood 2 :stone 1}
+                                 :materials {:corn 1}}])
+             (logic/add-decision 0 :save-resource [{:wood 1} {:stone 1}]))))
   (testing "tech"
     (nod (-> s
              (logic/add-decision 0 :tech 1)

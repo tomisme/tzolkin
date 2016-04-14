@@ -17,64 +17,86 @@
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
            (-> s
-            (update-in [:players 0 :materials :wood] + 1)))))
+               (update-in [:players 0 :materials :wood] + 1)))
+      (nod (-> s
+               (logic/adjust-tech 0 {:extr 1})
+               (logic/handle-action 0 action))
+           (-> s
+               (logic/adjust-tech 0 {:extr 1})
+               (update-in [:players 0 :materials :wood] + 2)))))
   (let [gear :yax
         num 1
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
            (-> s
-            (update-in [:players 0 :materials :stone] + 1)
-            (update-in [:players 0 :materials :corn] + 1)))))
+               (update-in [:players 0 :materials :stone] + 1)
+               (update-in [:players 0 :materials :corn] + 1)))))
   (let [gear :yax
         num 2
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
            (-> s
-            (update-in [:players 0 :materials :gold] + 1)
-            (update-in [:players 0 :materials :corn] + 2)))))
+               (update-in [:players 0 :materials :gold] + 1)
+               (update-in [:players 0 :materials :corn] + 2)))))
   (let [gear :yax
         num 3
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
            (-> s
-            (update-in [:players 0 :materials :skull] + 1)))))
+               (update-in [:players 0 :materials :skull] + 1)))))
   (let [gear :yax
         num 4
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
            (-> s
-            (update-in [:players 0 :materials :gold] + 1)
-            (update-in [:players 0 :materials :stone] + 1)
-            (update-in [:players 0 :materials :corn] + 2)))))
+               (update-in [:players 0 :materials :gold] + 1)
+               (update-in [:players 0 :materials :stone] + 1)
+               (update-in [:players 0 :materials :corn] + 2)))
+      (nod (-> s
+               (logic/adjust-tech 0 {:extr 3})
+               (logic/handle-action 0 action))
+           (-> s
+               (logic/adjust-tech 0 {:extr 3})
+               (update-in [:players 0 :materials :gold] + 2)
+               (update-in [:players 0 :materials :stone] + 2)
+               (update-in [:players 0 :materials :corn] + 2)))))
   (let [gear :yax
         num 5
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
-           (-> s
-             (update-in [:active :decisions] conj {:type :action
-                                                   :options [{:yax 0} {:yax 1} {:yax 2} {:yax 3} {:yax 4}]})))))
+           (update-in s [:active :decisions] conj {:type :action
+                                                   :options [{:yax 0}
+                                                             {:yax 1}
+                                                             {:yax 2}
+                                                             {:yax 3}
+                                                             {:yax 4}]}))))
   (let [gear :yax
         num 6
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
-           (-> s
-             (update-in [:active :decisions] conj {:type :action
-                                                   :options [{:yax 0} {:yax 1} {:yax 2} {:yax 3} {:yax 4}]})))))
+           (update-in s [:active :decisions] conj {:type :action
+                                                   :options [{:yax 0}
+                                                             {:yax 1}
+                                                             {:yax 2}
+                                                             {:yax 3}
+                                                             {:yax 4}]}))))
   "##Tikal"
   (let [gear :tik
         num 0
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
-           (-> s
-             (update-in [:active :decisions] conj {:type :tech
-                                                   :options [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]})))))
+           (update-in s [:active :decisions] conj {:type :tech
+                                                   :options [{:agri 1}
+                                                             {:extr 1}
+                                                             {:arch 1}
+                                                             {:theo 1}]}))))
   (let [gear :tik
         num 1
         action (get-in spec [:gears gear :actions num])]
@@ -82,19 +104,24 @@
       (nod (logic/handle-action s 0 action)
            (let [num (:num-available-buildings spec)
                  buildings (vec (take num (:buildings s)))]
-             (-> s
-               (update-in [:active :decisions] conj {:type :build-building
-                                                     :options buildings}))))))
+             (update-in s [:active :decisions] conj {:type :build-building
+                                                     :options buildings})))))
   (let [gear :tik
         num 2
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
            (-> s
-             (update-in [:active :decisions] conj {:type :tech
-                                                   :options [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]})
-             (update-in [:active :decisions] conj {:type :tech
-                                                   :options [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]})))))
+               (update-in [:active :decisions] conj {:type :tech
+                                                     :options [{:agri 1}
+                                                               {:extr 1}
+                                                               {:arch 1}
+                                                               {:theo 1}]})
+               (update-in [:active :decisions] conj {:type :tech
+                                                     :options [{:agri 1}
+                                                               {:extr 1}
+                                                               {:arch 1}
+                                                               {:theo 1}]})))))
   ;; TODO
   ; (let [gear :tik
   ;       num 3

@@ -44,11 +44,19 @@
   ([state pid changes source]
    (let [player (get-in state [:players pid])
          agri (-> player :tech :agri)
-         extr (-> player :tech :extr)]
+         extr (-> player :tech :extr)
+         corn? (contains? changes :corn)
+         wood? (contains? changes :wood)
+         stone? (contains? changes :stone)
+         gold? (contains? changes :gold)]
      (cond-> (adjust-materials state pid changes)
-       (and (>= agri 1) (= :pal source)) (adjust-materials pid {:corn 1})
-       (and (>= agri 2) (= :water source)) (adjust-materials pid {:corn 1})
-       (and (>= agri 3) (= :pal source)) (adjust-materials pid {:corn 2})))))
+       (and (>= agri 1) (= :pal source) corn?) (adjust-materials pid {:corn 1})
+       (and (>= agri 2) (= :water source) corn?) (adjust-materials pid {:corn 1})
+       (and (>= agri 3) (= :pal source) corn?) (adjust-materials pid {:corn 2})
+       (and (>= extr 1) (= :yax source) wood?) (adjust-materials pid {:wood 1})
+       (and (>= extr 1) (= :pal source) wood?) (adjust-materials pid {:wood 1})
+       (and (>= extr 2) (= :yax source) stone?) (adjust-materials pid {:stone 1})
+       (and (>= extr 3) (= :yax source) gold?) (adjust-materials pid {:gold 1})))))
 
 (defn adjust-tech
   [state pid changes]
