@@ -412,78 +412,96 @@
         options  (:options decision)
         choice   (get options index)]
     (case type
-      :beg?             (if choice (beg-for-corn (next-dec state)) (next-dec state))
-      :starters         (if (= (:num-starters spec) (count options))
-                          (-> (gain-starter state pid choice)
-                              next-dec
-                              (add-decision pid :starters (remove-from-vec options index)))
-                          (-> (gain-starter state pid choice)
-                              next-dec))
-      :gain-materials   (-> (adjust-materials state pid choice)
-                            next-dec)
-      :gain-resource    (-> (adjust-materials state pid choice)
-                            next-dec)
-      :jungle-mats      (let [agri (get-in state [:players pid :tech :agri])
-                              id (:jungle-id decision)
-                              corn-tiles (get-in state [:jungle id :corn-tiles])
-                              wood-tiles (get-in state [:jungle id :wood-tiles])
-                              corn-tile? (and (> corn-tiles 0) (< wood-tiles corn-tiles))
-                              wood-tile? (> wood-tiles 0)]
-                          (if (and (not corn-tile?) (not wood-tile?) (< agri 2))
-                            (update state :errors conj "There are no jungle tiles left")
-                            (if (contains? choice :corn)
-                              (if corn-tile?
-                                (-> (adjust-materials state pid choice :pal)
-                                    (update-in [:jungle id :corn-tiles] dec)
-                                    next-dec)
-                                (if (>= agri 2)
-                                  (-> (adjust-materials state pid choice :pal)
-                                      next-dec)
-                                  (if wood-tile?
-                                    (-> (adjust-materials state pid choice :pal)
-                                        (update-in [:jungle id :corn-tiles] dec)
-                                        (update-in [:jungle id :wood-tiles] dec)
-                                        next-dec
-                                        (add-decision pid :anger-god))
-                                    (update state :errors conj "There are no corn tiles left"))))
-                              (if wood-tile?
-                                (-> (adjust-materials state pid choice :pal)
-                                    (update-in [:jungle id :wood-tiles] dec)
-                                    next-dec)
-                                (update state :errors conj "There are no wood tiles left")))))
-      :pay-resource     (if (cost-payable? state pid choice)
-                          (-> (adjust-materials state pid (negatise-map choice))
-                              next-dec)
-                          (update state :errors conj (str "Can't pay resource cost: " choice)))
-      :pay-discount     (let [cost (:cost decision)
-                              choice-key (first (keys choice))
-                              discounted-cost (if (contains? cost choice-key)
-                                                (change-map cost - {choice-key 1})
-                                                cost)]
-                          (if (cost-payable? state pid discounted-cost)
-                            (-> (next-dec state)
-                                (adjust-materials pid (negatise-map discounted-cost)))
-                            (update state :errors conj (str "Can't afford cost: " discounted-cost))))
-      :build-building   (let [arch (get-in state [:players pid :tech :arch])
-                              payable? (if (= arch 3)
-                                         (cost-payable? state pid (:cost choice) :resource)
-                                         (cost-payable? state pid (:cost choice)))]
-                          (if payable?
-                            (-> (next-dec state)
-                                (build-building pid choice)
-                                (update :buildings remove-from-vec index))
-                            (update state :errors conj (str "Can't afford building: " choice))))
-      :tech             (-> (adjust-tech state pid choice)
-                            next-dec)
-      :temple           (-> (adjust-temples state pid choice)
-                            next-dec)
-      :anger-god        (let [temple (first (keys choice))]
-                          (if (= 0 (get-in state [:players pid :temples temple]))
-                            (update state :errors conj (str "Can't anger " temple))
-                            (-> (adjust-temples state pid (negatise-map choice))
-                              next-dec)))
-      :two-diff-temples (-> (adjust-temples state pid choice)
-                            next-dec))))
+      :beg?
+        (if choice (beg-for-corn (next-dec state)) (next-dec state))
+
+      :starters
+        (if (= (:num-starters spec) (count options))
+          (-> (next-dec state)
+              (gain-starter pid choice)
+              (add-decision pid :starters (remove-from-vec options index)))
+          (-> (next-dec state)
+              (gain-starter pid choice)))
+
+      :gain-materials
+        (-> (next-dec state) (adjust-materials pid choice))
+
+      :gain-resource
+        (-> (next-dec state) (adjust-materials pid choice))
+
+      :jungle-mats
+        (let [agri (get-in state [:players pid :tech :agri])
+              id (:jungle-id decision)
+              corn-tiles (get-in state [:jungle id :corn-tiles])
+              wood-tiles (get-in state [:jungle id :wood-tiles])
+              corn-tile? (and (> corn-tiles 0) (< wood-tiles corn-tiles))
+              wood-tile? (> wood-tiles 0)]
+          (if (and (not corn-tile?) (not wood-tile?) (< agri 2))
+            (update state :errors conj "There are no jungle tiles left")
+            (if (contains? choice :corn)
+              (if corn-tile?
+                (-> (next-dec state)
+                    (adjust-materials pid choice :pal)
+                    (update-in [:jungle id :corn-tiles] dec))
+                (if (>= agri 2)
+                  (-> (next-dec state)
+                      (adjust-materials pid choice :pal))
+                  (if wood-tile?
+                    (-> (next-dec state)
+                        (adjust-materials pid choice :pal)
+                        (update-in [:jungle id :corn-tiles] dec)
+                        (update-in [:jungle id :wood-tiles] dec)
+                        (add-decision pid :anger-god))
+                    (update state :errors conj "There are no corn tiles left"))))
+              (if wood-tile?
+                (-> (next-dec state)
+                    (adjust-materials pid choice :pal)
+                    (update-in [:jungle id :wood-tiles] dec))
+                (update state :errors conj "There are no wood tiles left")))))
+
+      :pay-resource
+        (if (cost-payable? state pid choice)
+          (-> (next-dec state)
+              (adjust-materials pid (negatise-map choice)))
+          (update state :errors conj (str "Can't pay resource cost: " choice)))
+
+      :pay-discount
+        (let [cost (:cost decision)
+              choice-key (first (keys choice))
+              discounted-cost (if (contains? cost choice-key)
+                                (change-map cost - {choice-key 1})
+                                cost)]
+          (if (cost-payable? state pid discounted-cost)
+            (-> (next-dec state)
+                (adjust-materials pid (negatise-map discounted-cost)))
+            (update state :errors conj (str "Can't afford cost: " discounted-cost))))
+
+      :build-building
+        (let [arch (get-in state [:players pid :tech :arch])
+              payable? (if (= arch 3)
+                         (cost-payable? state pid (:cost choice) :resource)
+                         (cost-payable? state pid (:cost choice)))]
+          (if payable?
+            (-> (next-dec state)
+                (build-building pid choice)
+                (update :buildings remove-from-vec index))
+            (update state :errors conj (str "Can't afford building: " choice))))
+
+      :tech
+        (-> (next-dec state) (adjust-tech pid choice))
+
+      :temple
+        (-> (next-dec state) (adjust-temples pid choice))
+
+      :anger-god
+        (let [temple (first (keys choice))]
+          (if (= 0 (get-in state [:players pid :temples temple]))
+            (update state :errors conj (str "Can't anger " temple))
+            (-> (next-dec state)
+                (adjust-temples pid (negatise-map choice)))))
+
+      :two-diff-temples
+        (-> (next-dec state) (adjust-temples pid choice)))))
 
 (defn place-worker
   [state gear]
