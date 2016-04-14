@@ -35,7 +35,15 @@
     (is (false?
          (-> s
              (logic/player-map-adjustment 0 :materials {:corn 3 :skull 1})
-             (logic/cost-payable? 0 {:any-resource 1})))))
+             (logic/cost-payable? 0 {:any-resource 1}))))
+    (is (true?
+         (-> s
+             (logic/player-map-adjustment 0 :materials {:corn 3 :wood 2 :stone 1})
+             (logic/cost-payable? 0 {:corn 3 :stone 2} :resource))))
+    (is (false?
+         (-> s
+             (logic/player-map-adjustment 0 :materials {:wood 1 :gold 1})
+             (logic/cost-payable? 0 {:wood 2 :gold 2} :resource)))))
   (testing "adjust-points"
     (is (= (logic/adjust-points s 0 5)
            (-> s

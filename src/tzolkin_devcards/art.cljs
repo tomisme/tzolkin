@@ -21,7 +21,7 @@
            "rotate(55 10 10)rotate(10 1 1)")))
   (testing "symbols-str"
     (is (= (art/symbols-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
-           "🌲🗿🌕🌕3🌽💀"))))
+           "🌲🗿2🌕3🌽💀"))))
 
 (defcard-rg symbol-examples
   (into [:div]

@@ -103,6 +103,7 @@
                    :temple temple-options
                    :two-diff-temples two-different-temple-options
                    :pay-resource resource-options
+                   :pay-discount resource-options
                    :gain-resource resource-options
                    :gain-materials data
                    :jungle-mats (:options data)
@@ -110,8 +111,9 @@
                    :build-building (building-options state)
                    :tech tech-options)
          decision (cond-> {:type type :options options}
-                    (= :jungle-mats type) (conj [:jungle-id (:jungle-id data)]))]
-     (cond-> (update-in state [:active :decisions] into (repeat num decision)))))
+                    (= :jungle-mats type)  (conj [:jungle-id (:jungle-id data)])
+                    (= :pay-discount type) (conj [:cost (:cost data)]))]
+     (update-in state [:active :decisions] into (repeat num decision))))
   ([state pid type]
    (add-decision state pid type {})))
 
@@ -134,15 +136,38 @@
 ;; =  Costs =
 ;; ==========
 
+(defn is-resource?
+  [material]
+  (contains? #{:wood :stone :gold} material))
+
+(defn count-resources
+  [materials]
+  (reduce
+   (fn [count [k v]]
+     (if (is-resource? k)
+       (+ count v)
+       count))
+   0
+   materials))
+
 (defn cost-payable?
-  [state pid cost]
-  (if (-> cost (contains? :any-resource))
-    (boolean (some #(> (get-in state [:players pid :materials %]) 0)
-                   (:resources spec)))
-    (every?
-     (fn [[resource held-amount]]
-       (>= held-amount (get cost resource)))
-     (get-in state [:players pid :materials]))))
+  ([state pid cost discount]
+   (if (-> cost (contains? :any-resource))
+     (boolean (some #(> (get-in state [:players pid :materials %]) 0)
+                    (:resources spec)))
+     (let [player-materials (get-in state [:players pid :materials])]
+       (and
+        (>= (count-resources player-materials) (dec (count-resources cost)))
+        (every?
+         (fn [[material held-amount]]
+           (let [discounted-amount (if (and (= :resource discount)
+                                            (is-resource? material))
+                                     (inc held-amount)
+                                     held-amount)]
+             (>= discounted-amount (get cost material))))
+         player-materials)))))
+  ([state pid cost]
+   (cost-payable? state pid cost nil)))
 
 (defn pay-cost
   [state pid cost]
@@ -162,13 +187,13 @@
 ;; =  Buildings =
 ;; ==============
 
-(defn build-builder-building
+(defn gain-builder-building
   [state pid build]
   (case build
     :building (add-decision state pid :build-building)
     :monument (add-decision state pid :build-monument)))
 
-(defn build-tech-building
+(defn gain-tech-building
   [state pid tech]
   (cond-> state
     (= :any tech)     (add-decision pid :tech 1)
@@ -177,18 +202,26 @@
 
 (defn gain-building
   [state pid building]
-  (let [{:keys [cost tech temples materials trade build points
+  (let [{:keys [tech temples materials trade build points
                 gain-worker #_free-action-for-corn]} building]
-    (-> (cond-> state
-          tech        (build-tech-building pid tech)
-          build       (build-builder-building pid build)
-          trade       (start-trading pid)
-          points      (adjust-points pid points)
-          temples     (adjust-temples pid temples)
-          materials   (adjust-materials pid materials)
-          gain-worker (adjust-workers pid 1))
-        (update-in [:players pid :buildings] conj building)
-        (pay-cost pid cost))))
+    (cond-> (update-in state [:players pid :buildings] conj building)
+      tech        (gain-tech-building pid tech)
+      build       (gain-builder-building pid build)
+      trade       (start-trading pid)
+      points      (adjust-points pid points)
+      temples     (adjust-temples pid temples)
+      materials   (adjust-materials pid materials)
+      gain-worker (adjust-workers pid 1))))
+
+(defn build-building
+  ([state pid building]
+   (let [arch (get-in state [:players pid :tech :arch])
+         cost (:cost building)]
+     (cond-> (gain-building state pid building)
+       (>= arch 1) (adjust-materials pid {:corn 1})
+       (>= arch 2) (adjust-points 0 2)
+       (<= arch 2) (pay-cost pid cost)
+       (= arch 3)  (add-decision pid :pay-discount {:cost cost})))))
 
 ;; ==============
 ;; = Game Start =
@@ -422,11 +455,22 @@
                           (-> (adjust-materials state pid (negatise-map choice))
                               next-dec)
                           (update state :errors conj (str "Can't pay resource cost: " choice)))
-      :build-building   (if (cost-payable? state pid (:cost choice))
-                          (-> (gain-building state pid choice)
-                              (update :buildings remove-from-vec index)
-                              next-dec)
-                          (update state :errors conj (str "Can't buy building: " choice)))
+      :pay-discount     (let [cost (:cost decision)
+                              choice-key (first (keys choice))
+                              discounted-cost (if (contains? choice choice-key)
+                                                (change-map cost - {choice-key 1})
+                                                cost)]
+                          (-> (next-dec state)
+                              (adjust-materials pid (negatise-map discounted-cost))))
+      :build-building   (let [arch (get-in state [:players pid :tech :arch])
+                              payable? (if (= arch 3)
+                                         (cost-payable? state pid (:cost choice) :resource)
+                                         (cost-payable? state pid (:cost choice)))]
+                          (if payable?
+                            (-> (next-dec state)
+                                (build-building pid choice)
+                                (update :buildings remove-from-vec index))
+                            (update state :errors conj (str "Can't afford building: " choice))))
       :tech             (-> (adjust-tech state pid choice)
                             next-dec)
       :temple           (-> (adjust-temples state pid choice)

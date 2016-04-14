@@ -120,7 +120,7 @@
                                  :materials {:gold 2}}
                                 {}])
              (logic/add-decision 0 :build-building)
-             (update :errors conj (str "Can't buy building: {:cost {:wood 1, :stone 1}, :materials {:gold 2}}"))))
+             (update :errors conj (str "Can't afford building: {:cost {:wood 1, :stone 1}, :materials {:gold 2}}"))))
     (nod (-> s
              (logic/adjust-tech 0 {:arch 1})
              (assoc :buildings [{:materials {:corn 1}}])
@@ -132,12 +132,12 @@
              (update-in [:players 0 :buildings] conj {:materials {:corn 1}})
              (update-in [:players 0 :materials :corn] + 2)))
     (nod (-> s
-             (logic/adjust-tech 0 {:arch 3})
+             (logic/adjust-tech 0 {:arch 2})
              (assoc :buildings [{:materials {:corn 1}}])
              (logic/add-decision 0 :build-building)
              (logic/handle-decision 0))
          (-> s
-             (logic/adjust-tech 0 {:arch 3})
+             (logic/adjust-tech 0 {:arch 2})
              (assoc :buildings [])
              (update-in [:players 0 :buildings] conj {:materials {:corn 1}})
              (update-in [:players 0 :materials :corn] + 2)
@@ -151,20 +151,41 @@
          (-> s
              (logic/adjust-tech 0 {:arch 3})
              (assoc :buildings [])
-             (update-in [:players 0 :buildings] conj {:materials {:corn 1}})
+             (update-in [:players 0 :buildings] conj {:cost {:wood 1}
+                                                      :materials {:corn 1}})
              (update-in [:players 0 :materials :corn] + 2)
-             (update-in [:players 0 :points] + 2)))
+             (update-in [:players 0 :points] + 2)
+             (update-in [:active :decisions] conj {:type :pay-discount
+                                                   :options [{:wood 1}
+                                                             {:stone 1}
+                                                             {:gold 1}]
+                                                   :cost {:wood 1}})))
     (nod (-> s
+             (logic/adjust-materials 0 {:wood 2 :stone 2})
              (logic/adjust-tech 0 {:arch 3})
-             (assoc :buildings [{:cost {:wood 2 :stone 1}
-                                 :materials {:corn 1}}])
+             (assoc :buildings [{:cost {:wood 2 :stone 1}}])
              (logic/add-decision 0 :build-building)
              (logic/handle-decision 0))
          (-> s
+             (logic/adjust-materials 0 {:wood 2 :stone 2})
              (logic/adjust-tech 0 {:arch 3})
-             (assoc :buildings [{:cost {:wood 2 :stone 1}
-                                 :materials {:corn 1}}])
-             (logic/add-decision 0 :save-resource [{:wood 1} {:stone 1}]))))
+             (assoc :buildings [])
+             (update-in [:players 0 :materials :corn] + 1)
+             (update-in [:players 0 :points] + 2)
+             (update-in [:players 0 :buildings] conj {:cost {:wood 2
+                                                             :stone 1}})
+             (update-in [:active :decisions] conj {:type :pay-discount
+                                                   :options [{:wood 1}
+                                                             {:stone 1}
+                                                             {:gold 1}]
+                                                   :cost {:wood 2 :stone 1}}))))
+  (testing "pay-discount"
+    (nod (-> s
+             (logic/add-decision 0 :pay-discount {:cost {:wood 2 :stone 1}})
+
+             (logic/handle-decision 0))
+         (-> s
+             (logic/adjust-materials 0 {:wood -1 :stone -1}))))
   (testing "tech"
     (nod (-> s
              (logic/add-decision 0 :tech 1)

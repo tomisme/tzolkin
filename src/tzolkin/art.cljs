@@ -166,6 +166,7 @@
         msg (str (:name active-player)
                  " needs to choose "
                  (case type
+                   :pay-discount "which resource to not require."
                    :anger-god "which god to anger."
                    :beg? "whether to beg for corn."
                    :starters "which starter tile to take."
@@ -193,18 +194,11 @@
                [:div (starter-card option #(on-decision index decision))]
                [:button.ui.button {:on-click #(on-decision index decision)}
                  (case type
-                   :anger-god (symbols-str option)
                    :beg? (if option "Beg for corn" "Don't beg")
                    :action (str option)
-                   :gain-materials (symbols-str option)
-                   :jungle-mats (symbols-str option)
-                   :gain-resource (symbols-str option)
-                   :pay-resource (symbols-str option)
                    :build-building index
                    :build-monument index
-                   :tech (symbols-str option)
-                   :temple (symbols-str option)
-                   :two-diff-temples (symbols-str option))]))
+                   (symbols-str option))]))
            decision-options))]))
 
 (defn active-player-status
