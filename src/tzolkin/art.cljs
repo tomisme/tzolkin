@@ -186,7 +186,7 @@
        (into [:div {:class (when (= :starters type) "ui cards")
                     :style {:margin-top "0.5rem"
                             :margin-bottom "0.5rem"}}
-              [:div.basic.ui.segment
+              [:div.basic.ui.segment {:style {:display "inline"}}
                [:i.large.chevron.right.icon]]]
          (map-indexed
            (fn [index option]
@@ -346,7 +346,7 @@
                    (symbols-str {:corn (:corn data)}))
     :choose-action (if (= (:gear data) :non-chi)
                      (str (:corn symbols) ": action")
-                     (str (:choose-prev symbols) (get symbols (:gear data))))
+                     (get symbols (:gear data)))
     :choose-any-action "any"
     :tech (case (:steps data)
                 1 "1x tech"
