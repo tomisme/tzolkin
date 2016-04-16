@@ -4,64 +4,6 @@
     [tzolkin.utils :refer [log indexed first-val rotate-vec
                            remove-from-vec change-map negatise-map]]))
 
-;; ============
-;; =  Helpers =
-;; ============
-
-(defn gear-position
-  "Returns the current board position of a gear slot after 'turn' spins"
-  [gear slot turn]
-  (let [teeth (get-in spec [:gears gear :teeth])]
-    (mod (+ slot turn) teeth)))
-
-(defn gear-slot
-  "Return the gear slot index of a board position after 'turn' spins"
-  [gear position turn]
-  (let [teeth (get-in spec [:gears gear :teeth])]
-    (mod (+ position (- teeth turn)) teeth)))
-
-(defn player-map-adjustment
-  [state pid k changes]
-  (let [current (get-in state [:players pid k])
-        updated (change-map current + changes)]
-    (assoc-in state [:players pid k] updated)))
-
-(defn adjust-points
-  [state pid num]
-  (update-in state [:players pid :points] + num))
-
-(defn adjust-workers
-  [state pid num]
-  (update-in state [:players pid :workers] + num))
-
-(defn adjust-temples
-  [state pid changes]
-  (player-map-adjustment state pid :temples changes))
-
-(defn adjust-materials
-  ([state pid changes]
-   (player-map-adjustment state pid :materials changes))
-  ([state pid changes source]
-   (let [player (get-in state [:players pid])
-         agri   (-> player :tech :agri)
-         extr   (-> player :tech :extr)
-         corn?  (contains? changes :corn)
-         wood?  (contains? changes :wood)
-         stone? (contains? changes :stone)
-         gold?  (contains? changes :gold)]
-     (cond-> (adjust-materials state pid changes)
-       (and (>= agri 1) (= :pal source)   corn?)  (adjust-materials pid {:corn 1})
-       (and (>= agri 2) (= :water source) corn?)  (adjust-materials pid {:corn 1})
-       (and (>= agri 3) (= :pal source)   corn?)  (adjust-materials pid {:corn 2})
-       (and (>= extr 1) (= :yax source)   wood?)  (adjust-materials pid {:wood 1})
-       (and (>= extr 1) (= :pal source)   wood?)  (adjust-materials pid {:wood 1})
-       (and (>= extr 2) (= :yax source)   stone?) (adjust-materials pid {:stone 1})
-       (and (>= extr 3) (= :yax source)   gold?)  (adjust-materials pid {:gold 1})))))
-
-(defn adjust-tech
-  [state pid changes]
-  (player-map-adjustment state pid :tech changes))
-
 ;; ==============
 ;; =  Decisions =
 ;; ==============
@@ -131,6 +73,82 @@
   (-> state
       (update-in [:active :decisions] rest)
       check-for-bad-beg))
+
+;; ============
+;; =  Helpers =
+;; ============
+
+(defn gear-position
+  "Returns the current board position of a gear slot after 'turn' spins"
+  [gear slot turn]
+  (let [teeth (get-in spec [:gears gear :teeth])]
+    (mod (+ slot turn) teeth)))
+
+(defn gear-slot
+  "Return the gear slot index of a board position after 'turn' spins"
+  [gear position turn]
+  (let [teeth (get-in spec [:gears gear :teeth])]
+    (mod (+ position (- teeth turn)) teeth)))
+
+(defn player-map-adjustment
+  [state pid k changes]
+  (let [current (get-in state [:players pid k])
+        updated (change-map current + changes)]
+    (assoc-in state [:players pid k] updated)))
+
+(defn adjust-points
+  [state pid num]
+  (update-in state [:players pid :points] + num))
+
+(defn adjust-workers
+  [state pid num]
+  (update-in state [:players pid :workers] + num))
+
+(defn adjust-temples
+  [state pid changes]
+  (player-map-adjustment state pid :temples changes))
+
+(defn adjust-materials
+  ([state pid changes]
+   (player-map-adjustment state pid :materials changes))
+  ([state pid changes source]
+   (let [player (get-in state [:players pid])
+         agri   (-> player :tech :agri)
+         extr   (-> player :tech :extr)
+         corn?  (contains? changes :corn)
+         wood?  (contains? changes :wood)
+         stone? (contains? changes :stone)
+         gold?  (contains? changes :gold)]
+     (cond-> (adjust-materials state pid changes)
+       (and (>= agri 1) (= :pal source)   corn?)  (adjust-materials pid {:corn 1})
+       (and (>= agri 2) (= :water source) corn?)  (adjust-materials pid {:corn 1})
+       (and (>= agri 3) (= :pal source)   corn?)  (adjust-materials pid {:corn 2})
+       (and (>= extr 1) (= :yax source)   wood?)  (adjust-materials pid {:wood 1})
+       (and (>= extr 1) (= :pal source)   wood?)  (adjust-materials pid {:wood 1})
+       (and (>= extr 2) (= :yax source)   stone?) (adjust-materials pid {:stone 1})
+       (and (>= extr 3) (= :yax source)   gold?)  (adjust-materials pid {:gold 1})))))
+
+(defn adjust-tech
+  [state pid changes]
+  (let [new-state (player-map-adjustment state pid :tech changes)
+        agri (-> new-state :players (get pid) :tech :agri)
+        extr (-> new-state :players (get pid) :tech :extr)
+        arch (-> new-state :players (get pid) :tech :arch)
+        theo (-> new-state :players (get pid) :tech :theo)]
+    (cond-> new-state
+      (= agri 4) (->
+                   (player-map-adjustment pid :tech {:agri -1})
+                   (add-decision pid :temple))
+      (= extr 4) (->
+                   (player-map-adjustment pid :tech {:extr -1})
+                   (add-decision pid :gain-resource)
+                   (add-decision pid :gain-resource))
+      (= arch 4) (->
+                   (player-map-adjustment pid :tech {:arch -1})
+                   (adjust-points pid 3))
+      (= theo 4) (->
+                   (player-map-adjustment pid :tech {:theo -1})
+                   (adjust-materials pid {:skull 1})))))
 
 ;; ==========
 ;; =  Costs =

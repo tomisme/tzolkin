@@ -1,12 +1,11 @@
 (ns tzolkin-devcards.logic
   (:require
-   [tzolkin.spec :refer [spec]]
    [tzolkin.logic :as logic]
-   [tzolkin.utils :as utils]
    [tzolkin-devcards.game :refer [s]])
   (:require-macros
-   [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
-   [cljs.test :refer [testing is run-tests]]))
+   [tzolkin.macros :refer [nod]]
+   [devcards.core :refer [deftest]]
+   [cljs.test :refer [testing is]]))
 
 (deftest helper-tests
   (testing "gear-position"
@@ -14,11 +13,13 @@
     (is (= (logic/gear-position :yax 2 2) 4))
     (is (= (logic/gear-position :yax 4 13) 7))
     (is (= (logic/gear-position :chi 4 14) 5)))
+
   (testing "gear-slot"
     (is (= (logic/gear-slot :yax 2 0) 2))
     (is (= (logic/gear-slot :yax 4 2) 2))
     (is (= (logic/gear-slot :yax 7 13) 4))
     (is (= (logic/gear-slot :chi 5 14) 4)))
+
   (testing "cost-payable?"
     (is (true?
          (-> s
@@ -44,26 +45,46 @@
          (-> s
              (logic/player-map-adjustment 0 :materials {:wood 1 :gold 1})
              (logic/cost-payable? 0 {:wood 2 :gold 2} :resource)))))
+
   (testing "adjust-points"
-    (is (= (logic/adjust-points s 0 5)
-           (-> s
-             (update-in [:players 0 :points] + 5)))))
+    (nod (logic/adjust-points s 0 5)
+         (update-in s [:players 0 :points] + 5)))
+
   (testing "adjust-workers"
-    (is (= (logic/adjust-workers s 0 1)
-           (-> s
-             (update-in [:players 0 :workers] inc)))))
+    (nod (logic/adjust-workers s 0 1)
+         (update-in s [:players 0 :workers] inc)))
+
   (testing "adjust-materials"
-    (is (= (logic/adjust-materials s 0 {:stone 2 :gold 1})
-           (-> s
-             (update-in [:players 0 :materials :stone] + 2)
-             (update-in [:players 0 :materials :gold] inc)))))
+    (nod (logic/adjust-materials s 0 {:stone 2 :gold 1})
+         (-> s
+           (update-in [:players 0 :materials :stone] + 2)
+           (update-in [:players 0 :materials :gold] inc))))
+
   (testing "adjust-temples"
-    (is (= (logic/adjust-temples s 0 {:chac 2 :quet 1})
-           (-> s
-             (update-in [:players 0 :temples :chac] + 2)
-             (update-in [:players 0 :temples :quet] inc)))))
+    (nod (logic/adjust-temples s 0 {:chac 2 :quet 1})
+         (-> s
+           (update-in [:players 0 :temples :chac] + 2)
+           (update-in [:players 0 :temples :quet] inc))))
+
   (testing "adjust-tech"
-    (is (= (logic/adjust-tech s 0 {:agri 2 :arch 1})
-           (-> s
+    (nod (logic/adjust-tech s 0 {:agri 2 :arch 1})
+         (-> s
              (update-in [:players 0 :tech :agri] + 2)
-             (update-in [:players 0 :tech :arch] inc))))))
+             (update-in [:players 0 :tech :arch] + 1)))
+    (nod (logic/adjust-tech s 0 {:agri 4})
+         (-> s
+             (update-in [:players 0 :tech :agri] + 3)
+             (logic/add-decision 0 :temple)))
+    (nod (logic/adjust-tech s 0 {:extr 4})
+         (-> s
+             (update-in [:players 0 :tech :extr] + 3)
+             (logic/add-decision 0 :gain-resource)
+             (logic/add-decision 0 :gain-resource)))
+    (nod (logic/adjust-tech s 0 {:arch 4})
+         (-> s
+             (update-in [:players 0 :tech :arch] + 3)
+             (logic/adjust-points 0 3)))
+    (nod (logic/adjust-tech s 0 {:theo 4})
+         (-> s
+             (update-in [:players 0 :tech :theo] + 3)
+             (logic/adjust-materials 0 {:skull 1})))))
