@@ -41,14 +41,14 @@
     (nod (logic/build-building s 0 {:tech :any})
          (-> s
           (update-in [:players 0 :buildings] conj {:tech :any})
-          (update-in [:active :decisions] conj {:type :tech
+          (update-in [:active :decisions] conj {:type :free-tech
                                                 :options [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]})))
     (nod (logic/build-building s 0 {:tech :any-two})
          (-> s
            (update-in [:players 0 :buildings] conj {:tech :any-two})
-           (update-in [:active :decisions] conj {:type :tech
+           (update-in [:active :decisions] conj {:type :free-tech
                                                  :options [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]})
-           (update-in [:active :decisions] conj {:type :tech
+           (update-in [:active :decisions] conj {:type :free-tech
                                                  :options [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]})))
     (nod (logic/build-building s 0 {:build :building})
          (let [num (:num-available-buildings spec)

@@ -196,7 +196,8 @@
              (logic/add-decision 0 :tech 1)
              (logic/handle-decision 1))
          (-> s
-             (update-in [:players 0 :tech :extr] inc))))
+             (update-in [:players 0 :tech :extr] inc)
+             (logic/add-decision 0 :pay-resource))))
   (testing "2x tech"
     (nod (-> s
              (logic/add-decision 0 :tech 2)
@@ -204,7 +205,28 @@
          (-> s
              (update-in [:players 0 :tech :arch] inc)
              (update-in [:active :decisions] conj {:type :tech
-                                                   :options [{:agri 1} {:extr 1} {:arch 1} {:theo 1}]}))))
+                                                   :options [{:agri 1}
+                                                             {:extr 1}
+                                                             {:arch 1}
+                                                             {:theo 1}]})
+             (logic/add-decision 0 :pay-resource))))
+  (testing "free-tech"
+    (nod (-> s
+             (logic/add-decision 0 :free-tech 1)
+             (logic/handle-decision 1))
+         (-> s
+             (update-in [:players 0 :tech :extr] inc))))
+  (testing "2x free-tech"
+    (nod (-> s
+             (logic/add-decision 0 :free-tech 2)
+             (logic/handle-decision 1))
+         (-> s
+             (update-in [:players 0 :tech :extr] inc)
+             (update-in [:active :decisions] conj {:type :free-tech
+                                                   :options [{:agri 1}
+                                                             {:extr 1}
+                                                             {:arch 1}
+                                                             {:theo 1}]}))))
   (testing "temple"
     (nod (-> s
              (logic/add-decision 0 :temple)

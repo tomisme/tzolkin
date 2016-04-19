@@ -4,7 +4,7 @@
    [tzolkin-devcards.game :refer [s]])
   (:require-macros
    [tzolkin.macros :refer [nod]]
-   [devcards.core :refer [deftest]]
+   [devcards.core :refer [deftest defcard-doc]]
    [cljs.test :refer [testing is]]))
 
 (deftest helper-tests
@@ -87,4 +87,31 @@
     (nod (logic/adjust-tech s 0 {:theo 4})
          (-> s
              (update-in [:players 0 :tech :theo] + 3)
-             (logic/adjust-materials 0 {:skull 1})))))
+             (logic/adjust-materials 0 {:skull 1}))))
+  (testing "buy-tech"
+    (nod (logic/buy-tech s 0 :arch)
+         (-> s
+             (update-in [:players 0 :tech :arch] + 1)
+             (logic/add-decision 0 :pay-resource)))
+    (nod (-> s
+             (logic/adjust-tech 0 {:arch 1})
+             (logic/buy-tech 0 :arch))
+         (-> s
+             (update-in [:players 0 :tech :arch] + 2)
+             (logic/add-decision 0 :pay-resource)
+             (logic/add-decision 0 :pay-resource)))
+    (nod (-> s
+             (logic/adjust-tech 0 {:arch 2})
+             (logic/buy-tech 0 :arch))
+         (-> s
+             (update-in [:players 0 :tech :arch] + 3)
+             (logic/add-decision 0 :pay-resource)
+             (logic/add-decision 0 :pay-resource)
+             (logic/add-decision 0 :pay-resource)))
+    (nod (-> s
+             (logic/adjust-tech 0 {:arch 3})
+             (logic/buy-tech 0 :arch))
+         (-> s
+             (update-in [:players 0 :tech :arch] + 3)
+             (update-in [:players 0 :points] + 3)
+             (logic/add-decision 0 :pay-resource)))))

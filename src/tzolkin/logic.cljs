@@ -36,7 +36,7 @@
 (defn add-decision
   ([state pid type data]
    (let [pid (-> state :active :pid)
-         num (if (= :tech type) data 1)
+         num (if (or (= :tech type) (= :free-tech type)) data 1)
          options (case type
                    :anger-god temple-options
                    :beg? '(true false)
@@ -51,7 +51,8 @@
                    :jungle-mats (:options data)
                    :build-monument (:monuments state)
                    :build-building (building-options state)
-                   :tech tech-options)
+                   :tech tech-options
+                   :free-tech tech-options)
          decision (cond-> {:type type :options options}
                     (= :jungle-mats type)  (conj [:jungle-id (:jungle-id data)])
                     (= :pay-discount type) (conj [:cost (:cost data)]))]
@@ -150,6 +151,16 @@
                    (player-map-adjustment pid :tech {:theo -1})
                    (adjust-materials pid {:skull 1})))))
 
+(defn buy-tech
+  [state pid track]
+  (let [pos (-> state :players (get pid) :tech track)]
+    (-> (cond-> state
+          (= pos 1) (add-decision state :pay-resource)
+          (= pos 2) (add-decision state :pay-resource)
+          (= pos 2) (add-decision state :pay-resource))
+      (adjust-tech pid {track 1})
+      (add-decision pid :pay-resource))))
+
 ;; ==========
 ;; =  Costs =
 ;; ==========
@@ -214,8 +225,8 @@
 (defn gain-tech-building
   [state pid tech]
   (cond-> state
-    (= :any tech)     (add-decision pid :tech 1)
-    (= :any-two tech) (add-decision pid :tech 2)
+    (= :any tech)     (add-decision pid :free-tech 1)
+    (= :any-two tech) (add-decision pid :free-tech 2)
     (map? tech)       (adjust-tech pid tech)))
 
 (defn gain-building
@@ -506,6 +517,13 @@
             (update state :errors conj (str "Can't afford building: " choice))))
 
       :tech
+        (cond-> (next-dec state)
+          (contains? choice :agri) (buy-tech pid :agri)
+          (contains? choice :extr) (buy-tech pid :extr)
+          (contains? choice :arch) (buy-tech pid :arch)
+          (contains? choice :theo) (buy-tech pid :theo))
+
+      :free-tech
         (-> (next-dec state) (adjust-tech pid choice))
 
       :temple
