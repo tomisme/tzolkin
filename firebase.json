@@ -1,5 +1,5 @@
 {
-  "firebase": "bgames",
+  "firebase": "playtzolkin",
   "public": "resources/public",
   "ignore": [
     "firebase.json",
