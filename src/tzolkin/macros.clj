@@ -1,7 +1,8 @@
 (ns tzolkin.macros
   (:require
    [clojure.data :as data :refer [diff]]
-   [cljs.test :refer [is]]))
+   [cljs.test :refer [is]]
+   [pl.danieljanus.tagsoup :as ts]))
 
 (defmacro nod-old
   [a b]
@@ -18,3 +19,7 @@
               (list 'drop-last
                     (list 'clojure.data/diff a b))
               ''(nil nil))))
+
+(defmacro embed-svg [svg-file]
+  (let [hiccup (ts/parse-string (slurp (str "resources/public/images/svg/" svg-file)))]
+    `~hiccup))

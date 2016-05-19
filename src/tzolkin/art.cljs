@@ -2,7 +2,9 @@
   (:require
    [reagent.core :as rg]
    [tzolkin.spec :refer [spec]]
-   [tzolkin.utils :refer [log]]))
+   [tzolkin.utils :refer [log]])
+  (:require-macros
+   [tzolkin.macros :refer [embed-svg]]))
 
 (def color-strings
   {:red "#CC333F"
@@ -223,6 +225,20 @@
         [:div.item (building-card building nil false)])
       buildings)])
 
+(defn svg-el
+  [k]
+  (let [svg (case k
+             :corn   (embed-svg "1f33d.svg")
+             :smile  (embed-svg "1f603.svg"))]
+    (into [:svg {:height "2rem"
+                 :viewBox "0 0 64 64"}]
+     (subvec svg 2))))
+
+(defn emote-button-el
+  []
+  [:div {:style {:height "2rem"}}
+   [svg-el :smile]])
+
 (defn player-stats-el
   [pid player active?]
   (let [{:keys [color materials points workers buildings]} player
@@ -230,13 +246,19 @@
         box-shadow (str "0 1px 10px 0 " (get color-strings color))]
     ^{:key pid}
     [:div.ui.segment (when active? {:style {:box-shadow box-shadow}})
-      [:p
-        [:a {:class (str "ui " (name color) " ribbon label")}
+      [:div {:style {:margin-bottom "1rem"}}
+        [:a {:class (str "ui " (name color) " label")
+             :style {:margin-right "0.8rem"
+                     :font-size "1rem"}}
           player-name]
         [:span (str workers (:worker symbols) " | ")]
         [:span (for [[k v] materials]
                  (str v (get symbols k) " | "))]
         [:span points " VP"]]
+      [:div {:style {:position "absolute"
+                     :top "1rem"
+                     :right "1rem"}}
+       [emote-button-el]]
       (if (seq buildings)
         (player-buildings-el buildings)
         [:p "No buildings or monuments."])]))

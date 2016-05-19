@@ -7,6 +7,7 @@
                  [binaryage/devtools "0.5.2"]
                  [devcards "0.2.1-6"]
                  [timothypratley/reanimated "0.1.4"]
+                 [clj-tagsoup "0.3.0"]
                  [matchbox "0.0.8-SNAPSHOT"]
                  [reagent "0.5.1"]]
 
