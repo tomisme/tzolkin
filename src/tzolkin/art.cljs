@@ -236,7 +236,7 @@
 
 (defn emote-button-el
   []
-  [:div {:style {:height "2rem"}}
+  [:div.hover-grower {:style {:height "2rem"}}
    [svg-el :smile]])
 
 (defn player-stats-el

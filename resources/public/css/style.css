@@ -1,0 +1,7 @@
+.hover-grower {
+  transition: all .1s ease-in-out;
+}
+
+.hover-grower:hover {
+  transform: scale(1.4);
+}
