@@ -224,11 +224,12 @@
       buildings)])
 
 (defn player-stats-el
-  [pid player]
+  [pid player active?]
   (let [{:keys [color materials points workers buildings]} player
-        player-name (:name player)]
+        player-name (:name player)
+        box-shadow (str "0 1px 10px 0 " (get color-strings color))]
     ^{:key pid}
-    [:div.ui.segment
+    [:div.ui.segment (when active? {:style {:box-shadow box-shadow}})
       [:p
         [:a {:class (str "ui " (name color) " ribbon label")}
           player-name]
@@ -332,7 +333,10 @@
       (if started?
         (active-player-command-bar-el active active-player on-decision on-trade on-stop-trading color-str)
         (new-player-form-el on-add-player))
-      (map-indexed player-stats-el (:players state))
+      (map-indexed
+       (fn [pid player]
+         (player-stats-el pid player (= active-pid pid)))
+       (:players state))
       (available-buildings buildings on-decision choosing-building?)]]))
 
 (defn action-label
