@@ -20,6 +20,6 @@
                     (list 'clojure.data/diff a b))
               ''(nil nil))))
 
-(defmacro embed-svg [svg-file]
-  (let [hiccup (ts/parse-string (slurp (str "resources/public/images/svg/" svg-file)))]
+(defmacro embed-svg [file]
+  (let [hiccup (ts/parse-string (slurp (str "resources/public/images/" file)))]
     `~hiccup))

@@ -1,7 +1,12 @@
 .hover-grower {
-  transition: all .1s ease-in-out;
+  transition: all .1s ease;
 }
 
 .hover-grower:hover {
-  transform: scale(1.4);
+  transform: scale(1.3);
+}
+
+.svg-icon:empty::after {
+  content: "m";
+  visibility: hidden;
 }

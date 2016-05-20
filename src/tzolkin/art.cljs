@@ -60,6 +60,31 @@
                        (str " " (:x data) " " (:y data)))
                      ")")))))
 
+(defn svg-icon
+  [k]
+  (let [name (case k
+              :corn  "emoji/1f33d"
+              :smile "emoji/1f603"
+              :wood  "emoji/1f332"
+              :stone "svg/rock"
+              :gold  "svg/ingot"
+              :skull "emoji/1f48e"
+              :chac  "emoji/1f40c"
+              :quet  "emoji/1f40a"
+              :kuku  "emoji/1f406")]
+    [:div.svg-icon {:style {:background-image (str "url(images/" name ".svg)")
+                            :background-repeat "no-repeat"
+                            :background-size "contain"
+                            :display "inline"
+                            :padding "0.5rem"
+                            :margin "0.2rem"}}]))
+
+(defn temple-icon
+  [temple]
+  [:div {:class "hover-grower"
+         :style {:cursor "pointer"}}
+   [svg-icon temple]])
+
 (defn symbols-str
   "Takes a map of materials and the amount of each and returns a string of
   symbols. Amounts larger than two represented by a number and a single symbol."
@@ -225,19 +250,11 @@
         [:div.item (building-card building nil false)])
       buildings)])
 
-(defn svg-el
-  [k]
-  (let [svg (case k
-             :corn   (embed-svg "1f33d.svg")
-             :smile  (embed-svg "1f603.svg"))]
-    (into [:svg {:height "2rem"
-                 :viewBox "0 0 64 64"}]
-     (subvec svg 2))))
-
-(defn emote-button-el
-  []
-  [:div.hover-grower {:style {:height "2rem"}}
-   [svg-el :smile]])
+(defn player-circle-el
+  [color]
+  [:i {:key color
+       :class (str (name color) " circle icon")
+       :style {:margin-left "0.1rem"}}])
 
 (defn player-stats-el
   [pid player active?]
@@ -251,14 +268,10 @@
              :style {:margin-right "0.8rem"
                      :font-size "1rem"}}
           player-name]
-        [:span (str workers (:worker symbols) " | ")]
-        [:span (for [[k v] materials]
-                 (str v (get symbols k) " | "))]
+        [:span workers (player-circle-el color)]
+        (for [[k v] materials]
+          [:span {:key k} v [svg-icon k]])
         [:span points " VP"]]
-      [:div {:style {:position "absolute"
-                     :top "1rem"
-                     :right "1rem"}}
-       [emote-button-el]]
       (if (seq buildings)
         (player-buildings-el buildings)
         [:p "No buildings or monuments."])]))
@@ -653,12 +666,6 @@
                              :actions (-> gear-data gear :actions)})]))
       '(:pal :yax :tik :uxe :chi))]))
 
-(defn player-circle-el
-  [color]
-  [:i {:key color
-       :class (str (name color) " circle icon")
-       :style {:width "1.1rem"}}])
-
 (defn temples-el
   [{:keys [players]}]
   [:div.ui.equal.width.grid {:style {:padding "0.5rem"
@@ -667,9 +674,9 @@
      ^{:key t}
      [:div.bottom.aligned.column {:style {:padding "0.8rem"}}
       [:div.ui.center.aligned.segment {:style {:padding "0.5rem"}}
-       [:div {:style {:margin "1rem"}}
+       [:div {:style {:margin "2rem"}}
         [:span {:style {:font-size "3rem"}}
-         (get symbols t)]]
+         [temple-icon t]]]
        (reverse
         (map-indexed
          (fn [step-index {:keys [points material]}]
