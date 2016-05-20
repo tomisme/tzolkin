@@ -68,7 +68,7 @@
     :wood  "emoji/1f332"
     :stone "svg/rock"
     :gold  "svg/ingot"
-    :skull "emoji/1f48e"
+    :skull "svg/gem"
     ; :chac  "emoji/1f40c"
     :chac  "emoji/1f430"
     ; :quet  "emoji/1f40a"
@@ -86,6 +86,8 @@
     :arch "emoji/2696"
     :theo "emoji/1f4d6"
     :resource "svg/cube"
+    :turn "emoji/1f504"
+    :points "emoji/2b50"
     (str k)))
 
 (defn svg-icon-el
@@ -119,6 +121,17 @@
                        "\" xlink:href=\""
                        href
                        "\"/>")}}]))
+
+(defn svg-icon-group-el
+  [icons]
+  (into [:span]
+   (map-indexed
+    (fn [index [icon amount]]
+     (into [:span]
+       (repeat amount [:div {:style {:float "left"
+                                     :width "1.4rem"}}
+                       [svg-icon-el icon]])))
+    icons)))
 
 (defn symbols-str
   "Takes a map of materials and the amount of each and returns a string of
@@ -172,15 +185,18 @@
            :style {:width "7rem"
                    :margin "0.3rem"
                    :font-size "0.9rem"}}
-      [:div.content {:style {:height "2rem"
+      [:div.content {:style {:height "2.5rem"
                              :padding-top "0.5rem"
+                             :padding-left "0.3rem"
                              :z-index 1}}
         [:div {:class (str "ui " (name color) " corner label")
                :style {:z-index -1}}]
         (if choosing?
           [:a {:on-click on-click}
-            (symbols-str cost)]
-          (symbols-str cost))]
+            (svg-icon-group-el cost)]
+            ; (symbols-str cost)]
+          (svg-icon-group-el cost))]
+          ; (symbols-str cost))]
       [:div.center.aligned.content {:style {:height "6.1rem"}}
         [:div.description
           (when farm (farm-el farm))
@@ -188,7 +204,7 @@
           (when gain-worker [:p (:worker symbols)])
           (when free-action-for-corn [:p (get symbols :corn) ": action"])
           (when build [:p (name build)])
-          (when temples [:p (temples-str temples)])
+          (when temples [:p (svg-icon-group-el temples)])
           (when materials [:p (symbols-str materials)])
           (when points (points-el points))]]]))
 
@@ -278,7 +294,9 @@
 
 (defn player-buildings-el
   [buildings]
-  [:div.ui.cards
+  [:div.ui.cards {:style {:margin-top "0.8rem"
+                          :padding-bottom "0.3rem"
+                          :margin-bottom "0"}}
     (map-indexed
       (fn [index building]
         ^{:key index}
@@ -298,18 +316,36 @@
         box-shadow (str "0 1px 10px 0 " (get color-strings color))]
     ^{:key pid}
     [:div.ui.segment (when active? {:style {:box-shadow box-shadow}})
-      [:div {:style {:margin-bottom "1rem"}}
+      [:div
+       [:span
         [:a {:class (str "ui " (name color) " label")
-             :style {:margin-right "0.8rem"
-                     :font-size "1rem"}}
-          player-name]
-        [:span workers (player-circle-el color)]
+             :style {:font-size "1rem"}}
+          player-name]]
+       [:div {:style {:display "inline-flex"
+                      :position "absolute"
+                      :left "6.5rem"
+                      :top "1.3rem"}}
+        [:div {:style {:padding-left "0.2rem"
+                       :padding-right "0.1rem"}}
+         workers]
+        [:div {:style {:padding-top "0.01rem"}}
+         (player-circle-el color)]
         (for [[k v] materials]
-          [:span {:key k} v [svg-icon-el k]])
-        [:span points " VP"]]
-      (if (seq buildings)
-        (player-buildings-el buildings)
-        [:p "No buildings or monuments."])]))
+          [:div {:key k}
+           [:span {:style {:margin-left "0.2rem"
+                           :padding-left "0.4rem"
+                           :float "left"
+                           :width "1rem"}}
+             v]
+           [svg-icon-el k]])
+        [:div {:style {:padding-left "0.2rem"}}
+         [:span {:style {:padding-left "0.4rem"
+                         :float "left"
+                         :width "1rem"}}
+          points]
+         [svg-icon-el :points]]]]
+      (when (seq buildings)
+        (player-buildings-el buildings))]))
 
 (defn turn-status-el
   [current-turn]
@@ -387,18 +423,13 @@
                     (name (:color active-player))
                     "teal")]
     [:div
-     (if started?
-       [:p
-        [:button.ui.button {:on-click on-end-turn}
-         "End Turn"]
-        [:span {:style {:margin-left 15}}
-         "Turn " turn "/" (count (:turns spec)) ", " (food-day-str until-food-day)]]
+     (when-not started?
        [:p
         [:button.ui.button {:class (str "ui button "
                                         (when-not (> num-players 0) "disabled"))
                             :on-click on-start-game}
          "Start Game"]])
-     (turn-status-el turn)
+     ; (turn-status-el turn)
      [:div
       (if started?
         (active-player-command-bar-el active active-player on-decision on-trade on-stop-trading color-str)
@@ -681,11 +712,16 @@
              :on-worker-click on-worker-click}])
 
 (defn gear-layout-el
-  [gear-data jungle]
+  [gear-data jungle on-end-turn]
   (let [size 850]
     [:svg {:width size :height size}
            ;; for testing
            ; :style {:background-color "pink"}}
+     [:g {:class "hover-opacity"
+          :style {:cursor "pointer"}
+          :on-click on-end-turn}
+      [inner-svg :turn (/ size 2.11) (/ size 2.1) (/ size 10)]]
+
      (map
       (fn [gear]
         (let [loc (-> spec :gears gear :location)]

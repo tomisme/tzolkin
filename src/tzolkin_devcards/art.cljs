@@ -154,7 +154,8 @@
     :uxe {:workers (vec (repeat 10 :none))}
     :tik {:workers (vec (repeat 10 :none))}
     :chi {:workers (vec (repeat 13 :none))}}
-   []))
+   []
+   nil))
 
 (def jungle-atom
   (rg/atom [{:corn-tiles 4}
