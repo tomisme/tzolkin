@@ -120,23 +120,23 @@
 (defn board
   [es-atom local-state-atom save]
   (let [re-state (reaction (logic/current-state @es-atom))]
-    [:div.ui.grid {:style {:margin 0}}
-     [:div.four.wide.column
+    [:div {:style {:display "flex"}}
+     [:div {:style {:margin "2rem"}}
        [status-bar-wrapper es-atom re-state save]
        [game-log-wrapper es-atom save]
-       [:button.ui.button {:on-click #(save (logic/gen-es test-events))}
-         "test events"]
-       [:button.ui.button {:on-click #(save (logic/gen-es new-2p-game-events))}
-         "new 2p game"]
-       [:button.ui.button {:on-click #(save (logic/gen-es new-4p-game-events))}
-         "new 4p game"]
-       [:button.ui.button {:on-click #(save (logic/gen-es [[:new-game]]))}
-         "new empty game"]
-       [:button.ui.button {:on-click #(save (logic/gen-es nil))}
-         "nil state"]
-       [fb-conn-indicator-wrapper local-state-atom]]
-     [:div.seven.wide.column {:style {:padding-left 0}}
-      [worker-gears-wrapper es-atom re-state save]]
-     [:div.four.wide.column
+       [:div {:style {:display "flex"}}
+        [:button.ui.button {:on-click #(save (logic/gen-es test-events))}
+          "test events"]
+        [:button.ui.button {:on-click #(save (logic/gen-es new-2p-game-events))}
+          "new 2p game"]
+        [:button.ui.button {:on-click #(save (logic/gen-es new-4p-game-events))}
+          "new 4p game"]
+        [:button.ui.button {:on-click #(save (logic/gen-es [[:new-game]]))}
+          "new empty game"]
+        [:button.ui.button {:on-click #(save (logic/gen-es nil))}
+          "nil state"]
+        [fb-conn-indicator-wrapper local-state-atom]]]
+     [:div [worker-gears-wrapper es-atom re-state save]]
+     [:div {:style {:margin "2rem"}}
        [temples-wrapper es-atom re-state]
        [tech-tracks-wrapper es-atom re-state]]]))

@@ -3,10 +3,18 @@
 }
 
 .hover-grower:hover {
-  transform: scale(1.3);
+  transform: scale(1.15);
+}
+
+.hover-opacity {
+  transition: all .1s ease;
+}
+
+.hover-opacity:hover {
+  fill-opacity: 0.9
 }
 
 .svg-icon:empty::after {
-  content: "m";
+  content: "svg";
   visibility: hidden;
 }

@@ -69,30 +69,56 @@
     :stone "svg/rock"
     :gold  "svg/ingot"
     :skull "emoji/1f48e"
-    :chac  "emoji/1f40c"
-    :quet  "emoji/1f40a"
-    :kuku  "emoji/1f406"
+    ; :chac  "emoji/1f40c"
+    :chac  "emoji/1f430"
+    ; :quet  "emoji/1f40a"
+    :quet  "emoji/1f42e"
+    ; :kuku  "emoji/1f406"
+    :kuku  "emoji/1f981"
     :yax   "emoji/1f351"
     :tik   "emoji/1f353"
     :uxe   "emoji/1f34b"
     :chi   "emoji/1f347"
-    :pal   "emoji/1f34f"))
+    :pal   "emoji/1f34f"
+    :agri "emoji/1f342"
+    :extr "svg/pick"
+    ; :arch "emoji/1f58c"
+    :arch "emoji/2696"
+    :theo "emoji/1f4d6"
+    :resource "svg/cube"
+    (str k)))
 
-(defn svg-icon
+(defn svg-icon-el
   [k]
   (let [name (img-path k)]
     [:div.svg-icon {:style {:background-image (str "url(images/" name ".svg)")
                             :background-repeat "no-repeat"
                             :background-size "contain"
                             :display "inline"
-                            :padding "0.5rem"
+                            :padding "0.2rem"
                             :margin "0.2rem"}}]))
 
 (defn temple-icon
   [temple]
   [:div {:class "hover-grower"
          :style {:cursor "pointer"}}
-   [svg-icon temple]])
+   [svg-icon-el temple]])
+
+(defn inner-svg
+  [k x y size]
+  (let [href (str "images/" (img-path k) ".svg")]
+    [:g {:dangerouslySetInnerHTML
+         {:__html (str "<image x=\""
+                       x
+                       "\" y=\""
+                       y
+                       "\" width=\""
+                       size
+                       "\" height=\""
+                       size
+                       "\" xlink:href=\""
+                       href
+                       "\"/>")}}]))
 
 (defn symbols-str
   "Takes a map of materials and the amount of each and returns a string of
@@ -279,7 +305,7 @@
           player-name]
         [:span workers (player-circle-el color)]
         (for [[k v] materials]
-          [:span {:key k} v [svg-icon k]])
+          [:span {:key k} v [svg-icon-el k]])
         [:span points " VP"]]
       (if (seq buildings)
         (player-buildings-el buildings)
@@ -319,7 +345,7 @@
       [:div.ui.top.attached.label "Trade"]
       (into [:div
              [:p {:style {:margin-bottom 5}}
-              corn (:corn symbols)]]
+              corn [svg-icon-el :corn]]]
         (map
          (fn [[k v]]
            [:div {:style {:padding 3}}
@@ -327,7 +353,7 @@
              [:i.plus.icon]]
             [:span {:style {:padding 4}}
              v (get symbols k)
-             " (" (get-in spec [:trade-values k]) (:corn symbols) "ea.)"]
+             " (" (get-in spec [:trade-values k]) [svg-icon-el :corn] "ea.)"]
             [:button.ui.icon.button {:on-click #(on-trade [:sell k])}
              [:i.minus.icon]]])
          resources))]
@@ -436,7 +462,7 @@
                       :fill "black"}
               :font-size 14
               :text-anchor "middle"
-              :transform transform}
+              :transform transform};]
        (str index "🌽")])))
 
 (defn action-labels
@@ -522,16 +548,18 @@
             color (if (= :none worker) "white" (get color-strings worker))]
         ^{:key index}
         [:g
-         [:circle {:style {:fill color}
+         [:circle {:class "hover-opacity"
+                   :style {:fill color
+                           :cursor "pointer"}
                    :on-click #(on-click index)
                    :r (/ r (if (= :chi gear) 6.2 5))
                    :cx (+ cx 0)
                    :cy (+ cy (* r (if (= :chi gear) 0.78 0.75)))
                    :transform transform}]]))
-    ;; slot indexes for testing
-    ; [:text {:style {:pointer-events "none"}
-    ;         :x cx :y (+ cy (* r 0.8)) :text-anchor "middle" :transform transform}
-    ;   index]
+         ; ; slot indexes for testing
+         ; [:text {:style {:pointer-events "none"}
+         ;         :x cx :y (+ cy (* r 0.8)) :text-anchor "middle" :transform transform}
+         ;   index]]))
     workers)])
 
 (defn tile-svg
@@ -546,9 +574,10 @@
                    :wood (:wood color-strings))
            :width (/ size 2.2)
            :height (/ size 2.2)}]
-   [:text {:x (+ x (/ size 18))
-           :y (+ y (/ size 3))}
-    (get symbols type)]])
+   [inner-svg type
+              (+ x (/ size 16))
+              (+ y (/ size 20))
+              (/ size 3)]])
 
 (defn jungle-svg
   [cx cy r teeth jungle]
@@ -591,23 +620,6 @@
              (tile-svg  cx (* r -0.15) size r :wood))]))
       jungle)]))
 
-
-(defn inner-svg
-  [k x y size]
-  (let [href (log (str "images/" (img-path k) ".svg"))]
-    [:g {:dangerouslySetInnerHTML
-         {:__html (str "<image x=\""
-                       x
-                       "\" y=\""
-                       y
-                       "\" width=\""
-                       size
-                       "\" height=\""
-                       size
-                       "\" xlink:href=\""
-                       href
-                       "\"/>")}}]))
-
 (defn gear-svg
   [{:keys [cx cy r teeth rotation workers on-worker-click on-center-click
            tooth-height-factor tooth-width-factor gear actions jungle]}]
@@ -631,7 +643,8 @@
               :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
     (if workers
       (worker-slots cx cy r teeth workers on-worker-click gear))]
-   [:circle {:style {:fill "white"
+   [:circle {:class "hover-opacity"
+             :style {:fill "white"
                      :cursor "pointer"}
              :cx cx
              :cy cy
@@ -694,14 +707,17 @@
 (defn temples-el
   [{:keys [players]}]
   [:div.ui.equal.width.grid {:style {:padding "0.5rem"
+                                     :margin-right "0.2rem"
                                      :font-size 16}}
    (for [[t temple] (:temples spec)]
      ^{:key t}
-     [:div.bottom.aligned.column {:style {:padding "0.8rem"}}
-      [:div.ui.center.aligned.segment {:style {:padding "0.5rem"}}
-       [:div {:style {:margin "1.8rem"}}
-        [:span {:style {:font-size "3rem"}}
-         [temple-icon t]]]
+     [:div.bottom.aligned.column
+      [:div
+        [:div {:style {:font-size "4rem"
+                       :padding-bottom "2rem"}}
+         [:div {:style {:width "5.5rem"
+                        :margin "0 auto"}}
+          [temple-icon t]]]
        (reverse
         (map-indexed
          (fn [step-index {:keys [points material]}]
@@ -730,8 +746,8 @@
                  (points-el points)])
               (if material
                 [:div {:style {:position "absolute"
-                               :right "0.5rem"}}
-                 (get symbols material)])]))
+                               :right "0"}}
+                 [svg-icon-el material]])]))
          (:steps temple)))]])])
 
 (defn tech-label
@@ -757,7 +773,7 @@
     [:div.ui.segment {:style {:height "7rem"
                               :padding-left "0.4em"
                               :padding-right 0}}
-     [:div.top.attached.ui.label (name track)]
+     [temple-icon track]
      (tech-player-circles players track 0)]])
 
 (defn tech-player-box
@@ -776,13 +792,13 @@
     [:div.two.wide.column {:style {:padding "0.2rem"}}]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
       [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
-       (:resource symbols)]]
+       [svg-icon-el :resource]]]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
       [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
-       (:resource symbols) (:resource symbols)]]
+       [svg-icon-el :resource] [svg-icon-el :resource]]]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
       [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
-       (:resource symbols) (:resource symbols) (:resource symbols)]]
+       [svg-icon-el :resource] [svg-icon-el :resource] [svg-icon-el :resource]]]
     [:div.two.wide.center.aligned.column {:style {:padding "0.2rem"}}
       [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
        (:resource symbols)]]]
@@ -791,19 +807,19 @@
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :pal
-        [:i.plus.icon] (:corn symbols))
+        [:i.plus.icon] [svg-icon-el :corn])
        (tech-player-box players :agri 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :water
-        [:i.plus.icon] (:corn symbols))
+        [:i.plus.icon] [svg-icon-el :corn])
        [:p {:style {:font-size 14}}
         "no tile req."]
        (tech-player-box players :agri 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :pal
-        [:i.plus.icon] (:corn symbols) (:corn symbols))
+        [:i.plus.icon] [svg-icon-el :corn] [svg-icon-el :corn])
        (tech-player-box players :agri 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
@@ -834,7 +850,7 @@
     (tech-first-col players :arch)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (:corn symbols)
+       [svg-icon-el :corn]
        [:p {:style {:font-size 14}}
         "w/ build"]
        (tech-player-box players :arch 1)]]
@@ -924,12 +940,12 @@
     (when dev? [:div.ui.label "dev"])
     (when player [:span (player-circle-el (:color player)) (:name player)])
     (case type
-      :new-game      [:span (:corn symbols) "New vanilla tzolkin game!"]
+      :new-game      [:span [svg-icon-el :corn] "New vanilla tzolkin game!"]
       :start-game    [:span (event-player-el active-player) "'s turn " turn]
       :give-stuff    [:span " + " (symbols-str (:changes data))]
       :add-player    [:span [:i {:class (str (name (:color data)) " circle icon")}] (:name data) " joined the game"]
-      :place-worker  [:span (event-player-el active-player) " placed a worker on " (get symbols (:gear data))]
-      :remove-worker [:span (event-player-el active-player) " removed a worker from " (get symbols (:gear data))]
+      :place-worker  [:span (event-player-el active-player) " placed a worker on " [svg-icon-el (:gear data)]]
+      :remove-worker [:span (event-player-el active-player) " removed a worker from " [svg-icon-el (:gear data)]]
       :end-turn      [:span (event-player-el active-player) "'s turn " turn]
       :choose-option [:span (event-player-el active-player) (event-summary-choice data)]
       :make-trade    [:span (event-player-el active-player) (trade-description data)]
