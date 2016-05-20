@@ -60,18 +60,27 @@
                        (str " " (:x data) " " (:y data)))
                      ")")))))
 
+(defn img-path
+  [k]
+  (case k
+    :corn  "emoji/1f33d"
+    :smile "emoji/1f603"
+    :wood  "emoji/1f332"
+    :stone "svg/rock"
+    :gold  "svg/ingot"
+    :skull "emoji/1f48e"
+    :chac  "emoji/1f40c"
+    :quet  "emoji/1f40a"
+    :kuku  "emoji/1f406"
+    :yax   "emoji/1f351"
+    :tik   "emoji/1f353"
+    :uxe   "emoji/1f34b"
+    :chi   "emoji/1f347"
+    :pal   "emoji/1f34f"))
+
 (defn svg-icon
   [k]
-  (let [name (case k
-              :corn  "emoji/1f33d"
-              :smile "emoji/1f603"
-              :wood  "emoji/1f332"
-              :stone "svg/rock"
-              :gold  "svg/ingot"
-              :skull "emoji/1f48e"
-              :chac  "emoji/1f40c"
-              :quet  "emoji/1f40a"
-              :kuku  "emoji/1f406")]
+  (let [name (img-path k)]
     [:div.svg-icon {:style {:background-image (str "url(images/" name ".svg)")
                             :background-repeat "no-repeat"
                             :background-size "contain"
@@ -582,6 +591,23 @@
              (tile-svg  cx (* r -0.15) size r :wood))]))
       jungle)]))
 
+
+(defn inner-svg
+  [k x y size]
+  (let [href (log (str "images/" (img-path k) ".svg"))]
+    [:g {:dangerouslySetInnerHTML
+         {:__html (str "<image x=\""
+                       x
+                       "\" y=\""
+                       y
+                       "\" width=\""
+                       size
+                       "\" height=\""
+                       size
+                       "\" xlink:href=\""
+                       href
+                       "\"/>")}}]))
+
 (defn gear-svg
   [{:keys [cx cy r teeth rotation workers on-worker-click on-center-click
            tooth-height-factor tooth-width-factor gear actions jungle]}]
@@ -605,25 +631,24 @@
               :transform (transform-str [:rotate {:deg deg :x cx :y cy}])}])
     (if workers
       (worker-slots cx cy r teeth workers on-worker-click gear))]
-   [:circle {:style {:fill (get color-strings gear)}
+   [:circle {:style {:fill "white"
+                     :cursor "pointer"}
              :cx cx
              :cy cy
              :r (/ r (if (= :chi gear) 1.8 2.1))
              :on-click on-center-click}]
-   [:text {:style {:pointer-events "none"}
-           :x cx
-           :y (* cy 1.11)
-           :font-size (* r 0.65)
-           :text-anchor "middle"
-           :transform (transform-str [:rotate {:deg (-
-                                                     (* (if gear
-                                                          (-> spec :gears gear :location)
-                                                          0)
-                                                        (/ 360 -26))
-                                                     (/ 360 teeth))
-                                               :x cx
-                                               :y cy}])}
-    (get symbols gear)]
+   [:g {:style {:pointer-events "none"}
+        :transform (transform-str [:rotate {:deg (-
+                                                  (* (if gear
+                                                       (-> spec :gears gear :location)
+                                                       0)
+                                                     (/ 360 -26))
+                                                  (/ 360 teeth))
+                                            :x cx
+                                            :y cy}])}
+    (let [s (* r 0.65)
+          s2 (/ s 2)]
+      (inner-svg gear (- cx s2) (- cy s2) s))]
    (when (= :pal gear) (jungle-svg cx cy r teeth jungle))])
 
 (defn worker-gear-svg
@@ -674,7 +699,7 @@
      ^{:key t}
      [:div.bottom.aligned.column {:style {:padding "0.8rem"}}
       [:div.ui.center.aligned.segment {:style {:padding "0.5rem"}}
-       [:div {:style {:margin "2rem"}}
+       [:div {:style {:margin "1.8rem"}}
         [:span {:style {:font-size "3rem"}}
          [temple-icon t]]]
        (reverse
