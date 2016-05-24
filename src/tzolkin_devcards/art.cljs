@@ -7,7 +7,7 @@
    [tzolkin.logic :as logic]
    [tzolkin.game :as game]
    [tzolkin-devcards.game :refer [s]]
-   [tzolkin.utils :refer [log]])
+   [tzolkin.utils :refer [log sin cos pi]])
   (:require-macros
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
@@ -22,6 +22,31 @@
   (testing "symbols-str"
     (is (= (art/symbols-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
            "🌲🗿2🌕3🌽💀"))))
+
+(defcard-rg position-around-a-circle
+ (let [width 150
+       height width
+       distance (/ width 3)
+       el-r 10
+       num 12
+       cx (/ width 2)
+       cy (/ height 2)
+       ;; For element around a centre at (x, y), distance r, element's centre:
+       ;;   (x + r cos(2kπ/n), y + r sin(2kπ/n))
+       ;; n is the number of elements
+       ;; k is the index of currently positioned element (btwe. 1 and n inclusive)
+       el-cx (fn [i] (+ cx (* distance (cos (/ (* 2 i pi) num)))))
+       el-cy (fn [i] (+ cy (* distance (sin (/ (* 2 i pi) num)))))]
+   [:svg {:width width :height height}
+    [:circle {:cx cx
+              :cy cy
+              :r (/ width 10)}]
+    (into [:g]
+      (map (fn [i]
+             [:circle {:cx (el-cx i)
+                       :cy (el-cy i)
+                       :r el-r}])
+           (range num)))]))
 
 (defcard-rg symbol-examples
   (into [:div]

@@ -61,3 +61,7 @@
   "Multiple each value in map 'm' by -1"
   [m]
   (change-map m #(* % -1)))
+
+(def sin (.-sin js/Math))
+(def cos (.-cos js/Math))
+(def pi (.-PI js/Math))
