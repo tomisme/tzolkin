@@ -30,21 +30,21 @@
   <defs
      id="defs14" />
   <sodipodi:namedview
-     pagecolor="#ffffff"
+     pagecolor="#000000"
      bordercolor="#666666"
      borderopacity="1"
      objecttolerance="10"
      gridtolerance="10"
      guidetolerance="10"
-     inkscape:pageopacity="0"
+     inkscape:pageopacity="0.63529412"
      inkscape:pageshadow="2"
      inkscape:window-width="1920"
      inkscape:window-height="1028"
      id="namedview12"
      showgrid="false"
      inkscape:zoom="11.795109"
-     inkscape:cx="7.4949504"
-     inkscape:cy="28.775371"
+     inkscape:cx="27.799977"
+     inkscape:cy="28.605809"
      inkscape:window-x="0"
      inkscape:window-y="30"
      inkscape:window-maximized="1"
@@ -61,20 +61,20 @@
        transform="matrix(0.98982924,0,0,0.90857536,0.37386597,2.3834652)">
       <g
          id="g3338"
-         transform="matrix(1,0.27776448,0,1,0.47824806,-10.635241)">
+         transform="matrix(1.00278,0.2678076,-0.01807133,0.96415349,0.97879302,-14.136366)">
         <polygon
            transform="matrix(1.1256206,0,0,1.1256206,0,-6.794315)"
-           points="18.303,37.431 5.482,31.921 39.744,2.507 50.453,8.359 "
+           points="50.453,8.359 18.303,37.431 5.482,31.921 39.744,2.507 "
            id="polygon6"
            style="fill:#f0c419" />
         <polygon
            transform="matrix(1.1256206,0,0,1.1256206,0,-6.794315)"
-           points="0,44.146 5.482,31.921 18.303,37.431 18.931,54.086 "
+           points="18.931,54.086 0,44.146 5.482,31.921 18.303,37.431 "
            id="polygon8"
            style="fill:#f29c1f" />
         <polygon
            transform="matrix(1.1256206,0,0,1.1256206,0,-6.794315)"
-           points="18.931,54.086 18.303,37.431 50.453,8.359 56.592,18.698 "
+           points="56.592,18.698 18.931,54.086 18.303,37.431 50.453,8.359 "
            id="polygon10"
            style="fill:#f3d55b" />
       </g>

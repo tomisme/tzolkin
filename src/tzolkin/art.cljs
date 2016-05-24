@@ -6,6 +6,28 @@
   (:require-macros
    [tzolkin.macros :refer [embed-svg]]))
 
+(def el-titles
+  {:resource "resource"
+   :worker "worker"
+   :wood "wood"
+   :stone "stone"
+   :gold "gold"
+   :corn "corn"
+   :skull "skull"
+   :chac "Chaac"
+   :quet "Quetzalcoatl"
+   :kuku "Kukulcan"
+   :yax "Yaxchilan"
+   :tik "Tikal"
+   :uxe "Uxmal"
+   :chi "Chichen Itza"
+   :pal "Palenque"
+   :agri "agriculture"
+   :extr "extraction"
+   :arch "architecture"
+   :theo "theology"
+   :choose-prev "choose a previous action"})
+
 (def color-strings
   {:red "#CC333F"
    :blue "#69D2E7"
@@ -88,7 +110,8 @@
     :resource "svg/cube"
     :turn "emoji/1f504"
     :points "emoji/2b50"
-    (str k)))
+    :worker "emoji/1f464"
+    "emoji/2753"))
 
 (defn svg-icon-el
   [k]
@@ -96,9 +119,11 @@
     [:div.svg-icon {:style {:background-image (str "url(images/" name ".svg)")
                             :background-repeat "no-repeat"
                             :background-size "contain"
-                            :display "inline"
-                            :padding "0.2rem"
-                            :margin "0.2rem"}}]))
+                            :display "inline-block"
+                            :width "1.4em"
+                            :height "1.4em"
+                            :line-height "normal"}
+                    :title (get el-titles k)}]))
 
 (defn temple-icon
   [temple]
@@ -125,12 +150,10 @@
 (defn svg-icon-group-el
   [icons]
   (into [:span]
-   (map-indexed
-    (fn [index [icon amount]]
+   (map
+    (fn [[icon amount]]
      (into [:span]
-       (repeat amount [:div {:style {:float "left"
-                                     :width "1.4rem"}}
-                       [svg-icon-el icon]])))
+       (repeat amount [svg-icon-el icon])))
     icons)))
 
 (defn symbols-str
@@ -176,7 +199,6 @@
     [:p "(🌽✔)"]
     (map-indexed (fn [index _] ^{:key index} [:p "(🌽🌽✔)"]) (range farms))))
 
-;; TODO share rendering with action-label
 (defn building-card
   [building on-click choosing?]
   (let [{:keys [cost color materials points tech farm temples gain-worker
@@ -194,19 +216,23 @@
         (if choosing?
           [:a {:on-click on-click}
             (svg-icon-group-el cost)]
-            ; (symbols-str cost)]
           (svg-icon-group-el cost))]
-          ; (symbols-str cost))]
       [:div.center.aligned.content {:style {:height "6.1rem"}}
         [:div.description
           (when farm (farm-el farm))
-          (when tech [:p (tech-str tech)])
-          (when gain-worker [:p (:worker symbols)])
-          (when free-action-for-corn [:p (get symbols :corn) ": action"])
+          (when tech
+            (if (map? tech)
+              [:div (svg-icon-group-el tech)]
+              [:p (tech-str tech)]))
+          (when gain-worker [svg-icon-el :worker])
+          (when free-action-for-corn [:div [svg-icon-el :corn] ": action"])
           (when build [:p (name build)])
-          (when temples [:p (svg-icon-group-el temples)])
-          (when materials [:p (symbols-str materials)])
-          (when points (points-el points))]]]))
+          (when temples
+            (if (contains? temples :any)
+              [:p "any temple"]
+              (svg-icon-group-el temples)))
+          (when materials (svg-icon-group-el materials))
+          (when points [:div (points-el points)])]]]))
 
 (defn available-buildings
   [buildings on-decision choosing?]
@@ -294,9 +320,9 @@
 
 (defn player-buildings-el
   [buildings]
-  [:div.ui.cards {:style {:margin-top "0.8rem"
-                          :padding-bottom "0.3rem"
-                          :margin-bottom "0"}}
+  [:div.ui.cards {:style {:margin-top "0.5rem"
+                          :padding-bottom "0.3rem"}}
+                          ; :margin-bottom "0"}}
     (map-indexed
       (fn [index building]
         ^{:key index}
@@ -434,11 +460,11 @@
       (if started?
         (active-player-command-bar-el active active-player on-decision on-trade on-stop-trading color-str)
         (new-player-form-el on-add-player))
+      (available-buildings buildings on-decision choosing-building?)
       (map-indexed
        (fn [pid player]
          (player-stats-el pid player (= active-pid pid)))
-       (:players state))
-      (available-buildings buildings on-decision choosing-building?)]]))
+       (:players state))]]))
 
 (defn action-label
   [[k data]]
@@ -749,11 +775,10 @@
      ^{:key t}
      [:div.bottom.aligned.column
       [:div
-        [:div {:style {:font-size "4rem"
-                       :padding-bottom "2rem"}}
-         [:div {:style {:width "5.5rem"
-                        :margin "0 auto"}}
-          [temple-icon t]]]
+       [:div {:style {:width "5.5rem"
+                      :margin "0 auto"
+                      :font-size "4rem"}}
+        [temple-icon t]]
        (reverse
         (map-indexed
          (fn [step-index {:keys [points material]}]
@@ -837,7 +862,7 @@
        [svg-icon-el :resource] [svg-icon-el :resource] [svg-icon-el :resource]]]
     [:div.two.wide.center.aligned.column {:style {:padding "0.2rem"}}
       [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
-       (:resource symbols)]]]
+       [svg-icon-el :resource]]]]
    [:div.row {:style {:padding "0.1rem"}}
     (tech-first-col players :agri)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
@@ -859,29 +884,30 @@
        (tech-player-box players :agri 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (:chac symbols) "/" (:quet symbols) "/" (:kuku symbols)]]]
+       [:div {:display "inline"}
+        [svg-icon-el :chac] [svg-icon-el :quet] [svg-icon-el :kuku]]]]]
    [:div.row {:style {:padding "0.1rem"}}
     (tech-first-col players :extr)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :yax
-        [:i.plus.icon] (:wood symbols))
+        [:i.plus.icon] [svg-icon-el :wood])
        (tech-label :pal
-        [:i.plus.icon] (:wood symbols))
+        [:i.plus.icon] [svg-icon-el :wood])
        (tech-player-box players :extr 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :yax
-        [:i.plus.icon] (:stone symbols))
+        [:i.plus.icon] [svg-icon-el :stone])
        (tech-player-box players :extr 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :yax
-        [:i.plus.icon] (:gold symbols))
+        [:i.plus.icon] [svg-icon-el :gold])
        (tech-player-box players :extr 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (:resource symbols) (:resource symbols)]]]
+       [svg-icon-el :resource] [svg-icon-el :resource]]]]
    [:div.row {:style {:padding "0.1rem"}}
     (tech-first-col players :arch)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
@@ -898,7 +924,7 @@
        (tech-player-box players :arch 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [:i.minus.icon] (:resource symbols)
+       [:i.minus.icon] [svg-icon-el :resource]
        [:p {:style {:font-size 14}}
         "w/ build"]
        (tech-player-box players :arch 3)]]
@@ -909,21 +935,21 @@
     (tech-first-col players :theo)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (:chi symbols) [:i.chevron.right.icon]
+       [svg-icon-el :chi] [:i.chevron.right.icon]
        (tech-player-box players :theo 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (:resource symbols) ":" [:br]
+       [svg-icon-el :resource] ":" [:br]
        [:p {:style {:font-size 14}}
-        (:chac symbols) "/" (:quet symbols) "/" (:kuku symbols)]
+        [svg-icon-el :chac] "/" [svg-icon-el :quet] "/" [svg-icon-el :kuku]]
        (tech-player-box players :theo 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [:i.plus.icon] (:skull symbols)
+       [:i.plus.icon] [svg-icon-el :skull]
        (tech-player-box players :theo 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (:skull symbols)]]]])
+       [svg-icon-el :skull]]]]])
 
 (defn event-player-el
   [player]

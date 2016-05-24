@@ -13,8 +13,3 @@
 .hover-opacity:hover {
   opacity: 0.8;
 }
-
-.svg-icon:empty::after {
-  content: "svg";
-  visibility: hidden;
-}

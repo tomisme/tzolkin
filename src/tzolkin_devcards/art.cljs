@@ -100,6 +100,7 @@
           [art/gear-svg {:cx (* size 2)
                          :cy (* size 2)
                          :r size
+                         :gear :kuku
                          :teeth teeth
                          :tooth-width-factor tooth-width-factor
                          :tooth-height-factor tooth-height-factor}]]]]]))
