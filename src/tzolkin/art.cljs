@@ -380,7 +380,7 @@
      [:div.ui.center.aligned.compact.segment
       [:div.ui.top.attached.label "Trade"]
       (into [:div
-             [:p {:style {:margin-bottom 5}}
+             [:div {:style {:margin-bottom 5}}
               corn [svg-icon-el :corn]]]
         (map
          (fn [[k v]]
