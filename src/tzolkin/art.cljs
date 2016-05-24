@@ -135,7 +135,7 @@
   [temple]
   [:div {:class "hover-grower"
          :style {:cursor "pointer"}}
-   [svg-icon-el temple]])
+   (svg-icon-el temple)])
 
 (defn inner-svg
   [k x y size]
@@ -153,13 +153,27 @@
                        href
                        "\"/>")}}]))
 
+(defn amount-num-el
+  [amount]
+  [:div {:style {:padding-left "0.4em"
+                 :padding-top "0.25em"
+                 :float "left"
+                 :width "0.7em"
+                 :position "relative"
+                 :word-wrap "normal"
+                 :text-shadow "-2px 0 white, 0 2px white, 2px 0 white, 0 -2px white"}}
+   amount])
+
 (defn svg-icon-group-el
   [icons]
   (into [:span]
    (map
     (fn [[icon amount]]
-     (into [:span]
-       (repeat amount [svg-icon-el icon])))
+     (if (> amount 2)
+       [:div {:style {:display "inline-block"}}
+        (amount-num-el amount) (svg-icon-el icon)]
+       (into [:span]
+         (repeat amount (svg-icon-el icon)))))
     icons)))
 
 (defn symbols-str
@@ -171,28 +185,18 @@
                  (apply str (repeat amount (get symbols material)))
                  (str amount (get symbols material))))))
 
-(defn map-str
-  [m]
-  (apply str (for [[symbol amount] m]
-               (apply str (repeat amount (get symbols symbol))))))
-
-(defn temples-str
-  [temples]
-  (apply str (for [[temple amount] temples]
-               (apply str (repeat amount (get symbols temple))))))
-
 (defn tech-str
   [tech]
   (case tech
-        :any "any tech"
-        :any-two "2x any tech"
-        (symbols-str tech)))
+    :any "any tech"
+    :any-two "2x any tech"
+    (symbols-str tech)))
 
-(defn food-day-str
-  [until-food-day]
-  [:span (if (= 0 until-food-day)
-           [:b "it's Food Day!"]
-           (str until-food-day " spins until Food Day!"))])
+; (defn food-day-str
+;   [until-food-day]
+;   [:span (if (= 0 until-food-day)
+;            [:b "it's Food Day!"]
+;            (str until-food-day " spins until Food Day!"))])
 
 (defn points-el
   [points]
@@ -230,8 +234,8 @@
             (if (map? tech)
               [:div (svg-icon-group-el tech)]
               [:p (tech-str tech)]))
-          (when gain-worker [svg-icon-el :worker])
-          (when free-action-for-corn [:div [svg-icon-el :corn] ": action"])
+          (when gain-worker (svg-icon-el :worker))
+          (when free-action-for-corn [:div (svg-icon-el :corn) ": action"])
           (when build [:p (name build)])
           (when temples
             (if (contains? temples :any)
@@ -259,11 +263,11 @@
                         :on-click on-select}
    [:div.center.aligned.content {:style {:padding "0.8rem 0"}}
     [:div.description
-      (when materials [:p (symbols-str materials)])
-      (when tech [:p (get symbols tech)])
+      (when materials [:div (svg-icon-group-el materials)])
+      (when tech [:div (svg-icon-el tech)])
       (when farm (farm-el farm))
-      (when gain-worker [:p (:worker symbols)])
-      (when temple [:p (get symbols temple)])]]])
+      (when gain-worker [:div (svg-icon-el :worker)])
+      (when temple [:div (svg-icon-el temple)])]]])
 
 (defn decisions-el
   [active active-player on-decision]
@@ -308,7 +312,7 @@
                    :action (str option)
                    :build-building index
                    :build-monument index
-                   (symbols-str option))]))
+                   (svg-icon-group-el option))]))
            decision-options))]))
 
 (defn active-player-status
@@ -340,16 +344,6 @@
   [:i {:key color
        :class (str (name color) " circle icon")}])
 
-(defn amount-num-el
-  [amount]
-  [:div {:style {:margin-left "0.2rem"
-                 :padding-left "0.4rem"
-                 :float "left"
-                 :width "0.6rem"
-                 :position "relative"
-                 :text-shadow "-2px 0 white, 0 2px white, 2px 0 white, 0 -2px white"}}
-   amount])
-
 (defn player-stats-el
   [pid player active?]
   (let [{:keys [color materials points workers buildings]} player
@@ -365,15 +359,16 @@
        [:div {:style {:display "inline-flex"
                       :position "absolute"
                       :left "6.5rem"
-                      :top "1.4rem"}}
+                      :top "1.4rem"
+                      :font-size "1.2rem"}}
         (amount-num-el workers)
         (player-circle-el color)
         (for [[k v] materials]
           [:div {:key k}
            (amount-num-el v)
-           [svg-icon-el k]])
+           (svg-icon-el k)])
         (amount-num-el points)
-        [svg-icon-el :points]]]
+        (svg-icon-el :points)]]
       (when (seq buildings)
         (player-buildings-el buildings))]))
 
@@ -410,16 +405,20 @@
      [:div.ui.center.aligned.compact.segment
       [:div.ui.top.attached.label "Trade"]
       (into [:div
-             [:div {:style {:margin-bottom 5}}
-              corn [svg-icon-el :corn]]]
+             [:div {:style {:display "inline-block"
+                            :margin-bottom "0.2rem"}}
+              (amount-num-el corn) (svg-icon-el :corn)]]
         (map
          (fn [[k v]]
            [:div {:style {:padding 3}}
             [:button.ui.icon.button {:on-click #(on-trade [:buy k])}
              [:i.plus.icon]]
             [:span {:style {:padding 4}}
-             v (get symbols k)
-             " (" (get-in spec [:trade-values k]) [svg-icon-el :corn] "ea.)"]
+             [:div {:style {:display "inline-block"}}
+              (amount-num-el v) (svg-icon-el k)]
+             " ("
+             [:div {:style {:display "inline-block"}}
+              (amount-num-el (get-in spec [:trade-values k])) (svg-icon-el :corn) "ea.)"]]
             [:button.ui.icon.button {:on-click #(on-trade [:sell k])}
              [:i.minus.icon]]])
          resources))]
@@ -484,15 +483,15 @@
                      (get symbols (:gear data)))
     :choose-any-action "any"
     :tech (case (:steps data)
-                1 "1x tech"
-                2 "2x tech")
+            1 "1x tech"
+            2 "2x tech")
     :build (case (:type data)
-                 :single "build"
-                 :double-or-monument "bld 2/mon"
-                 :with-corn (str "bld w/" (:corn symbols)))
+             :single "build"
+             :double-or-monument "bld 2/mon"
+             :with-corn (str "bld w/" (:corn symbols)))
     :temples (case (:choose data)
-                   :any (str (symbols-str (:cost data)) ": tmpl")
-                   :two-different (str (:resource symbols) ": tmpls"))
+               :any (str (symbols-str (:cost data)) ": tmpl")
+               :two-different (str (:resource symbols) ": tmpls"))
     :trade "trade"
     :gain-worker (:worker symbols)
     :skull-action (str (get symbols (:temple data))
@@ -817,26 +816,16 @@
               (if material
                 [:div {:style {:position "absolute"
                                :right "0.3rem"}}
-                 [svg-icon-el material]])]))
+                 (svg-icon-el material)])]))
          (:steps temple)))]])])
 
 (defn tech-label
   [gear]
-  [svg-icon-el (case gear
+  (svg-icon-el (case gear
                  :pal :plus-pal
                  :yax :plus-yax
                  :chi :plus-chi
-                 :water :plus-water)])
-  ; [:span
-  ;  [:div {:style {:background-color (get color-strings gear)
-  ;                 :border-color (get color-strings gear)
-  ;                 :display "inline-block"
-  ;                 :padding ".15rem .15rem"
-  ;                 :border-radius ".28rem"
-  ;                 :width "1.6rem"
-  ;                 :margin-right "0.1rem"}
-  ;         :title (str "gain a bonus on " (get el-titles gear))}
-  ;   [:i.plus.icon]]])
+                 :water :plus-water)))
 
 (defn tech-player-circles
   [players track step]
@@ -876,65 +865,65 @@
     [:div.two.wide.column {:style {:padding "0.2rem"}}]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
       [:span {:style {:top "1.4rem" :position "relative" :z-index 1}}
-       [svg-icon-el :resource]]]
+       (svg-icon-el :resource)]]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
       [:span {:style {:top "1.4rem" :position "relative" :z-index 1}}
-       [svg-icon-el :resource] [svg-icon-el :resource]]]
+       (svg-icon-el :resource) (svg-icon-el :resource)]]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
       [:span {:style {:top "1.4rem" :position "relative" :z-index 1}}
-       [svg-icon-el :resource] [svg-icon-el :resource] [svg-icon-el :resource]]]
+       (svg-icon-el :resource) (svg-icon-el :resource) (svg-icon-el :resource)]]
     [:div.two.wide.center.aligned.column {:style {:padding "0.2rem"}}
       [:span {:style {:top "1.4rem" :position "relative" :z-index 1}}
-       [svg-icon-el :resource]]]]
+       (svg-icon-el :resource)]]]
    [:div.row {:style {:padding "0.1rem"}}
     (tech-first-col players :agri)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :pal)
-       [svg-icon-el :corn]
+       (svg-icon-el :corn)
        (tech-player-box players :agri 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :water)
-       [svg-icon-el :corn]
+       (svg-icon-el :corn)
        [:p {:style {:font-size 14}}
         "no tile req."]
        (tech-player-box players :agri 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :pal)
-       [svg-icon-el :corn] [svg-icon-el :corn]
+       (svg-icon-el :corn) (svg-icon-el :corn)
        (tech-player-box players :agri 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        [:div {:display "inline"}
-        [svg-icon-el :chac] [svg-icon-el :quet] [svg-icon-el :kuku]]]]]
+        (svg-icon-el :chac) (svg-icon-el :quet) (svg-icon-el :kuku)]]]]
    [:div.row {:style {:padding "0.1rem"}}
     (tech-first-col players :extr)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :yax)
        (tech-label :pal)
-       [svg-icon-el :wood]
+       (svg-icon-el :wood)
        (tech-player-box players :extr 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :yax)
-       [svg-icon-el :stone]
+       (svg-icon-el :stone)
        (tech-player-box players :extr 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (tech-label :yax)
-       [svg-icon-el :gold]
+       (svg-icon-el :gold)
        (tech-player-box players :extr 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [svg-icon-el :resource] [svg-icon-el :resource]]]]
+       (svg-icon-el :resource) (svg-icon-el :resource)]]]
    [:div.row {:style {:padding "0.1rem"}}
     (tech-first-col players :arch)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [svg-icon-el :corn]
+       (svg-icon-el :corn)
        [:p {:style {:font-size 14}}
         "w/ first build"]
        (tech-player-box players :arch 1)]]
@@ -946,7 +935,7 @@
        (tech-player-box players :arch 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [:i.minus.icon] [svg-icon-el :resource]
+       [:i.minus.icon] (svg-icon-el :resource)
        [:p {:style {:font-size 14}}
         "w/ first build"]
        (tech-player-box players :arch 3)]]
@@ -957,20 +946,20 @@
     (tech-first-col players :theo)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [svg-icon-el :chi] [:i.chevron.right.icon]
+       (svg-icon-el :chi) [:i.chevron.right.icon]
        (tech-player-box players :theo 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [svg-icon-el :resource] ":" [:br]
-       [svg-icon-el :chac] "/" [svg-icon-el :quet] "/" [svg-icon-el :kuku]
+       (svg-icon-el :resource) ":" [:br]
+       (svg-icon-el :chac) "/" (svg-icon-el :quet) "/" (svg-icon-el :kuku)
        (tech-player-box players :theo 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [tech-label :chi] [svg-icon-el :skull]
+       [tech-label :chi] (svg-icon-el :skull)
        (tech-player-box players :theo 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [svg-icon-el :skull]]]]])
+       (svg-icon-el :skull)]]]])
 
 (defn event-player-el
   [player]
@@ -983,22 +972,22 @@
   (let [{:keys [options type]} decision
         choice (get options index)]
     (case type
-          :anger-god [:span " chose to anger " [svg-icon-group-el (log choice)]]
-          :beg? [:span " chose " (when-not choice "not ") "to beg for corn"]
-          :starters " chose a starting tile"
-          :action " chose an action..."
-          :temple [:span " chose to gain favour with " [svg-icon-group-el choice]]
-          :pay-resource [:span " chose to pay " [svg-icon-group-el choice]]
-          :pay-discount [:span " chose to reduce building cost by " [svg-icon-group-el choice]]
-          :gain-resource [:span " chose to gain " [svg-icon-group-el choice]]
-          :gain-materials [:span " chose to gain " [svg-icon-group-el choice]]
-          :jungle-mats [:span " chose to gain " [svg-icon-group-el choice]]
-          :two-diff-temples [:span " chose to gain favour with "
-                                   [svg-icon-group-el choice]]
-          :tech [:span " chose to go up on " [svg-icon-group-el choice]]
-          :build-monument " built a monument"
-          :build-building " built a building"
-          [:span "ERROR: no matching choice found for key: " type])))
+      :anger-god [:span " chose to anger " (svg-icon-group-el choice)]
+      :beg? [:span " chose " (when-not choice "not ") "to beg for corn"]
+      :starters " chose a starting tile"
+      :action " chose an action..."
+      :temple [:span " chose to gain favour with " (svg-icon-group-el choice)]
+      :pay-resource [:span " chose to pay " (svg-icon-group-el choice)]
+      :pay-discount [:span " chose to reduce building cost by " (svg-icon-group-el choice)]
+      :gain-resource [:span " chose to gain " (svg-icon-group-el choice)]
+      :gain-materials [:span " chose to gain " (svg-icon-group-el choice)]
+      :jungle-mats [:span " chose to gain " (svg-icon-group-el choice)]
+      :two-diff-temples [:span " chose to gain favour with "
+                               (svg-icon-group-el choice)]
+      :tech [:span " chose to go up on " (svg-icon-group-el choice)]
+      :build-monument " built a monument"
+      :build-building " built a building"
+      [:span "ERROR: no matching choice found for key: " type])))
 
 (defn trade-description
   [{:keys [trade]}]
@@ -1023,12 +1012,12 @@
     (when dev? [:div.ui.label "dev"])
     (when player [:span (player-circle-el (:color player)) (:name player)])
     (case type
-      :new-game      [:span [svg-icon-el :corn] "New vanilla tzolkin game!"]
+      :new-game      [:span (svg-icon-el :corn) "New vanilla tzolkin game!"]
       :start-game    [:span (event-player-el active-player) "'s turn " turn]
-      :give-stuff    [:span " + " (symbols-str (:changes data))]
+      :give-stuff    [:span " + " (svg-icon-group-el (:changes data))]
       :add-player    [:span [:i {:class (str (name (:color data)) " circle icon")}] (:name data) " joined the game"]
-      :place-worker  [:span (event-player-el active-player) " placed a worker on " [svg-icon-el (:gear data)]]
-      :remove-worker [:span (event-player-el active-player) " removed a worker from " [svg-icon-el (:gear data)]]
+      :place-worker  [:span (event-player-el active-player) " placed a worker on " (svg-icon-el (:gear data))]
+      :remove-worker [:span (event-player-el active-player) " removed a worker from " (svg-icon-el (:gear data))]
       :end-turn      [:span (event-player-el active-player) "'s turn " turn]
       :choose-option [:span (event-player-el active-player) (event-summary-choice data)]
       :make-trade    [:span (event-player-el active-player) (trade-description data)]
