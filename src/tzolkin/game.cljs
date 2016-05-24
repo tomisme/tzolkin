@@ -138,6 +138,6 @@
           "nil state"]
         [fb-conn-indicator-wrapper local-state-atom]]]
      [:div [worker-gears-wrapper es-atom re-state save on-end-turn]]
-     [:div {:style {:margin "2rem"}}
+     [:div {:style {:margin "1rem"}}
        [temples-wrapper es-atom re-state]
        [tech-tracks-wrapper es-atom re-state]]]))

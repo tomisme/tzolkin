@@ -26,7 +26,8 @@
    :extr "extraction"
    :arch "architecture"
    :theo "theology"
-   :choose-prev "choose a previous action"})
+   :choose-prev "choose a previous action"
+   :water "Palenque fishing"})
 
 (def color-strings
   {:red "#CC333F"
@@ -332,8 +333,17 @@
 (defn player-circle-el
   [color]
   [:i {:key color
-       :class (str (name color) " circle icon")
-       :style {:margin-left "0.1rem"}}])
+       :class (str (name color) " circle icon")}])
+
+(defn amount-num-el
+  [amount]
+  [:div {:style {:margin-left "0.2rem"
+                 :padding-left "0.4rem"
+                 :float "left"
+                 :width "0.6rem"
+                 :position "relative"
+                 :text-shadow "-2px 0 white, 0 2px white, 2px 0 white, 0 -2px white"}}
+   amount])
 
 (defn player-stats-el
   [pid player active?]
@@ -350,26 +360,15 @@
        [:div {:style {:display "inline-flex"
                       :position "absolute"
                       :left "6.5rem"
-                      :top "1.3rem"}}
-        [:div {:style {:padding-left "0.2rem"
-                       :padding-right "0.1rem"}}
-         workers]
-        [:div {:style {:padding-top "0.01rem"}}
-         (player-circle-el color)]
+                      :top "1.4rem"}}
+        (amount-num-el workers)
+        (player-circle-el color)
         (for [[k v] materials]
           [:div {:key k}
-           [:span {:style {:margin-left "0.2rem"
-                           :padding-left "0.4rem"
-                           :float "left"
-                           :width "1rem"}}
-             v]
+           (amount-num-el v)
            [svg-icon-el k]])
-        [:div {:style {:padding-left "0.2rem"}}
-         [:span {:style {:padding-left "0.4rem"
-                         :float "left"
-                         :width "1rem"}}
-          points]
-         [svg-icon-el :points]]]]
+        (amount-num-el points)
+        [svg-icon-el :points]]]
       (when (seq buildings)
         (player-buildings-el buildings))]))
 
@@ -807,18 +806,22 @@
                  (points-el points)])
               (if material
                 [:div {:style {:position "absolute"
-                               :right "0"}}
+                               :right "0.3rem"}}
                  [svg-icon-el material]])]))
          (:steps temple)))]])])
 
 (defn tech-label
-  [gear & content]
-  [:div {:style {:background-color (get color-strings gear)
-                 :border-color (get color-strings gear)
-                 :display "inline-block"
-                 :padding ".28rem .3rem"
-                 :border-radius ".28rem"}}
-   (into [:span] content)])
+  [gear]
+  [:span
+   [:div {:style {:background-color (get color-strings gear)
+                  :border-color (get color-strings gear)
+                  :display "inline-block"
+                  :padding ".15rem .15rem"
+                  :border-radius ".28rem"
+                  :width "1.6rem"
+                  :margin-right "0.1rem"}
+          :title (str "gain a bonus on " (get el-titles gear))}
+    [:i.plus.icon]]])
 
 (defn tech-player-circles
   [players track step]
@@ -832,9 +835,13 @@
   [players track]
   [:div.two.wide.column {:style {:padding "0.2rem"}}
     [:div.ui.segment {:style {:height "7rem"
-                              :padding-left "0.4em"
-                              :padding-right 0}}
-     [temple-icon track]
+                              :padding-left "0.2rem"
+                              :padding-right "0.2rem"
+                              :text-align "center"}}
+     [:div {:style {:text-align "center"
+                    :position "relative"
+                    :top "-0.4rem"}}
+      [temple-icon track]]
      (tech-player-circles players track 0)]])
 
 (defn tech-player-box
@@ -852,35 +859,35 @@
    [:div.row {:style {:padding "0.1rem"}}
     [:div.two.wide.column {:style {:padding "0.2rem"}}]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
-      [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
+      [:span {:style {:top "1.4rem" :position "relative" :z-index 1}}
        [svg-icon-el :resource]]]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
-      [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
+      [:span {:style {:top "1.4rem" :position "relative" :z-index 1}}
        [svg-icon-el :resource] [svg-icon-el :resource]]]
     [:div.four.wide.center.aligned.column {:style {:padding "0.2rem"}}
-      [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
+      [:span {:style {:top "1.4rem" :position "relative" :z-index 1}}
        [svg-icon-el :resource] [svg-icon-el :resource] [svg-icon-el :resource]]]
     [:div.two.wide.center.aligned.column {:style {:padding "0.2rem"}}
-      [:span {:style {:top "1.1rem" :position "relative" :z-index 1}}
+      [:span {:style {:top "1.4rem" :position "relative" :z-index 1}}
        [svg-icon-el :resource]]]]
    [:div.row {:style {:padding "0.1rem"}}
     (tech-first-col players :agri)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (tech-label :pal
-        [:i.plus.icon] [svg-icon-el :corn])
+       (tech-label :pal)
+       [svg-icon-el :corn]
        (tech-player-box players :agri 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (tech-label :water
-        [:i.plus.icon] [svg-icon-el :corn])
+       (tech-label :water)
+       [svg-icon-el :corn]
        [:p {:style {:font-size 14}}
         "no tile req."]
        (tech-player-box players :agri 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (tech-label :pal
-        [:i.plus.icon] [svg-icon-el :corn] [svg-icon-el :corn])
+       (tech-label :pal)
+       [svg-icon-el :corn] [svg-icon-el :corn]
        (tech-player-box players :agri 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
@@ -890,20 +897,19 @@
     (tech-first-col players :extr)
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (tech-label :yax
-        [:i.plus.icon] [svg-icon-el :wood])
-       (tech-label :pal
-        [:i.plus.icon] [svg-icon-el :wood])
+       (tech-label :yax)
+       (tech-label :pal)
+       [svg-icon-el :wood]
        (tech-player-box players :extr 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (tech-label :yax
-        [:i.plus.icon] [svg-icon-el :stone])
+       (tech-label :yax)
+       [svg-icon-el :stone]
        (tech-player-box players :extr 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       (tech-label :yax
-        [:i.plus.icon] [svg-icon-el :gold])
+       (tech-label :yax)
+       [svg-icon-el :gold]
        (tech-player-box players :extr 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
@@ -914,19 +920,19 @@
       [:div.ui.segment {:style {:height "7rem"}}
        [svg-icon-el :corn]
        [:p {:style {:font-size 14}}
-        "w/ build"]
+        "w/ first build"]
        (tech-player-box players :arch 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (points-el 2)
        [:p {:style {:font-size 14}}
-        "w/ build"]
+        "w/ first build"]
        (tech-player-box players :arch 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        [:i.minus.icon] [svg-icon-el :resource]
        [:p {:style {:font-size 14}}
-        "w/ build"]
+        "w/ first build"]
        (tech-player-box players :arch 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
@@ -940,8 +946,7 @@
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        [svg-icon-el :resource] ":" [:br]
-       [:p {:style {:font-size 14}}
-        [svg-icon-el :chac] "/" [svg-icon-el :quet] "/" [svg-icon-el :kuku]]
+       [svg-icon-el :chac] "/" [svg-icon-el :quet] "/" [svg-icon-el :kuku]
        (tech-player-box players :theo 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
