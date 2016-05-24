@@ -88,7 +88,8 @@
   (case k
     :corn  "emoji/1f33d"
     :smile "emoji/1f603"
-    :wood  "emoji/1f332"
+    ; :wood  "emoji/1f332"
+    :wood  "svg/tree"
     :stone "svg/rock"
     :gold  "svg/ingot"
     :skull "svg/gem"
@@ -112,18 +113,22 @@
     :turn "emoji/1f504"
     :points "emoji/2b50"
     :worker "emoji/1f464"
+    :plus-yax "svg/plus-yax"
+    :plus-chi "svg/plus-chi"
+    :plus-pal "svg/plus-pal"
+    :plus-water "svg/plus-water"
     "emoji/2753"))
 
 (defn svg-icon-el
   [k]
   (let [name (img-path k)]
     [:div.svg-icon {:style {:background-image (str "url(images/" name ".svg)")
-                            :background-repeat "no-repeat"
+                            ; :background-repeat "no-repeat"
                             :background-size "contain"
                             :display "inline-block"
                             :width "1.4em"
-                            :height "1.4em"
-                            :line-height "normal"}
+                            :height "1.4em"}
+                            ; :line-height "normal"}
                     :title (get el-titles k)}]))
 
 (defn temple-icon
@@ -501,6 +506,7 @@
     (let [spacing (/ 360 teeth)
           deg (* index spacing)
           offset (/ spacing 2)
+          size (/ r 4)
           text-x cx
           text-y (+ cy (* r 1.15))
           transform (transform-str [:rotate {:deg (+ deg offset)
@@ -510,16 +516,20 @@
                                              :x text-x
                                              :y text-y}])]
       ^{:key (str "corn-cost" index)}
-      [:text {:x text-x
-              :y text-y
-              :style {:stroke "white"
-                      :stroke-width 4
-                      :paint-order "stroke"
-                      :fill "black"}
-              :font-size 14
-              :text-anchor "middle"
-              :transform transform};]
-       (str index "🌽")])))
+      [:g {:transform transform}
+       [inner-svg :corn
+                  (- text-x (/ size 2))
+                  (- text-y (/ size 1.5))
+                  size]
+       [:text {:x text-x
+               :y text-y
+               :style {:stroke "white"
+                       :stroke-width 4
+                       :paint-order "stroke"
+                       :fill "black"}
+               :font-size 14
+               :text-anchor "middle"}
+        index]])))
 
 (defn action-labels
   [cx cy r teeth actions gear]
@@ -812,16 +822,21 @@
 
 (defn tech-label
   [gear]
-  [:span
-   [:div {:style {:background-color (get color-strings gear)
-                  :border-color (get color-strings gear)
-                  :display "inline-block"
-                  :padding ".15rem .15rem"
-                  :border-radius ".28rem"
-                  :width "1.6rem"
-                  :margin-right "0.1rem"}
-          :title (str "gain a bonus on " (get el-titles gear))}
-    [:i.plus.icon]]])
+  [svg-icon-el (case gear
+                 :pal :plus-pal
+                 :yax :plus-yax
+                 :chi :plus-chi
+                 :water :plus-water)])
+  ; [:span
+  ;  [:div {:style {:background-color (get color-strings gear)
+  ;                 :border-color (get color-strings gear)
+  ;                 :display "inline-block"
+  ;                 :padding ".15rem .15rem"
+  ;                 :border-radius ".28rem"
+  ;                 :width "1.6rem"
+  ;                 :margin-right "0.1rem"}
+  ;         :title (str "gain a bonus on " (get el-titles gear))}
+  ;   [:i.plus.icon]]])
 
 (defn tech-player-circles
   [players track step]
@@ -951,7 +966,7 @@
        (tech-player-box players :theo 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
-       [:i.plus.icon] [svg-icon-el :skull]
+       [tech-label :chi] [svg-icon-el :skull]
        (tech-player-box players :theo 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
@@ -968,22 +983,22 @@
   (let [{:keys [options type]} decision
         choice (get options index)]
     (case type
-          :anger-god (str " chose to anger " (symbols-str choice))
-          :beg? (str " chose " (when-not choice "not ") "to beg for corn")
+          :anger-god [:span " chose to anger " [svg-icon-group-el (log choice)]]
+          :beg? [:span " chose " (when-not choice "not ") "to beg for corn"]
           :starters " chose a starting tile"
           :action " chose an action..."
-          :temple (str " chose to gain favour with " (symbols-str choice))
-          :pay-resource (str " chose to pay " (symbols-str choice))
-          :pay-discount (str " chose to reduce building cost by " (symbols-str choice))
-          :gain-resource (str " chose to gain " (symbols-str choice))
-          :gain-materials (str " chose to gain " (symbols-str choice))
-          :jungle-mats (str " chose to gain " (symbols-str choice))
-          :two-diff-temples (str " chose to gain favour with "
-                                 (symbols-str choice))
-          :tech (str " chose to go up on " (symbols-str choice))
+          :temple [:span " chose to gain favour with " [svg-icon-group-el choice]]
+          :pay-resource [:span " chose to pay " [svg-icon-group-el choice]]
+          :pay-discount [:span " chose to reduce building cost by " [svg-icon-group-el choice]]
+          :gain-resource [:span " chose to gain " [svg-icon-group-el choice]]
+          :gain-materials [:span " chose to gain " [svg-icon-group-el choice]]
+          :jungle-mats [:span " chose to gain " [svg-icon-group-el choice]]
+          :two-diff-temples [:span " chose to gain favour with "
+                                   [svg-icon-group-el choice]]
+          :tech [:span " chose to go up on " [svg-icon-group-el choice]]
           :build-monument " built a monument"
           :build-building " built a building"
-          (str "ERROR: no matching choice found for key: " type))))
+          [:span "ERROR: no matching choice found for key: " type])))
 
 (defn trade-description
   [{:keys [trade]}]
