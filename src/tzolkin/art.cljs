@@ -117,6 +117,7 @@
     :plus-chi "svg/plus-chi"
     :plus-pal "svg/plus-pal"
     :plus-water "svg/plus-water"
+    :resource-day "svg/cube-question"
     "emoji/2753"))
 
 (defn svg-icon-el
@@ -344,45 +345,17 @@
   [:i {:key color
        :class (str (name color) " circle icon")}])
 
-(defn player-stats-el
-  [pid player active?]
-  (let [{:keys [color materials points workers buildings]} player
-        player-name (:name player)
-        box-shadow (str "0 1px 10px 0 " (get color-strings color))]
-    ^{:key pid}
-    [:div.ui.segment (when active? {:style {:box-shadow box-shadow}})
-      [:div
-       [:span
-        [:a {:class (str "ui " (name color) " label")
-             :style {:font-size "1rem"}}
-          player-name]]
-       [:div {:style {:display "inline-flex"
-                      :position "absolute"
-                      :left "6.5rem"
-                      :top "1.4rem"
-                      :font-size "1.2rem"}}
-        (amount-num-el workers)
-        (player-circle-el color)
-        (for [[k v] materials]
-          [:div {:key k}
-           (amount-num-el v)
-           (svg-icon-el k)])
-        (amount-num-el points)
-        (svg-icon-el :points)]]
-      (when (seq buildings)
-        (player-buildings-el buildings))]))
-
-(defn turn-status-el
-  [current-turn]
-  (into [:p] (map-indexed
-                (fn [index turn]
-                  (if (>= index current-turn)
-                    (case (:type turn)
-                      :normal [:i.circle.thin.icon]
-                      :points-food-day [:i.add.circle.icon]
-                      :mats-food-day [:i.remove.circle.icon])
-                    [:i.circle.icon]))
-                (:turns spec))))
+; (defn turn-status-el
+;   [current-turn]
+;   (into [:p] (map-indexed
+;                 (fn [index turn]
+;                   (if (>= index current-turn)
+;                     (case (:type turn)
+;                       :normal [:i.circle.thin.icon]
+;                       :points-food-day [:i.add.circle.icon]
+;                       :mats-food-day [:i.remove.circle.icon])
+;                     [:i.circle.icon]))
+;                 (:turns spec))))
 
 ;; TODO
 (defn new-player-form-el
@@ -394,6 +367,7 @@
        [:input {:type "text" :placeholder "Name.."}]]
       [:div.ui.submit.button {:on-click on-submit-clicked} "Add Player"]]]))
 
+;; TODO fix padding to use rem
 (defn trade-window-el
   [player on-trade on-stop-trading]
   (let [materials (:materials player)
@@ -436,6 +410,35 @@
         (decisions-el active active-player on-decision)
         [:div {:class (str "ui inverted segment " color-str)}
          (active-player-status active active-player)]))))
+
+(defn player-stats-el
+  [pid player active?]
+  (let [{:keys [color materials points workers buildings]} player
+        player-name (:name player)
+        box-shadow (str "0 1px 10px 0 " (get color-strings color))]
+    ^{:key pid}
+    [:div.ui.segment (when active? {:style {:box-shadow box-shadow}})
+     [:div
+      [:span
+       [:a {:class (str "ui " (name color) " label")
+            :style {:font-size "1rem"}}
+         player-name]]
+      [:div {:style {:display "inline-flex"
+                     :position "absolute"
+                     :left "6.5rem"
+                     :top "1.4rem"
+                     :font-size "1.2rem"}}
+       (amount-num-el workers)
+       [:span {:style {:padding-top "0.2em"}}
+        (player-circle-el color)]
+       (for [[k v] materials]
+         [:div {:key k}
+          (amount-num-el v)
+          (svg-icon-el k)])
+       (amount-num-el points)
+       (svg-icon-el :points)]
+      (when (seq buildings)
+        (player-buildings-el buildings))]]))
 
 (defn status-bar-el
   [state on-decision on-trade on-stop-trading on-end-turn on-start-game on-add-player]
@@ -1032,7 +1035,7 @@
   [{:keys [stream on-es-reset]}]
   [:div.ui.segment {:id "game-log"
                     :style {:overflow-y "scroll"
-                            :height 250}}
+                            :height "12rem"}}
    (into [:div.ui.feed]
          (map-indexed
           (fn [es-index [event state]]
