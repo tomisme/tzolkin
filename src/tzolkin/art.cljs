@@ -840,7 +840,8 @@
                               :text-align "center"}}
      [:div {:style {:text-align "center"
                     :position "relative"
-                    :top "-0.4rem"}}
+                    :top "-0.6rem"
+                    :font-size "1.5rem"}}
       [temple-icon track]]
      (tech-player-circles players track 0)]])
 
