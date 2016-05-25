@@ -2,7 +2,7 @@
   (:require
    [reagent.core :as rg]
    [tzolkin.spec :refer [spec]]
-   [tzolkin.utils :refer [log]])
+   [tzolkin.utils :refer [log sin cos pi]])
   (:require-macros
    [tzolkin.macros :refer [embed-svg]]))
 
@@ -110,7 +110,7 @@
     :arch "emoji/2696"
     :theo "emoji/1f4d6"
     :resource "svg/cube"
-    :turn "emoji/1f504"
+    :spin "svg/spin"
     :points "emoji/2b50"
     :worker "emoji/1f464"
     :plus-yax "svg/plus-yax"
@@ -118,6 +118,12 @@
     :plus-pal "svg/plus-pal"
     :plus-water "svg/plus-water"
     :resource-day "svg/cube-question"
+    :spinner "svg/spinner"
+    :hat "svg/hat"
+    :food-day-points "svg/food-day-points"
+    :food-day-mats "svg/food-day-mats"
+    :age1-spot "svg/age1-spot"
+    :age2-spot "svg/age2-spot"
     "emoji/2753"))
 
 (defn svg-icon-el
@@ -445,7 +451,6 @@
   (let [turn (:turn state)
         started? (> turn 0)
         num-players (count (:players state))
-        until-food-day (get-in spec [:until-food-day turn])
         buildings (:buildings state)
         active (:active state)
         choosing-building? (= :build-building (get-in active [:decision :type]))
@@ -461,7 +466,6 @@
                                         (when-not (> num-players 0) "disabled"))
                             :on-click on-start-game}
          "Start Game"]])
-     ; (turn-status-el turn)
      [:div
       (if started?
         (active-player-command-bar-el active active-player on-decision on-trade on-stop-trading color-str)
@@ -519,10 +523,10 @@
                                              :y text-y}])]
       ^{:key (str "corn-cost" index)}
       [:g {:transform transform}
-       [inner-svg :corn
+       (inner-svg :corn
                   (- text-x (/ size 2))
                   (- text-y (/ size 1.5))
-                  size]
+                  size)
        [:text {:x text-x
                :y text-y
                :style {:stroke "white"
@@ -642,10 +646,10 @@
                    :wood (:wood color-strings))
            :width (/ size 2.2)
            :height (/ size 2.2)}]
-   [inner-svg type
+   (inner-svg type
               (+ x (/ size 16))
               (+ y (/ size 20))
-              (/ size 3)]])
+              (/ size 3))])
 
 (defn jungle-svg
   [cx cy r teeth jungle]
@@ -748,24 +752,104 @@
              :on-center-click on-center-click
              :on-worker-click on-worker-click}])
 
+(defn players-dial-el
+  [size players active]
+  (let [active-pid (:pid active)
+        width size
+        height size
+        distance (/ width 11)
+        el-r (/ size 70)
+        num (count players)
+        cx (/ width 2)
+        cy (/ height 2)
+        el-cx (fn [i] (+ cx (* distance (cos (/ (* 2 i pi) num)))))
+        el-cy (fn [i] (+ cy (* distance (sin (/ (* 2 i pi) num)))))]
+    [:g
+     (into [:g]
+       (map (fn [i]
+              (let [player (get players i)
+                    color (:color player)]
+                [:g
+                 [:circle {:cx (el-cx i)
+                           :cy (el-cy i)
+                           :r el-r
+                           :fill (get color-strings color)}]
+                 (when (= active-pid i)
+                   (let [spinner-size (* el-r 3.5)
+                         spinner-x (- (el-cx i) (/ spinner-size 2))
+                         spinner-y (- (el-cy i) (/ spinner-size 2))]
+                     (inner-svg :spinner spinner-x spinner-y spinner-size)))]))
+            (range num)))
+     [:g {:transform (transform-str [:rotate {:deg 90 :x (/ size 2) :y (/ size 2)}])}
+      (inner-svg :hat
+                 (- cx (/ (* el-r 2.2) 2))
+                 (- cy (/ size 7.9))
+                 (* el-r 2.2))]]))
+
+(defn turn-clock-el
+  [size turn]
+  (let [width size
+        height size
+        distance (/ width 6.5)
+        el-size (/ size 30)
+        num (:total-turns spec)
+        cx (/ width 2)
+        cy (/ height 2)
+        el-cx (fn [i] (+ cx (* distance (cos (/ (* 2 i pi) num)))))
+        el-cy (fn [i] (+ cy (* distance (sin (/ (* 2 i pi) num)))))]
+    (into [:g]
+      (map (fn [i]
+             (when (>= i (dec turn))
+               [:g {:transform (transform-str [:rotate {:deg 90
+                                                        :x (el-cx i)
+                                                        :y (el-cy i)}])}
+                (inner-svg (case (-> (:turns spec) (get i) :type)
+                             :normal          (case (-> (:turns spec) (get i) :age)
+                                                1 :age1-spot
+                                                2 :age2-spot)
+                             :mats-food-day   :food-day-mats
+                             :points-food-day :food-day-points)
+                           (- (el-cx i) (/ el-size 2))
+                           (- (el-cy i) (/ el-size 2))
+                           el-size)]))
+            ; [:text {:x (el-cx i)
+            ;         :y (el-cy i)
+            ;         :transform (transform-str [:rotate {:deg 90
+            ;                                             :x (el-cx i)
+            ;                                             :y (el-cy i)}])}
+            ;  i])
+           (range num)))))
+
+(defn middle-of-gears
+  [size turn on-end-turn players active]
+  [:g
+   [:g {:transform (transform-str [:rotate {:deg -90 :x (/ size 2) :y (/ size 2)}])}
+    (players-dial-el size players active)
+    (turn-clock-el size turn)]
+   [:g {:class "hover-opacity"
+        :style {:cursor "pointer"}
+        :on-click on-end-turn}
+    (let [turn-button-size (/ size 8)
+          x (- (/ size 2) (/ turn-button-size 2))
+          y x]
+      (inner-svg :spin x y turn-button-size))]])
+
+
 (defn gear-layout-el
-  [gear-data jungle on-end-turn]
+  [gear-data jungle turn on-end-turn players active]
   (let [size 850]
     [:svg {:width size :height size}
            ;; for testing
            ; :style {:background-color "pink"}}
-     [:g {:class "hover-opacity"
-          :style {:cursor "pointer"}
-          :on-click on-end-turn}
-      [inner-svg :turn (/ size 2.11) (/ size 2.1) (/ size 10)]]
-
      (map
       (fn [gear]
         (let [loc (-> spec :gears gear :location)]
           [:g {:key gear
                :transform (transform-str [:rotate {:deg (* loc (/ 360 26))
                                                    :x (/ size 1.97)
-                                                   :y (/ size 1.95)}])}
+                                                   :y (if (= :chi gear)
+                                                        (/ size 1.85)
+                                                        (/ size 1.95))}])}
            (worker-gear-svg {:gear gear
                              :size size
                              :jungle (if (= :pal gear) jungle)
@@ -775,7 +859,8 @@
                              :teeth (-> gear-data gear :teeth)
                              :rotation (-> gear-data gear :rotation)
                              :actions (-> gear-data gear :actions)})]))
-      '(:pal :yax :tik :uxe :chi))]))
+      '(:pal :yax :tik :uxe :chi))
+     (middle-of-gears size turn on-end-turn players active)]))
 
 (defn temples-el
   [{:keys [players]}]

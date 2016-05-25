@@ -10,6 +10,9 @@
 (defn worker-gears-wrapper
   [es-atom re-state save on-end-turn]
   (let [jungle (:jungle @re-state)
+        turn (:turn @re-state)
+        players (:players @re-state)
+        active (:active @re-state)
         data (into {}
                (for [[gear _] (:gears spec)]
                  [gear
@@ -27,7 +30,7 @@
                    :workers (get-in @re-state [:gears gear])
                    :rotation (* (/ 360 (get-in spec [:gears gear :teeth])) (:turn @re-state))
                    :actions (get-in spec [:gears gear :actions])}]))]
-    [art/gear-layout-el data jungle on-end-turn]))
+    [art/gear-layout-el data jungle turn on-end-turn players active]))
 
 (defn status-bar-wrapper
   [es-atom re-state save on-end-turn]

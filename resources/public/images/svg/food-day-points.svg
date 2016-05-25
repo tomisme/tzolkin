@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 64 64"
+   enable-background="new 0 0 64 64"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="2755.svg">
+  <metadata
+     id="metadata14">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs12" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1028"
+     id="namedview10"
+     showgrid="false"
+     showguides="false"
+     inkscape:zoom="3.6875"
+     inkscape:cx="-40.813559"
+     inkscape:cy="32"
+     inkscape:window-x="0"
+     inkscape:window-y="30"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <rect
+     style="fill:#e6e6e6;fill-opacity:1"
+     id="rect4142"
+     width="56.94915"
+     height="56.94915"
+     x="3.525425"
+     y="3.525425"
+     rx="15"
+     ry="15" />
+  <g
+     id="g4"
+     transform="matrix(0.74689266,0,0,0.74689266,8.099435,8.1085152)"
+     style="fill:#94989b">
+    <path
+       d="m 24.535,9.736 4.89,33.17 c 0.489,3.307 4.66,3.307 5.149,0 l 4.89,-33.17 c 0.897,-12.935 -15.827,-12.935 -14.929,0"
+       id="path6"
+       inkscape:connector-curvature="0" />
+    <ellipse
+       cx="32"
+       cy="56.48"
+       rx="7.5"
+       ry="7.5570002"
+       id="ellipse8" />
+  </g>
+</svg>

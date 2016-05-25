@@ -180,8 +180,11 @@
     :uxe {:workers (vec (repeat 10 :none))}
     :tik {:workers (vec (repeat 10 :none))}
     :chi {:workers (vec (repeat 13 :none))}}
-   []
-   nil))
+   []  ;jungle
+   0   ; turn
+   nil ; on-end-turn
+   {}  ; players
+   0)) ; active
 
 (def jungle-atom
   (rg/atom [{:corn-tiles 4}
