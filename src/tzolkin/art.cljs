@@ -128,6 +128,7 @@
     :food-day-mats "svg/food-day-mats"
     :age1-spot "svg/age1-spot"
     :age2-spot "svg/age2-spot"
+    :building "svg/building-symbol"
     "emoji/2753"))
 
 (defn svg-icon-el
@@ -1019,20 +1020,17 @@
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (svg-icon-el :corn)
-       [:p {:style {:font-size 14}}
-        "w/ first build"]
+       (svg-icon-el :building)
        (tech-player-box players :arch 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        (points-el 2)
-       [:p {:style {:font-size 14}}
-        "w/ first build"]
+       (svg-icon-el :building)
        (tech-player-box players :arch 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
        [:i.minus.icon] (svg-icon-el :resource)
-       [:p {:style {:font-size 14}}
-        "w/ first build"]
+       (svg-icon-el :building)
        (tech-player-box players :arch 3)]]
     [:div.two.wide.column {:style {:padding "0.2rem"}}
       [:div.ui.segment {:style {:height "7rem"}}
@@ -1044,8 +1042,10 @@
        (svg-icon-el :chi) [:i.chevron.right.icon]
        (tech-player-box players :theo 1)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
-      [:div.ui.segment {:style {:height "7rem"}}
-       (svg-icon-el :resource) ":" [:br]
+      [:div.ui.segment {:style {:height "7rem"
+                                :padding-left "0.25rem"
+                                :padding-right "0.2rem"}}
+       (svg-icon-el :resource) ":"
        (svg-icon-el :chac) "/" (svg-icon-el :quet) "/" (svg-icon-el :kuku)
        (tech-player-box players :theo 2)]]
     [:div.four.wide.column {:style {:padding "0.2rem"}}
