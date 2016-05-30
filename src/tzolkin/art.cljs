@@ -1,8 +1,9 @@
 (ns tzolkin.art
   (:require
-   [reagent.core :as rg]
    [tzolkin.spec :refer [spec]]
-   [tzolkin.utils :refer [log sin cos pi]])
+   [tzolkin.utils :refer [log sin cos pi]]
+   [reagent.core :as rg]
+   [reagent-forms.core :refer [bind-fields]])
   (:require-macros
    [tzolkin.macros :refer [embed-svg]]))
 
@@ -65,6 +66,9 @@
    :arch "arch"
    :theo "theo"
    :choose-prev "⏪"})
+
+(def color-set
+  #{:red :blue :orange :yellow})
 
 (defn e->val
   [event]
@@ -351,27 +355,29 @@
   [:i {:key color
        :class (str (name color) " circle icon")}])
 
-; (defn turn-status-el
-;   [current-turn]
-;   (into [:p] (map-indexed
-;                 (fn [index turn]
-;                   (if (>= index current-turn)
-;                     (case (:type turn)
-;                       :normal [:i.circle.thin.icon]
-;                       :points-food-day [:i.add.circle.icon]
-;                       :mats-food-day [:i.remove.circle.icon])
-;                     [:i.circle.icon]))
-;                 (:turns spec))))
+(def new-player-form-template
+ [:span
+  [:div.ui.input {:style {:margin-right "1em"}}
+   [:input.form-control {:id :new-player.name
+                         :field :text
+                         :type :text}]]])
 
-;; TODO
 (defn new-player-form-el
-  [on-add-player]
-  (let [on-submit-clicked #(on-add-player "Greg" :green)]
-    [:div.ui.form
-     [:div.inline.fields
-      [:div.five.wide.field
-       [:input {:type "text" :placeholder "Name.."}]]
-      [:div.ui.submit.button {:on-click on-submit-clicked} "Add Player"]]]))
+  [on-add-player current-players]
+  (let [doc (rg/atom {:new-player {:color :red}})
+        next-color (fn [color]
+                    (rand-nth (seq (disj color-set color))))
+        on-next-color (fn [color]
+                        (swap! doc assoc-in [:new-player :color] (next-color color)))]
+    (fn []
+      (let [color (-> @doc :new-player :color)]
+        [:div
+         [:span {:style {:font-size "2em"}
+                 :on-click #(on-next-color color)}
+          (player-circle-el color)]
+         [bind-fields new-player-form-template doc]
+         [:div.ui.submit.button {:on-click #(on-add-player (:new-player @doc))}
+          "Add Player"]]))))
 
 ;; TODO fix padding to use rem
 (defn trade-window-el
@@ -450,7 +456,8 @@
   [state on-decision on-trade on-stop-trading on-end-turn on-start-game on-add-player]
   (let [turn (:turn state)
         started? (> turn 0)
-        num-players (count (:players state))
+        players (:players state)
+        num-players (count players)
         buildings (:buildings state)
         active (:active state)
         choosing-building? (= :build-building (get-in active [:decision :type]))
@@ -469,7 +476,7 @@
      [:div
       (if started?
         (active-player-command-bar-el active active-player on-decision on-trade on-stop-trading color-str)
-        (new-player-form-el on-add-player))
+        [new-player-form-el on-add-player players])
       (available-buildings buildings on-decision choosing-building?)
       (map-indexed
        (fn [pid player]

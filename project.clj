@@ -9,7 +9,8 @@
                  [timothypratley/reanimated "0.1.4"]
                  [clj-tagsoup "0.3.0"]
                  [matchbox "0.0.8-SNAPSHOT"]
-                 [reagent "0.5.1"]]
+                 [reagent "0.5.1"]
+                 [reagent-forms "0.5.24"]]
 
   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 

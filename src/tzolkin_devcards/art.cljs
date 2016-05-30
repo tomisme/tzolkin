@@ -161,7 +161,14 @@
                            (assoc-in [3 :tech :theo] 1)))])
 
 (defcard-rg status-bar-test
-  (art/status-bar-el s #(log [%1 %2]) #(log "trading!") #(log "stopping trading") #(log "end turn!") #(log "start game!") #(log "add player")))
+  (art/status-bar-el
+   s
+   #(log [%1 %2])
+   #(log "trading!")
+   #(log "stopping trading")
+   #(log "end turn!")
+   #(log "start game!")
+   #(log "add player")))
 
 (defcard-rg all-starters
   (into [:div.ui.cards]

@@ -51,8 +51,10 @@
         on-stop-trading #(if save
                            (save (logic/add-event @es-atom [:stop-trading]))
                            (swap! es-atom logic/add-event [:stop-trading]))
-        ;; TODO
-        on-add-player #(log %)]
+        on-add-player (fn [player]
+                        (if save
+                          (save (logic/add-event @es-atom [:add-player player]))
+                          (swap! es-atom logic/add-event [:add-player player])))]
     (fn []
       (art/status-bar-el @re-state
                          on-decision

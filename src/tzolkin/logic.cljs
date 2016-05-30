@@ -650,9 +650,12 @@
 
 (defn add-player
   [state name color]
-  (update state :players conj (-> (:player-starting-stuff spec)
-                                  (assoc :name name)
-                                  (assoc :color color))))
+  (let [current-colors (map #(:color %) (:players state))]
+    (if-not (contains? (set current-colors) color)
+      (update state :players conj (-> (:player-starting-stuff spec)
+                                      (assoc :name name)
+                                      (assoc :color color)))
+      (update state :errors conj "There is already a player of that color in this game"))))
 
 (defn make-trade
   [state [type resource]]
