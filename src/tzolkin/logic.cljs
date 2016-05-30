@@ -282,8 +282,9 @@
     (add-decision state pid :starters (tiles))))
 
 (defn gain-starter
-  [state pid {:keys [materials tech #_farm temple gain-worker]}]
+  [state pid {:keys [materials tech farm temple gain-worker]}]
   (cond-> state
+    farm        (gain-building pid {:farm farm})
     temple      (adjust-temples pid {temple 1})
     tech        (adjust-tech pid {tech 1})
     materials   (adjust-materials pid materials)
@@ -366,13 +367,23 @@
          '()
          (take (inc step) (get-in spec [:temples temple :steps])))))))
 
-;; TODO points for highest positioms, farms and lost vp for starving workers
+(defn fd-corn-cost
+  [player]
+  (let [workers (:workers player)
+        farms (filter #(contains? % :farm) (:buildings player))
+        all-farms (count (filter #(= :all (:farm %)) farms))
+        single-farms (count (filter #(= 1 (:farm %)) farms))
+        triple-farms (count (filter #(= 3 (:farm %)) farms))
+        full-discounts (+ single-farms (* triple-farms 3))]
+    (* (max 0 (- workers full-discounts))
+       (max 0 (- 2 all-farms)))))
+
+;; TODO lost vp for starving workers
 (defn food-day
   [state]
   (let [turn-details (get-in spec [:turns (dec (:turn state))])
         age (:age turn-details)
         turn-type (:type turn-details)
-        corn-cost (fn [p] (* 2 (:workers p)))
         mats? (= :mats-food-day turn-type)
         points? (= :points-food-day turn-type)]
     (-> state
@@ -380,7 +391,7 @@
               (fn [players]
                 (mapv
                   (fn [p]
-                    (cond-> (update-in p [:materials :corn] - (corn-cost p))
+                    (cond-> (update-in p [:materials :corn] - (fd-corn-cost p))
                       mats? (update :materials change-map + (fd-mats p))
                       points? (update :points + (fd-points p))))
                   players)))

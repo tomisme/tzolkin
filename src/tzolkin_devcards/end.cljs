@@ -19,7 +19,31 @@
   ")
 
 (deftest food-day-tests
-  (testing ":points-food-day"
+  (testing "farms"
+    (nod (-> s
+             (assoc :turn 14)
+             (update-in [:players 0 :buildings] conj {:farm 1})
+             (update-in [:players 1 :buildings] conj {:farm 3})
+             (update-in [:players 2 :buildings] conj {:farm :all})
+             (logic/adjust-materials 0 {:corn 6})
+             (logic/adjust-materials 1 {:corn 6})
+             (logic/adjust-materials 2 {:corn 6})
+             (logic/adjust-materials 3 {:corn 6})
+             (logic/adjust-points 0 -6)
+             (logic/adjust-points 1 -6)
+             (logic/adjust-points 2 -6)
+             (logic/adjust-points 3 -6)
+             (logic/food-day))
+         (-> s
+             (assoc :turn 14)
+             (update-in [:players 0 :buildings] conj {:farm 1})
+             (update-in [:players 1 :buildings] conj {:farm 3})
+             (update-in [:players 2 :buildings] conj {:farm :all})
+             (logic/adjust-materials 0 {:corn 2})
+             (logic/adjust-materials 1 {:corn 6})
+             (logic/adjust-materials 2 {:corn 3}))))
+
+  (testing "points food day"
     (nod (-> s
              (assoc :turn 14)
              (logic/adjust-temples 0 {:chac 4})
@@ -50,7 +74,7 @@
              (logic/adjust-temples 1 {:quet 1 :kuku 1})
              (logic/adjust-points 0 12)
              (logic/adjust-points 1 10))))
-  (testing ":mats-food-day"
+  (testing "mats food day"
     (nod (-> s
              (assoc :turn 8)
              (logic/adjust-temples 0 {:kuku 4 :quet 2})
