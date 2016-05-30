@@ -293,20 +293,58 @@
 ;; =  Food Day / Game End =
 ;; ========================
 
-#_(reduce
-   (fn [m p]
-     (let [player-step (get-in p [:temples :chac])
-           highest-step (get-in m [:winner :chac :step])
-           winner? (or (not highest-step) (> player-step highest-step))]
-       (update :players conj (cond-> p))))
-   {:winner {:chac {:player nil :step nil}
-             :quet {:player nil :step nil}
-             :kuku {:player nil :step nil}}
-    :players []}
-   pl)
+(defn temple-winner
+  [players temple]
+  (let [steps (map-indexed
+               (fn [pid p] [pid (-> p :temples temple)])
+               players)]
+
+    (:winners
+     (reduce
+      (fn [m [pid step]]
+        (if (>= step (:top m))
+          (if (= step (:top m))
+            (-> m
+                (update :winners conj pid))
+            (-> m
+                (assoc :top step)
+                (assoc :winners (conj '() pid))))
+          m))
+      {:top -1
+       :winners '()}
+      steps))))
+
+(defn temple-winners
+ [players]
+ (into {}
+   (map
+    (fn [temple]
+      [temple (temple-winner players temple)])
+    '(:chac :quet :kuku))))
+
+(defn give-rewards-for-highest-temples
+  [players age]
+  (let [winners (temple-winners players)
+        rewards (into {}
+                  (for [temple '(:chac :quet :kuku)]
+                   [temple (get (get-in spec [:temples temple :age-bonus]) age)]))]
+    (reduce
+     (fn [players temple]
+       (let [temple-winners (set (get winners temple))
+             reward (if (> (count temple-winners) 1)
+                      (/ (get rewards temple) 2)
+                      (get rewards temple))]
+         (vec (map-indexed
+               (fn [pid p]
+                 (if (contains? temple-winners pid)
+                   (update p :points + reward)
+                   p))
+               players))))
+     players
+     '(:chac :quet :kuku))))
 
 (defn fd-points
-  "Takes a player, returns the number of points earned for temple positons"
+  "Takes a player, returns the number of points earned for raw temple positions"
   [player]
   (apply +
          (map
@@ -332,19 +370,25 @@
 (defn food-day
   [state]
   (let [turn-details (get-in spec [:turns (dec (:turn state))])
+        age (:age turn-details)
         turn-type (:type turn-details)
         corn-cost (fn [p] (* 2 (:workers p)))
         mats? (= :mats-food-day turn-type)
         points? (= :points-food-day turn-type)]
-    (update state
-            :players
-            (fn [players]
-              (mapv
-                (fn [p]
-                  (cond-> (update-in p [:materials :corn] - (corn-cost p))
-                    mats? (update :materials change-map + (fd-mats p))
-                    points? (update :points + (fd-points p))))
-                players)))))
+    (-> state
+      (update :players
+              (fn [players]
+                (mapv
+                  (fn [p]
+                    (cond-> (update-in p [:materials :corn] - (corn-cost p))
+                      mats? (update :materials change-map + (fd-mats p))
+                      points? (update :points + (fd-points p))))
+                  players)))
+      (update :players
+              (fn [players]
+                (if points?
+                  (give-rewards-for-highest-temples players age)
+                  players))))))
 
 (defn finish-game
   [state]

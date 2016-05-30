@@ -18,19 +18,12 @@
   - 2nd and 4th foods days, give points depending on temples
   ")
 
-(defcard-doc
-  (-> s
-      (assoc :turn 14)
-      (logic/adjust-temples 0 {:chac 4 :quet 2 :kuku 5})
-      logic/food-day
-      :players
-      (nth 0)))
-
 (deftest food-day-tests
   (testing ":points-food-day"
     (nod (-> s
              (assoc :turn 14)
-             (logic/adjust-temples 0 {:chac 4 :quet 2 :kuku 5})
+             (logic/adjust-temples 0 {:chac 4})
+             (logic/adjust-temples 1 {:quet 1 :kuku 1})
              (logic/adjust-materials 0 {:corn 6})
              (logic/adjust-materials 1 {:corn 6})
              (logic/adjust-materials 2 {:corn 6})
@@ -38,8 +31,25 @@
              (logic/food-day))
          (-> s
              (assoc :turn 14)
-             (logic/adjust-temples 0 {:chac 4 :quet 2 :kuku 5})
-             (logic/adjust-points 0 18))))
+             (logic/adjust-temples 0 {:chac 4})
+             (logic/adjust-temples 1 {:quet 1 :kuku 1})
+             (logic/adjust-points 0 13)
+             (logic/adjust-points 1 8)))
+    (nod (-> s
+             (assoc :turn 27)
+             (logic/adjust-temples 0 {:chac 4 :kuku 1})
+             (logic/adjust-temples 1 {:quet 1 :kuku 1})
+             (logic/adjust-materials 0 {:corn 6})
+             (logic/adjust-materials 1 {:corn 6})
+             (logic/adjust-materials 2 {:corn 6})
+             (logic/adjust-materials 3 {:corn 6})
+             (logic/food-day))
+         (-> s
+             (assoc :turn 27)
+             (logic/adjust-temples 0 {:chac 4 :kuku 1})
+             (logic/adjust-temples 1 {:quet 1 :kuku 1})
+             (logic/adjust-points 0 12)
+             (logic/adjust-points 1 10))))
   (testing ":mats-food-day"
     (nod (-> s
              (assoc :turn 8)
