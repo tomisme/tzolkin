@@ -19,6 +19,22 @@
   ")
 
 (deftest food-day-tests
+  (testing "starving workers"
+    (nod (-> s
+             (assoc :turn 14)
+             (logic/adjust-materials 0 {:corn 6})
+             (logic/adjust-materials 1 {:corn 5})
+             (logic/adjust-materials 2 {:corn 4})
+             (logic/adjust-materials 3 {:corn 3})
+             (logic/food-day))
+         (-> s
+             (assoc :turn 14)
+             (logic/adjust-points 0 6)
+             (logic/adjust-points 1 3)
+             (logic/adjust-materials 1 {:corn 1})
+             (logic/adjust-points 2 3)
+             (logic/adjust-points 3 0)
+             (logic/adjust-materials 3 {:corn 1}))))
   (testing "farms"
     (nod (-> s
              (assoc :turn 14)
@@ -42,7 +58,6 @@
              (logic/adjust-materials 0 {:corn 2})
              (logic/adjust-materials 1 {:corn 6})
              (logic/adjust-materials 2 {:corn 3}))))
-
   (testing "points food day"
     (nod (-> s
              (assoc :turn 14)

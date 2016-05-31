@@ -378,7 +378,17 @@
     (* (max 0 (- workers full-discounts))
        (max 0 (- 2 all-farms)))))
 
-;; TODO lost vp for starving workers
+(defn fd-pay-for-workers
+  [player]
+  (let [old-corn (-> player :materials :corn)
+        new-corn (- old-corn (fd-corn-cost player))
+        unpaid-workers (int (/ (- new-corn 1) -2))]
+    (if (>= new-corn 0)
+      (assoc-in player [:materials :corn] new-corn)
+      (-> player
+        (assoc-in [:materials :corn] (if (odd? new-corn) 1 0))
+        (update :points - (* 3 unpaid-workers))))))
+
 (defn food-day
   [state]
   (let [turn-details (get-in spec [:turns (dec (:turn state))])
@@ -391,7 +401,7 @@
               (fn [players]
                 (mapv
                   (fn [p]
-                    (cond-> (update-in p [:materials :corn] - (fd-corn-cost p))
+                    (cond-> (fd-pay-for-workers p)
                       mats? (update :materials change-map + (fd-mats p))
                       points? (update :points + (fd-points p))))
                   players)))
