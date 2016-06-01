@@ -5,7 +5,7 @@
    [tzolkin.utils :refer [log]]))
 
 (def root
-  (m/connect "https://bgames.firebaseio.com"))
+  (m/connect "https://playtzolkin.firebaseio.com/"))
 
 (def fb-game (m/get-in root [:tzolkin]))
 
