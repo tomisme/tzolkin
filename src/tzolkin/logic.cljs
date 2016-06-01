@@ -711,6 +711,7 @@
            (not test?) (choose-starter-tiles 0)
            test? (assoc :test? true))
          (update :turn inc)
+         (update :players shuffle)
          setup-buildings-monuments
          setup-jungle))))
 
