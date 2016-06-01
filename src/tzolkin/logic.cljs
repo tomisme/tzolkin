@@ -397,6 +397,7 @@
         mats? (= :mats-food-day turn-type)
         points? (= :points-food-day turn-type)]
     (-> state
+      (assoc :buildings (vec (filter #(= 2 (:age %)) (shuffle (:buildings spec)))))
       (update :players
               (fn [players]
                 (mapv

@@ -26,7 +26,8 @@
              (logic/adjust-materials 1 {:corn 5})
              (logic/adjust-materials 2 {:corn 4})
              (logic/adjust-materials 3 {:corn 3})
-             (logic/food-day))
+             (logic/food-day)
+             (assoc :buildings []))
          (-> s
              (assoc :turn 14)
              (logic/adjust-points 0 6)
@@ -34,7 +35,8 @@
              (logic/adjust-materials 1 {:corn 1})
              (logic/adjust-points 2 3)
              (logic/adjust-points 3 0)
-             (logic/adjust-materials 3 {:corn 1}))))
+             (logic/adjust-materials 3 {:corn 1})
+             (assoc :buildings []))))
   (testing "farms"
     (nod (-> s
              (assoc :turn 14)
@@ -49,7 +51,8 @@
              (logic/adjust-points 1 -6)
              (logic/adjust-points 2 -6)
              (logic/adjust-points 3 -6)
-             (logic/food-day))
+             (logic/food-day)
+             (assoc :buildings []))
          (-> s
              (assoc :turn 14)
              (update-in [:players 0 :buildings] conj {:farm 1})
@@ -57,7 +60,8 @@
              (update-in [:players 2 :buildings] conj {:farm :all})
              (logic/adjust-materials 0 {:corn 2})
              (logic/adjust-materials 1 {:corn 6})
-             (logic/adjust-materials 2 {:corn 3}))))
+             (logic/adjust-materials 2 {:corn 3})
+             (assoc :buildings []))))
   (testing "points food day"
     (nod (-> s
              (assoc :turn 14)
@@ -67,13 +71,15 @@
              (logic/adjust-materials 1 {:corn 6})
              (logic/adjust-materials 2 {:corn 6})
              (logic/adjust-materials 3 {:corn 6})
-             (logic/food-day))
+             (logic/food-day)
+             (assoc :buildings []))
          (-> s
              (assoc :turn 14)
              (logic/adjust-temples 0 {:chac 4})
              (logic/adjust-temples 1 {:quet 1 :kuku 1})
              (logic/adjust-points 0 13)
-             (logic/adjust-points 1 8)))
+             (logic/adjust-points 1 8)
+             (assoc :buildings [])))
     (nod (-> s
              (assoc :turn 27)
              (logic/adjust-temples 0 {:chac 4 :kuku 1})
@@ -82,13 +88,15 @@
              (logic/adjust-materials 1 {:corn 6})
              (logic/adjust-materials 2 {:corn 6})
              (logic/adjust-materials 3 {:corn 6})
-             (logic/food-day))
+             (logic/food-day)
+             (assoc :buildings []))
          (-> s
              (assoc :turn 27)
              (logic/adjust-temples 0 {:chac 4 :kuku 1})
              (logic/adjust-temples 1 {:quet 1 :kuku 1})
              (logic/adjust-points 0 12)
-             (logic/adjust-points 1 10))))
+             (logic/adjust-points 1 10)
+             (assoc :buildings []))))
   (testing "mats food day"
     (nod (-> s
              (assoc :turn 8)
@@ -98,13 +106,15 @@
              (logic/adjust-materials 1 {:corn 6})
              (logic/adjust-materials 2 {:corn 6})
              (logic/adjust-materials 3 {:corn 6})
-             (logic/food-day))
+             (logic/food-day)
+             (assoc :buildings []))
          (-> s
              (assoc :turn 8)
              (logic/adjust-temples 0 {:kuku 4 :quet 2})
              (logic/adjust-temples 1 {:chac 3})
              (logic/adjust-materials 0 {:skull 1 :wood 2 :gold 1 :corn 4})
-             (logic/adjust-materials 1 {:stone 2})))
+             (logic/adjust-materials 1 {:stone 2})
+             (assoc :buildings [])))
     (nod (-> s
              (assoc :turn 8)
              (logic/adjust-temples 0 {:kuku 4 :quet 2})
@@ -113,10 +123,12 @@
              (logic/adjust-materials 1 {:corn 6})
              (logic/adjust-materials 2 {:corn 6})
              (logic/adjust-materials 3 {:corn 6})
-             (logic/food-day))
+             (logic/food-day)
+             (assoc :buildings []))
          (-> s
              (assoc :turn 8)
              (logic/adjust-temples 0 {:kuku 4 :quet 2})
              (logic/adjust-temples 1 {:chac 3})
              (logic/adjust-materials 0 {:skull 1 :wood 2 :gold 1 :corn 4})
-             (logic/adjust-materials 1 {:stone 2})))))
+             (logic/adjust-materials 1 {:stone 2})
+             (assoc :buildings [])))))
