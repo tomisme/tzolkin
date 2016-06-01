@@ -1,6 +1,5 @@
 (ns tzolkin-devcards.core
   (:require
-   [devcards.core :as devcards]
    [devtools.core :as devtools]
    [tzolkin.logic :as logic]
    [tzolkin.utils :as utils :refer [log]]
