@@ -204,12 +204,6 @@
     :any-two "2x any tech"
     (symbols-str tech)))
 
-; (defn food-day-str
-;   [until-food-day]
-;   [:span (if (= 0 until-food-day)
-;            [:b "it's Food Day!"]
-;            (str until-food-day " spins until Food Day!"))])
-
 (defn points-el
   [points]
   [:div.ui.label {:style {:padding ".3rem .51rem"}}
@@ -761,34 +755,37 @@
              :on-worker-click on-worker-click}])
 
 (defn players-dial-el
-  [size players active]
+  [size player-order players active on-take-starting-player]
   (let [active-pid (:pid active)
         width size
         height size
         distance (/ width 11)
         el-r (/ size 70)
-        num (count players)
+        num (count player-order)
         cx (/ width 2)
         cy (/ height 2)
         el-cx (fn [i] (+ cx (* distance (cos (/ (* 2 i pi) num)))))
         el-cy (fn [i] (+ cy (* distance (sin (/ (* 2 i pi) num)))))]
     [:g
      (into [:g]
-       (map (fn [i]
-              (let [player (get players i)
-                    color (:color player)]
-                [:g
-                 [:circle {:cx (el-cx i)
-                           :cy (el-cy i)
-                           :r el-r
-                           :fill (get color-strings color)}]
-                 (when (= active-pid i)
-                   (let [spinner-size (* el-r 3.5)
-                         spinner-x (- (el-cx i) (/ spinner-size 2))
-                         spinner-y (- (el-cy i) (/ spinner-size 2))]
-                     (inner-svg :spinner spinner-x spinner-y spinner-size)))]))
-            (range num)))
-     [:g {:transform (transform-str [:rotate {:deg 90 :x (/ size 2) :y (/ size 2)}])}
+       (map-indexed
+        (fn [i pid]
+          (let [player (get players pid)
+                color (:color player)]
+            [:g
+             [:circle {:cx (el-cx i)
+                       :cy (el-cy i)
+                       :r el-r
+                       :fill (get color-strings color)}]
+             (when (= active-pid pid)
+               (let [spinner-size (* el-r 3.5)
+                     spinner-x (- (el-cx i) (/ spinner-size 2))
+                     spinner-y (- (el-cy i) (/ spinner-size 2))]
+                 (inner-svg :spinner spinner-x spinner-y spinner-size)))]))
+        player-order))
+     [:g {:transform (transform-str [:rotate {:deg 90 :x (/ size 2) :y (/ size 2)}])
+          :style {:cursor "pointer"}
+          :on-click #(on-take-starting-player active-pid)}
       (inner-svg :hat
                  (- cx (/ (* el-r 2.2) 2))
                  (- cy (/ size 7.9))
@@ -829,10 +826,10 @@
            (range num)))))
 
 (defn middle-of-gears
-  [size turn on-end-turn players active]
+  [size turn player-order players active on-end-turn on-take-starting-player]
   [:g
    [:g {:transform (transform-str [:rotate {:deg -90 :x (/ size 2) :y (/ size 2)}])}
-    (players-dial-el size players active)
+    (players-dial-el size player-order players active on-take-starting-player)
     (turn-clock-el size turn)]
    [:g {:class "hover-opacity"
         :style {:cursor "pointer"}
@@ -844,7 +841,7 @@
 
 
 (defn gear-layout-el
-  [gear-data jungle turn on-end-turn players active]
+  [gear-data jungle turn player-order players active on-end-turn on-take-starting-player]
   (let [size 850]
     [:svg {:width size :height size}
            ;; for testing
@@ -868,7 +865,7 @@
                              :rotation (-> gear-data gear :rotation)
                              :actions (-> gear-data gear :actions)})]))
       '(:pal :yax :tik :uxe :chi))
-     (middle-of-gears size turn on-end-turn players active)]))
+     (middle-of-gears size turn player-order players active on-end-turn on-take-starting-player)]))
 
 (defn temples-el
   [{:keys [players]}]
@@ -1109,6 +1106,7 @@
     (case type
       :new-game      [:span (svg-icon-el :corn) "New vanilla tzolkin game!"]
       :start-game    [:span (event-player-el active-player) "'s turn " turn]
+      :take-starting [:span (event-player-el active-player) " took starting player " (svg-icon-el :hat)]
       :give-stuff    [:span " + " (svg-icon-group-el (:changes data))]
       :add-player    [:span [:i {:class (str (name (:color data)) " circle icon")}] (:name data) " joined the game"]
       :place-worker  [:span (event-player-el active-player) " placed a worker on " (svg-icon-el (:gear data))]

@@ -671,11 +671,15 @@
         max-turn (:total-turns spec)
         test? (:test? state)
         pid (-> state :active :pid)
-        last-player? (= (dec (count (:players state))) pid)
+        player-order (:player-order state)
+        last-player? (= (.indexOf player-order pid) (dec (count (:players state))))
+        next-pid (when (not last-player?) (get player-order (inc (.indexOf player-order pid))))
         turn-details (get-in spec [:turns (dec turn)])
         turn-type (:type turn-details)
         food-day? (contains? #{:mats-food-day :points-food-day} turn-type)
-        decision (get-in state [:active :decisions])]
+        decision (get-in state [:active :decisions])
+        new-player-order (:new-player-order state)
+        new-first-pid (:starting-player-space state)]
     (if (not (empty? decision))
       (update state :errors conj (str "Can't end turn - There's still a decision to be made: " decision))
       (if (and last-player? (= turn max-turn))
@@ -684,9 +688,13 @@
                  (<= turn max-turn))
           (-> (cond-> state
                       (and last-player? food-day?) food-day
+                      (and last-player? new-player-order) (assoc :player-order new-player-order)
+                      (and last-player? new-player-order) (dissoc :new-player-order)
+                      (and last-player? new-player-order) (dissoc :starting-player-space)
+                      (and last-player? new-player-order) (update-in [:players new-first-pid :workers] inc)
                       last-player? (update :turn inc)
-                      last-player? (update :active assoc :pid 0)
-                      (not last-player?) (update-in [:active :pid] inc)
+                      last-player? (assoc-in [:active :pid] (log (first new-player-order)))
+                      (not last-player?) (assoc-in [:active :pid] next-pid)
                       (not test?) (possibly-beg-for-corn)
                       (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
               (update :active assoc :placed 0)
@@ -711,7 +719,7 @@
            (not test?) (choose-starter-tiles 0)
            test? (assoc :test? true))
          (update :turn inc)
-         (update :players shuffle)
+         (assoc :player-order (vec (range (count (-> state :players)))))
          setup-buildings-monuments
          setup-jungle))))
 
@@ -739,6 +747,31 @@
   [state]
   (update state :active assoc :trading? false))
 
+(defn take-starting-player
+  [state]
+  (let [p-order (:player-order state)
+        pid (-> state :active :pid)
+        pid-loc (.indexOf p-order pid)
+        players (:players state)
+        worker-option (-> state :active :worker-option)
+        workers (-> players (nth pid) :workers)
+        taken? (boolean (:starting-player-space state))]
+    (if (and (not taken?)
+             (> workers 0)
+             (empty? (get-in state [:active :decisions]))
+             (or (= :place worker-option) (= :none worker-option)))
+      (-> state
+          ; (assoc-in [:active :pid] 0)
+          (assoc-in [:active :worker-option] :place)
+          (assoc :starting-player-space pid)
+          (update-in [:players pid :workers] dec)
+          (update-in [:active :placed] inc)
+          (assoc :new-player-order (vec (conj
+                                         (concat (subvec p-order 0 pid-loc)
+                                                 (subvec p-order (inc pid-loc)))
+                                         pid))))
+      (update state :errors conj "Cannot take starting player"))))
+
 (defn handle-event
   [state [e data]]
   (when (:errors state) (log (:errors state)))
@@ -747,6 +780,7 @@
      (and (= :new-game e)   (not started?)) init-game
      (and (= :start-game e) (not started?)) (start-game (:test? data))
      (and (= :add-player e) (not started?)) (add-player (:name data) (:color data))
+     (and (= :take-starting e)    started?) take-starting-player
      (and (= :make-trade e)       started?) (make-trade (:trade data))
      (and (= :stop-trading e)     started?) stop-trading
      (and (= :place-worker e)     started?) (place-worker (:gear data))

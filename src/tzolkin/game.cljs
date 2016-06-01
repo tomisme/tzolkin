@@ -8,9 +8,10 @@
    [tzolkin.utils :refer [log]]))
 
 (defn worker-gears-wrapper
-  [es-atom re-state save on-end-turn]
+  [es-atom re-state save on-end-turn on-take-starting-player]
   (let [jungle (:jungle @re-state)
         turn (:turn @re-state)
+        player-order (:player-order @re-state)
         players (:players @re-state)
         active (:active @re-state)
         data (into {}
@@ -30,7 +31,7 @@
                    :workers (get-in @re-state [:gears gear])
                    :rotation (* (/ 360 (get-in spec [:gears gear :teeth])) (:turn @re-state))
                    :actions (get-in spec [:gears gear :actions])}]))]
-    [art/gear-layout-el data jungle turn on-end-turn players active]))
+    [art/gear-layout-el data jungle turn player-order players active on-end-turn on-take-starting-player]))
 
 (defn status-bar-wrapper
   [es-atom re-state save on-end-turn]
@@ -125,7 +126,10 @@
   (let [re-state (reaction (logic/current-state @es-atom))
         on-end-turn #(if save
                        (save (logic/add-event @es-atom [:end-turn]))
-                       (swap! es-atom logic/add-event [:end-turn]))]
+                       (swap! es-atom logic/add-event [:end-turn]))
+        on-take-starting-player #(if save
+                                   (save (logic/add-event @es-atom [:take-starting]))
+                                   (swap! es-atom logic/add-event [:take-starting]))]
     [:div {:style {:display "flex"}}
      [:div {:style {:margin "2rem"}}
        [status-bar-wrapper es-atom re-state save on-end-turn]
@@ -142,7 +146,7 @@
         [:button.ui.button {:on-click #(save (logic/gen-es nil))}
           "nil state"]
         [fb-conn-indicator-wrapper local-state-atom]]]
-     [:div [worker-gears-wrapper es-atom re-state save on-end-turn]]
+     [:div [worker-gears-wrapper es-atom re-state save on-end-turn on-take-starting-player]]
      [:div {:style {:margin "1rem"}}
        [temples-wrapper es-atom re-state]
        [tech-tracks-wrapper es-atom re-state]]]))

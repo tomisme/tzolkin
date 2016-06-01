@@ -189,9 +189,11 @@
     :chi {:workers (vec (repeat 13 :none))}}
    []  ;jungle
    0   ; turn
-   nil ; on-end-turn
+   ()  ; player-order
    {}  ; players
-   0)) ; active
+   0 ; active
+   nil ; on-end-turn
+   nil)) ; on-take-starting-player
 
 (def jungle-atom
   (rg/atom [{:corn-tiles 4}

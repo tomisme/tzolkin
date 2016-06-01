@@ -7,7 +7,7 @@
    [tzolkin.utils :refer [log]]
    [devtools.core :as devtools]))
 
-(devtools/install!)
+(devtools/install! [:custom-formatters :sanity-hints])
 
 (def es-atom
   (rg/atom (logic/gen-es [[:new-game]])))
