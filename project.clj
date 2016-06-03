@@ -3,7 +3,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha3"]
-                 [org.clojure/clojurescript "1.8.51"]
+                 [org.clojure/clojurescript "1.9.14"]
                  [binaryage/devtools "0.6.1"]
                  [devcards "0.2.1-7"]
                  [cljsjs/react-dom "0.14.3-1"] ;; fixes (devcards/#106)
