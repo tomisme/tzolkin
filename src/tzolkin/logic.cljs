@@ -9,25 +9,26 @@
 ;; ==============
 
 (def resource-options
-  (into [] (for [k (:resources spec)] {k 1})))
+  (vec (for [k (:resources spec)] {k 1})))
 
 (def tech-options
-  (into [] (for [k (keys (:tech spec))] {k 1})))
+  (vec (for [k (keys (:tech spec))] {k 1})))
 
 (def temple-options
-  (into [] (for [k (keys (:temples spec))] {k 1})))
+  (vec (for [k (keys (:temples spec))] {k 1})))
 
 (def two-different-temple-options
-  (into [] (for [t1 (keys (:temples spec)) t2 (keys (:temples spec))
-                 :when (not= t1 t2)]
-             {t1 1 t2 1})))
+  (vec (for [t1 (keys (:temples spec))
+             t2 (keys (:temples spec))
+             :when (not= t1 t2)]
+         {t1 1 t2 1})))
 
 (defn action-options
   [gear]
   (if (= :non-chi gear)
-    (into [] (for [g '(:yax :tik :uxe :pal) x (range 5)] {g x}))
+    (vec (for [g '(:yax :tik :uxe :pal) x (range 5)] {g x}))
     (let [num (get-in spec [:gears gear :regular-actions])]
-      (into [] (for [x (range num)] {gear x})))))
+      (vec (for [x (range num)] {gear x})))))
 
 (defn building-options
   [state]
@@ -137,19 +138,15 @@
         arch (-> new-state :players (get pid) :tech :arch)
         theo (-> new-state :players (get pid) :tech :theo)]
     (cond-> new-state
-      (= agri 4) (->
-                   (player-map-adjustment pid :tech {:agri -1})
-                   (add-decision pid :temple))
-      (= extr 4) (->
-                   (player-map-adjustment pid :tech {:extr -1})
-                   (add-decision pid :gain-resource)
-                   (add-decision pid :gain-resource))
-      (= arch 4) (->
-                   (player-map-adjustment pid :tech {:arch -1})
-                   (adjust-points pid 3))
-      (= theo 4) (->
-                   (player-map-adjustment pid :tech {:theo -1})
-                   (adjust-materials pid {:skull 1})))))
+      (= agri 4) (-> (player-map-adjustment pid :tech {:agri -1})
+                     (add-decision pid :temple))
+      (= extr 4) (-> (player-map-adjustment pid :tech {:extr -1})
+                     (add-decision pid :gain-resource)
+                     (add-decision pid :gain-resource))
+      (= arch 4) (-> (player-map-adjustment pid :tech {:arch -1})
+                     (adjust-points pid 3))
+      (= theo 4) (-> (player-map-adjustment pid :tech {:theo -1})
+                     (adjust-materials pid {:skull 1})))))
 
 (defn buy-tech
   [state pid track]
@@ -181,8 +178,8 @@
 
 (defn cost-payable?
   ([state pid cost discount]
-   (if (-> cost (contains? :any-resource))
-     (boolean (some #(> (get-in state [:players pid :materials %]) 0)
+   (if (contains? cost :any-resource)
+     (boolean (some #(pos? (get-in state [:players pid :materials %]))
                     (:resources spec)))
      (let [player-materials (get-in state [:players pid :materials])]
        (and
@@ -258,7 +255,7 @@
 
 (def initial-gears-state
   (into {} (for [k (keys (:gears spec))]
-             [k (into [] (repeat (get-in spec [:gears k :teeth]) :none))])))
+             [k (vec (repeat (get-in spec [:gears k :teeth]) :none))])))
 
 (defn setup-buildings-monuments
   [state]
@@ -382,7 +379,7 @@
   [player]
   (let [old-corn (-> player :materials :corn)
         new-corn (- old-corn (fd-corn-cost player))
-        unpaid-workers (int (/ (- new-corn 1) -2))]
+        unpaid-workers (int (/ (dec new-corn) -2))]
     (if (>= new-corn 0)
       (assoc-in player [:materials :corn] new-corn)
       (-> player
@@ -442,11 +439,10 @@
 
 (defn handle-skull-action
   [state pid {:keys [resource points temple]}]
-  (-> (cond-> state
-        resource (add-decision pid :gain-resource)
-        points   (adjust-points pid points)
-        temple   (adjust-temples pid {temple 1}))
-    (update-in [:players pid :materials :skull] dec)))
+  (cond-> (update-in state [:players pid :materials :skull] dec)
+    resource (add-decision pid :gain-resource)
+    points   (adjust-points pid points)
+    temple   (adjust-temples pid {temple 1})))
 
 (defn handle-jungle-action
   [state pid v]
@@ -458,8 +454,8 @@
         id (:jungle-id v)
         corn-tiles (get-in state [:jungle id :corn-tiles])
         wood-tiles (get-in state [:jungle id :wood-tiles])
-        corn-tile? (> corn-tiles 0)
-        wood-tile? (> wood-tiles 0)
+        corn-tile? (pos? corn-tiles)
+        wood-tile? (pos? wood-tiles)
         options (cond-> []
                   (or corn-tile? (>= agri 2)) (conj {:corn corn})
                   wood-tile? (conj {:wood wood}))]
@@ -529,8 +525,8 @@
               id (:jungle-id decision)
               corn-tiles (get-in state [:jungle id :corn-tiles])
               wood-tiles (get-in state [:jungle id :wood-tiles])
-              corn-tile? (and (> corn-tiles 0) (< wood-tiles corn-tiles))
-              wood-tile? (> wood-tiles 0)]
+              corn-tile? (and (pos? corn-tiles) (< wood-tiles corn-tiles))
+              wood-tile? (pos? wood-tiles)]
           (if (and (not corn-tile?) (not wood-tile?) (< agri 2))
             (update state :errors conj "There are no jungle tiles left")
             (if (contains? choice :corn)
@@ -597,7 +593,7 @@
 
       :anger-god
         (let [temple (first (keys choice))]
-          (if (= 0 (get-in state [:players pid :temples temple]))
+          (if (zero? (get-in state [:players pid :temples temple]))
             (update state :errors conj (str "Can't anger " temple))
             (-> (next-dec state)
                 (adjust-temples pid (negatise-map choice)))))
@@ -620,7 +616,7 @@
         remaining-corn (-> player :materials :corn)
         placed (get-in state [:active :placed])
         corn-cost (+ position placed)]
-    (if (and (> remaining-workers 0)
+    (if (and (pos? remaining-workers)
              (empty? (get-in state [:active :decisions]))
              (>= remaining-corn corn-cost)
              (< position max-position)
@@ -643,7 +639,7 @@
         skulls (get-in player [:materials :skull])
         player-color (:color player)
         target-color (get-in state [:gears gear slot])
-        action-position (- position 1)
+        action-position (dec position)
         action (get-in spec [:gears gear :actions action-position])
         [action-type action-data] action]
     (if (and ;; (log action)
@@ -656,7 +652,7 @@
              (= player-color target-color)
              (empty? (get-in state [:active :decisions]))
              (or (= :remove worker-option) (= :none worker-option))
-             (or (not= :chi gear) (> skulls 0))
+             (or (not= :chi gear) (pos? skulls))
              (cost-payable? state pid (:cost action-data)))
       (-> state
           (update-in [:players pid :workers] inc)
@@ -673,18 +669,18 @@
         pid (-> state :active :pid)
         player-order (:player-order state)
         last-player? (= (.indexOf player-order pid) (dec (count (:players state))))
-        next-pid (when (not last-player?) (get player-order (inc (.indexOf player-order pid))))
+        next-pid (when-not last-player? (get player-order (inc (.indexOf player-order pid))))
         turn-details (get-in spec [:turns (dec turn)])
         turn-type (:type turn-details)
         food-day? (contains? #{:mats-food-day :points-food-day} turn-type)
         decision (get-in state [:active :decisions])
         new-player-order (:new-player-order state)
         new-first-pid (:starting-player-space state)]
-    (if (not (empty? decision))
+    (if (seq decision)
       (update state :errors conj (str "Can't end turn - There's still a decision to be made: " decision))
       (if (and last-player? (= turn max-turn))
         (finish-game state)
-        (if (and (> turn 0)
+        (if (and (pos? turn)
                  (<= turn max-turn))
           (-> (cond-> state
                       (and last-player? food-day?) food-day
@@ -693,7 +689,7 @@
                       (and last-player? new-player-order) (dissoc :starting-player-space)
                       (and last-player? new-player-order) (update-in [:players new-first-pid :workers] inc)
                       last-player? (update :turn inc)
-                      last-player? (assoc-in [:active :pid] (log (first new-player-order)))
+                      last-player? (assoc-in [:active :pid] (first new-player-order))
                       (not last-player?) (assoc-in [:active :pid] next-pid)
                       (not test?) (possibly-beg-for-corn)
                       (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
@@ -711,7 +707,7 @@
 
 (defn start-game
   ([state test?]
-   (if (> (:turn state) 0)
+   (if (pos? (:turn state))
      (-> state
          (update :errors conj "Can't start game - game has already started"))
      (-> (cond-> state
@@ -719,18 +715,17 @@
            (not test?) (choose-starter-tiles 0)
            test? (assoc :test? true))
          (update :turn inc)
-         (assoc :player-order (vec (range (count (-> state :players)))))
+         (assoc :player-order (vec (range (count (:players state)))))
          setup-buildings-monuments
          setup-jungle))))
 
 (defn add-player
   [state name color]
-  (let [current-colors (map #(:color %) (:players state))]
-    (if-not (contains? (set current-colors) color)
-      (update state :players conj (-> (:player-starting-stuff spec)
-                                      (assoc :name name)
-                                      (assoc :color color)))
-      (update state :errors conj "There is already a player of that color in this game"))))
+  (if (contains? (set (map :color (:players state))) color)
+    (update state :errors conj "There is already a player of that color in this game")
+    (update state :players conj (-> (:player-starting-stuff spec)
+                                    (assoc :name name)
+                                    (assoc :color color)))))
 
 (defn make-trade
   [state [type resource]]
@@ -757,11 +752,10 @@
         workers (-> players (nth pid) :workers)
         taken? (boolean (:starting-player-space state))]
     (if (and (not taken?)
-             (> workers 0)
+             (pos? workers)
              (empty? (get-in state [:active :decisions]))
              (or (= :place worker-option) (= :none worker-option)))
       (-> state
-          ; (assoc-in [:active :pid] 0)
           (assoc-in [:active :worker-option] :place)
           (assoc :starting-player-space pid)
           (update-in [:players pid :workers] dec)
@@ -775,7 +769,7 @@
 (defn handle-event
   [state [e data]]
   (when (:errors state) (log (:errors state)))
-  (let [started? (> (:turn state) 0)]
+  (let [started? (pos? (:turn state))]
    (cond-> state
      (and (= :new-game e)   (not started?)) init-game
      (and (= :start-game e) (not started?)) (start-game (:test? data))

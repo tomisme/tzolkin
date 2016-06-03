@@ -78,7 +78,7 @@
   "Takes any number of (supported) svg transform definitions
   and returns a string for use as an svg element's `transform` attribute"
   [& args]
-  (apply str
+  (clojure.string/join
     (for [[type data] args]
       (case type
         :rotate (str "rotate("
@@ -450,7 +450,7 @@
 (defn status-bar-el
   [state on-decision on-trade on-stop-trading on-end-turn on-start-game on-add-player]
   (let [turn (:turn state)
-        started? (> turn 0)
+        started? (pos? turn)
         players (:players state)
         num-players (count players)
         buildings (:buildings state)
@@ -482,7 +482,7 @@
   [[k data]]
   (case k
     :gain-materials  (symbols-str (:mats data))
-    :jungle-mats (if (> (:jungle-id data) 0)
+    :jungle-mats (if (pos? (:jungle-id data))
                    (str (symbols-str {:corn (:corn data)})
                         "/"
                         (symbols-str {:wood (:wood data)}))
@@ -595,7 +595,7 @@
                         y (+ cy (* r 1.56))
                         spacing (/ 360 teeth)
                         offset (/ spacing 2)
-                        deg (+ (* (+ index 1) spacing) offset)
+                        deg (+ (* (inc index) spacing) offset)
                         transform (transform-str
                                    [:rotate {:deg deg :x cx :y cy}]
                                    [:rotate {:deg 180 :x x :y y}])]

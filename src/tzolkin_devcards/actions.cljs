@@ -16,8 +16,7 @@
         action (get-in spec [:gears gear :actions num])]
     (testing (str gear " " num " " action)
       (nod (logic/handle-action s 0 action)
-           (-> s
-               (update-in [:players 0 :materials :wood] + 1)))
+           (update-in s [:players 0 :materials :wood] + 1))
       (nod (-> s
                (logic/adjust-tech 0 {:extr 1})
                (logic/handle-action 0 action))
