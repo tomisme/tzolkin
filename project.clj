@@ -1,6 +1,7 @@
 (defproject tzolkin "0.2.0-SNAPSHOT"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  
+  :license {:name "MIT"
+            :url "https://opensource.org/licenses/MIT"}
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha3"]
                  [org.clojure/clojurescript "1.9.14"]
