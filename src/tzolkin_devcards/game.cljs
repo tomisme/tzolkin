@@ -24,32 +24,6 @@
                   [:add-player {:name "Jess"  :color :yellow}]
                   [:start-game {:test? true}]]))
 
-(deftest es-tests
-  ; TODO fixme
-  ; (testing
-  ;   (nod (reduce-events s [[:place-worker {:gear :uxe}]
-  ;                          [:place-worker {:gear :uxe}]
-  ;                          [:place-worker {:gear :uxe}]
-  ;                          [:end-turn]
-  ;                          [:place-worker {:gear :yax}]
-  ;                          [:place-worker {:gear :yax}]
-  ;                          [:end-turn]])
-  ;        (-> s
-  ;            (update :gears assoc :uxe (into [:red :red :red] (repeat 7 :none)))
-  ;            (update :gears assoc :yax (into [:blue :blue] (repeat 8 :none)))
-  ;            (update :turn inc)
-  ;            (update-in [:players 0 :materials :corn] - 6)
-  ;            (update-in [:players 1 :materials :corn] - 2)
-  ;            (update-in [:players 0 :workers] - 3)
-  ;            (update-in [:players 1 :workers] - 2))))
-  (testing
-    (nod (reduce-events s [[:end-turn]
-                           [:end-turn]
-                           [:end-turn]
-                           [:end-turn]])
-         (-> s
-             (update :turn + 1)))))
-
 (def test-es-atom
   (rg/atom (logic/gen-es game/test-events)))
 

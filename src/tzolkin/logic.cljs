@@ -419,16 +419,16 @@
 
 (defn possibly-beg-for-corn
   [state]
-  (let [pid (-> state :active :pid)
-        corn (-> state :players (nth pid) :materials :corn)]
+  (let [pid (get-in state [:active :pid])
+        corn (get-in state [:players pid :materials :corn])]
     (if (< corn 3)
       (add-decision state pid :beg?)
       state)))
 
 (defn beg-for-corn
   [state]
-  (let [pid (-> state :active :pid)
-        corn (-> state :players (nth pid) :materials :corn)]
+  (let [pid (get-in state [:active :pid])
+        corn (get-in state [:players pid :materials :corn])]
     (-> state
         (adjust-materials pid {:corn (- 3 corn)})
         (add-decision pid :anger-god))))
@@ -447,8 +447,8 @@
 (defn handle-jungle-action
   [state pid v]
   (let [player (get-in state [:players :pid])
-        agri (-> player :tech :agri)
-        extr (-> player :tech :extr)
+        agri (get-in player [:tech :agri])
+        extr (get-in player [:tech :extr])
         corn (:corn v)
         wood (:wood v)
         id (:jungle-id v)
@@ -700,24 +700,33 @@
 (defn init-game
   [state]
   (conj state {:turn 0
-               :active {:pid 0 :worker-option :none :placed 0 :decisions '() :trading? false}
+               :active {:pid 0
+                        :worker-option :none
+                        :placed 0
+                        :decisions '()
+                        :trading? false}
                :remaining-skulls (:skulls spec)
                :players []
                :gears initial-gears-state}))
 
 (defn start-game
   ([state test?]
-   (if (pos? (:turn state))
-     (-> state
-         (update :errors conj "Can't start game - game has already started"))
-     (-> (cond-> state
-           (not test?) (possibly-beg-for-corn)
-           (not test?) (choose-starter-tiles 0)
-           test? (assoc :test? true))
-         (update :turn inc)
-         (assoc :player-order (vec (range (count (:players state)))))
-         setup-buildings-monuments
-         setup-jungle))))
+   (let [player-order (vec (range (count (:players state))))
+         random-player-order (shuffle player-order)]
+     (if (pos? (:turn state))
+       (-> state
+           (update :errors conj "Can't start game - game has already started"))
+       (-> (cond-> state
+             (not test?) (possibly-beg-for-corn)
+             (not test?) (choose-starter-tiles 0)
+             (not test?) (assoc :player-order random-player-order)
+             (not test?) (assoc-in [:active :pid] (first random-player-order))
+             test? (assoc :player-order player-order)
+             test? (assoc-in [:active :pid] 0)
+             test? (assoc :test? true))
+           (update :turn inc)
+           setup-buildings-monuments
+           setup-jungle)))))
 
 (defn add-player
   [state name color]
