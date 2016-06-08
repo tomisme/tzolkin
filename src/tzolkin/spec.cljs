@@ -410,6 +410,7 @@
    :temples {:chac 1 :quet 1 :kuku 1}
    :tech {:agri 0 :extr 0 :arch 0 :theo 0}
    :buildings []
+   :double-spin? true
    :workers 3
    :points 0})
 

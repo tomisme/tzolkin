@@ -39,11 +39,12 @@
    (let [pid (-> state :active :pid)
          num (if (or (= :tech type) (= :free-tech type)) data 1)
          options (case type
-                   :anger-god temple-options
                    :beg? '(true false)
+                   :double-spin? '(true false)
                    :starters data
                    :action (action-options (:gear data))
                    :temple temple-options
+                   :anger-god temple-options
                    :two-diff-temples two-different-temple-options
                    :pay-resource resource-options
                    :pay-discount resource-options
@@ -193,6 +194,15 @@
 (defn start-trading
   [state pid]
   (update state :active assoc :trading? true))
+
+
+;; ================
+;; =  Double Spin =
+;; ================
+
+(defn double-spin
+  [state]
+  (update state :turn inc))
 
 ;; ==============
 ;; =  Buildings =
@@ -489,6 +499,9 @@
         choice   (get options index)
         next-dec #(update-in state [:active :decisions] rest)]
     (case type
+      :double-spin?
+        (if choice (double-spin (next-dec)) (next-dec))
+
       :beg?
         (if choice (beg-for-corn (next-dec)) (next-dec))
 
@@ -656,29 +669,35 @@
         pid (-> state :active :pid)
         player-order (:player-order state)
         last-player? (= (.indexOf player-order pid) (dec (count (:players state))))
-        next-pid (when-not last-player? (get player-order (inc (.indexOf player-order pid))))
+        next-pid (when-not last-player?
+                   (get player-order (inc (.indexOf player-order pid))))
         turn-details (get-in spec [:turns (dec turn)])
         turn-type (:type turn-details)
         food-day? (contains? #{:mats-food-day :points-food-day} turn-type)
         decision (get-in state [:active :decisions])
         new-player-order (:new-player-order state)
-        new-first-pid (:starting-player-space state)]
+        new-order? (and last-player? new-player-order)
+        new-first-pid (:starting-player-space state)
+        can-double-spin? (:double-spin? (get-in state [:players new-first-pid]))
+        double-dec? (and can-double-spin? new-order?)]
     (if (seq decision)
-      (update state :errors conj (str "Can't end turn - There's still a decision to be made: " decision))
+      (update state :errors conj (str "Can't end turn - There's still a decision to be made"))
       (if (and last-player? (= turn max-turn))
         (finish-game state)
         (if (and (pos? turn)
                  (<= turn max-turn))
           (-> (cond-> state
-                (and last-player? food-day?) food-day
-                (and last-player? new-player-order) (assoc :player-order new-player-order)
-                (and last-player? new-player-order) (dissoc :new-player-order)
-                (and last-player? new-player-order) (dissoc :starting-player-space)
-                (and last-player? new-player-order) (update-in [:players new-first-pid :workers] inc)
+                (and last-player? food-day?) (food-day)
                 last-player? (update :turn inc)
-                last-player? (assoc-in [:active :pid] (first new-player-order))
+                last-player? (assoc-in [:active :pid] (first player-order))
                 (not last-player?) (assoc-in [:active :pid] next-pid)
-                (not test?) (possibly-beg-for-corn)
+                new-order? (assoc-in [:active :pid] new-first-pid)
+                new-order? (assoc :player-order new-player-order)
+                new-order? (dissoc :new-player-order)
+                new-order? (dissoc :starting-player-space)
+                new-order? (update-in [:players new-first-pid :workers] inc)
+                double-dec? (add-decision new-first-pid :double-spin?)
+                (and (> turn 1) (not test?)) (possibly-beg-for-corn)
                 (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
               (update :active assoc :placed 0)
               (update :active assoc :worker-option :none))

@@ -286,6 +286,7 @@
         msg (str (:name active-player)
                  " needs to choose "
                  (case type
+                   :double-spin? "whether to spin the wheel again."
                    :pay-discount "which resource to not require."
                    :anger-god "which god to anger."
                    :beg? "whether to beg for corn."
@@ -314,6 +315,7 @@
                [:div (starter-card option #(on-decision index decision))]
                [:button.ui.button {:on-click #(on-decision index decision)}
                  (case type
+                   :double-spin? (if option "Spin twice" "Don't spin twice")
                    :beg? (if option "Beg for corn" "Don't beg")
                    :action (str option)
                    :build-building index
@@ -1059,24 +1061,37 @@
     [:span (player-circle-el (:color player)) (:name player)]
     [:i.cross.icon]))
 
+(defn event-icon-group-el
+  [icon]
+  [:span {:style {:position "relative"
+                  :bottom "-0.4em"}}
+   (svg-icon-group-el icon)])
+
+(defn event-icon-el
+  [icon]
+  [:span {:style {:position "relative"
+                  :bottom "-0.4em"}}
+   (svg-icon-el icon)])
+
 (defn event-summary-choice
   [{:keys [index decision]}]
   (let [{:keys [options type]} decision
         choice (get options index)]
     (case type
-      :anger-god [:span " chose to anger " (svg-icon-group-el choice)]
+      :double-spin? [:span " chose " (when-not choice "not ") "to spin the wheel twice!"]
+      :anger-god [:span " chose to anger " (event-icon-group-el choice)]
       :beg? [:span " chose " (when-not choice "not ") "to beg for corn"]
       :starters " chose a starting tile"
       :action " chose an action..."
-      :temple [:span " chose to gain favour with " (svg-icon-group-el choice)]
-      :pay-resource [:span " chose to pay " (svg-icon-group-el choice)]
-      :pay-discount [:span " chose to reduce building cost by " (svg-icon-group-el choice)]
-      :gain-resource [:span " chose to gain " (svg-icon-group-el choice)]
-      :gain-materials [:span " chose to gain " (svg-icon-group-el choice)]
-      :jungle-mats [:span " chose to gain " (svg-icon-group-el choice)]
+      :temple [:span " chose to gain favour with " (event-icon-group-el choice)]
+      :pay-resource [:span " chose to pay " (event-icon-group-el choice)]
+      :pay-discount [:span " chose to reduce building cost by " (event-icon-group-el choice)]
+      :gain-resource [:span " chose to gain " (event-icon-group-el choice)]
+      :gain-materials [:span " chose to gain " (event-icon-group-el choice)]
+      :jungle-mats [:span " chose to gain " (event-icon-group-el choice)]
       :two-diff-temples [:span " chose to gain favour with "
-                               (svg-icon-group-el choice)]
-      :tech [:span " chose to go up on " (svg-icon-group-el choice)]
+                               (event-icon-group-el choice)]
+      :tech [:span " chose to go up on " (event-icon-group-el choice)]
       :build-monument " built a monument"
       :build-building " built a building"
       [:span "ERROR: no matching choice found for key: " type])))
@@ -1104,13 +1119,13 @@
     (when dev? [:div.ui.label "dev"])
     (when player [:span (player-circle-el (:color player)) (:name player)])
     (case type
-      :new-game      [:span (svg-icon-el :corn) "New vanilla tzolkin game!"]
+      :new-game      [:span (event-icon-el :corn) "New vanilla tzolkin game!"]
       :start-game    [:span (event-player-el active-player) "'s turn " turn]
-      :take-starting [:span (event-player-el active-player) " took starting player " (svg-icon-el :hat)]
-      :give-stuff    [:span " + " (svg-icon-group-el (:changes data))]
+      :take-starting [:span (event-player-el active-player) " took starting player " (event-icon-el :hat)]
+      :give-stuff    [:span " + " (event-icon-group-el (:changes data))]
       :add-player    [:span [:i {:class (str (name (:color data)) " circle icon")}] (:name data) " joined the game"]
-      :place-worker  [:span (event-player-el active-player) " placed a worker on " (svg-icon-el (:gear data))]
-      :remove-worker [:span (event-player-el active-player) " removed a worker from " (svg-icon-el (:gear data))]
+      :place-worker  [:span (event-player-el active-player) " placed a worker on " (event-icon-el (:gear data))]
+      :remove-worker [:span (event-player-el active-player) " removed a worker from " (event-icon-el (:gear data))]
       :end-turn      [:span (event-player-el active-player) "'s turn " turn]
       :choose-option [:span (event-player-el active-player) (event-summary-choice data)]
       :make-trade    [:span (event-player-el active-player) (trade-description data)]
