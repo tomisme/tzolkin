@@ -766,7 +766,13 @@
         players (:players state)
         worker-option (-> state :active :worker-option)
         workers (-> players (nth pid) :workers)
-        taken? (boolean (:starting-player-space state))]
+        taken? (boolean (:starting-player-space state))
+        new-p-order (if (= pid (first (:player-order state)))
+                      (rotate-vec p-order -1)
+                      (vec (conj
+                            (concat (subvec p-order 0 pid-loc)
+                                    (subvec p-order (inc pid-loc)))
+                            pid)))]
     (if (and (not taken?)
              (pos? workers)
              (empty? (get-in state [:active :decisions]))
@@ -776,10 +782,7 @@
           (assoc :starting-player-space pid)
           (update-in [:players pid :workers] dec)
           (update-in [:active :placed] inc)
-          (assoc :new-player-order (vec (conj
-                                         (concat (subvec p-order 0 pid-loc)
-                                                 (subvec p-order (inc pid-loc)))
-                                         pid))))
+          (assoc :new-player-order new-p-order))
       (update state :errors conj "Cannot take starting player"))))
 
 (defn handle-event
