@@ -192,17 +192,18 @@
 ;; ============
 
 (defn start-trading
-  [state pid]
+  [state]
   (update state :active assoc :trading? true))
-
 
 ;; ================
 ;; =  Double Spin =
 ;; ================
 
 (defn double-spin
-  [state]
-  (update state :turn inc))
+  [{:keys [active] :as state}]
+  (-> state
+    (update :turn inc)
+    (assoc-in [:players (:pid active) :double-spin?] false)))
 
 ;; ==============
 ;; =  Buildings =
@@ -228,7 +229,7 @@
     (cond-> (update-in state [:players pid :buildings] conj building)
       tech        (gain-tech-building pid tech)
       build       (gain-builder-building pid build)
-      trade       (start-trading pid)
+      trade       (start-trading)
       points      (adjust-points pid points)
       temples     (adjust-temples pid temples)
       materials   (adjust-materials pid materials)
@@ -481,7 +482,7 @@
           build-building?       (add-decision pid :build-building)
           choose-a-temple?      (add-decision pid :temple v)
           choose-two-temples?   (add-decision pid :two-diff-temples v)
-          (= :trade k)          (start-trading pid)
+          (= :trade k)          (start-trading)
 
           (:cost v)             (pay-cost pid (:cost v))))))
 
@@ -500,7 +501,12 @@
         next-dec #(update-in state [:active :decisions] rest)]
     (case type
       :double-spin?
-        (if choice (double-spin (next-dec)) (next-dec))
+        (if choice
+          (-> (next-dec)
+              (double-spin)
+              (assoc-in [:active :pid] (first (:player-order state))))
+          (-> (next-dec)
+              (assoc-in [:active :pid] (first (:player-order state)))))
 
       :beg?
         (if choice (beg-for-corn (next-dec)) (next-dec))
@@ -677,8 +683,8 @@
         decision (get-in state [:active :decisions])
         new-player-order (:new-player-order state)
         new-order? (and last-player? new-player-order)
-        new-first-pid (:starting-player-space state)
-        can-double-spin? (:double-spin? (get-in state [:players new-first-pid]))
+        pid-on-start-space (:starting-player-space state)
+        can-double-spin? (:double-spin? (get-in state [:players pid-on-start-space]))
         double-dec? (and can-double-spin? new-order?)]
     (if (seq decision)
       (update state :errors conj (str "Can't end turn - There's still a decision to be made"))
@@ -691,12 +697,13 @@
                 last-player? (update :turn inc)
                 last-player? (assoc-in [:active :pid] (first player-order))
                 (not last-player?) (assoc-in [:active :pid] next-pid)
-                new-order? (assoc-in [:active :pid] new-first-pid)
+                new-order? (assoc-in [:active :pid] (first new-player-order))
                 new-order? (assoc :player-order new-player-order)
                 new-order? (dissoc :new-player-order)
                 new-order? (dissoc :starting-player-space)
-                new-order? (update-in [:players new-first-pid :workers] inc)
-                double-dec? (add-decision new-first-pid :double-spin?)
+                new-order? (update-in [:players pid-on-start-space :workers] inc)
+                double-dec? (add-decision pid-on-start-space :double-spin?)
+                (and new-order? double-dec?) (assoc-in [:active :pid] pid-on-start-space)
                 (and (> turn 1) (not test?)) (possibly-beg-for-corn)
                 (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
               (update :active assoc :placed 0)
@@ -783,7 +790,7 @@
           (update-in [:players pid :workers] dec)
           (update-in [:active :placed] inc)
           (assoc :new-player-order new-p-order))
-      (update state :errors conj "Cannot take starting player"))))
+      (update state :errors conj "Can't take starting player"))))
 
 (defn handle-event
   [state [e data]]
