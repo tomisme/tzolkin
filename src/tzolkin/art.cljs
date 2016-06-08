@@ -28,7 +28,9 @@
    :arch "architecture"
    :theo "theology"
    :choose-prev "choose a previous action"
-   :water "Palenque fishing"})
+   :water "Palenque fishing"
+   :points "points"
+   :double-spin-ok "player can double spin"})
 
 (def color-strings
   {:red "#CC333F"
@@ -129,6 +131,7 @@
     :age1-spot "svg/age1-spot"
     :age2-spot "svg/age2-spot"
     :building "svg/building-symbol"
+    :double-spin-ok "svg/double-spin-ok"
     "emoji/2753"))
 
 (defn svg-icon-el
@@ -422,7 +425,7 @@
 
 (defn player-stats-el
   [pid player active?]
-  (let [{:keys [color materials points workers buildings]} player
+  (let [{:keys [color double-spin? materials points workers buildings]} player
         player-name (:name player)
         box-shadow (str "0 1px 10px 0 " (get color-strings color))]
     ^{:key pid}
@@ -445,7 +448,10 @@
           (amount-num-el v)
           (svg-icon-el k)])
        (amount-num-el points)
-       (svg-icon-el :points)]
+       (svg-icon-el :points)
+       (when double-spin?
+         [:span {:style {:margin-left "0.2em"}}
+          (svg-icon-el :double-spin-ok)])]
       (when (seq buildings)
         (player-buildings-el buildings))]]))
 
