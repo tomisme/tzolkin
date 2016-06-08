@@ -12,12 +12,18 @@
 (deftest decision-tests
   (testing "starter"
     (nod (-> s
+             (logic/add-decision 0 :starters [{} {} {:materials {:corn 3}}])
+             (logic/handle-decision 2))
+         (-> s
+             (update-in [:players 0 :materials :corn] + 3)))
+    (nod (-> s
              (logic/add-decision 0 :starters [{} {} {:materials {:corn 2}
                                                      :temple :chac
                                                      :tech :arch
                                                      :tik 1}])
              (logic/handle-decision 2))
          (-> s
+             (logic/add-decision 0 :beg?)
              (update-in [:players 0 :materials :corn] + 2)
              (update-in [:players 0 :temples :chac] inc)
              (update-in [:players 0 :tech :arch] inc))))

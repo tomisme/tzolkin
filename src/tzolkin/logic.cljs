@@ -61,21 +61,6 @@
   ([state pid type]
    (add-decision state pid type {})))
 
-(defn check-for-bad-beg
-  [state]
-  (let [pid (-> state :active :pid)
-        begging-decision? (= :beg? (:type (first (get-in state [:active :decisions]))))
-        too-much-corn? (< 2 (get-in state [:players pid :materials :corn]))]
-    (if (and begging-decision? too-much-corn?)
-      (update-in state [:active :decisions] rest)
-      state)))
-
-(defn next-dec
-  [state]
-  (-> state
-      (update-in [:active :decisions] rest)
-      check-for-bad-beg))
-
 ;; ============
 ;; =  Helpers =
 ;; ============
@@ -501,24 +486,26 @@
         decision (first (:decisions active))
         type     (:type decision)
         options  (:options decision)
-        choice   (get options index)]
+        choice   (get options index)
+        next-dec #(update-in state [:active :decisions] rest)]
     (case type
       :beg?
-        (if choice (beg-for-corn (next-dec state)) (next-dec state))
+        (if choice (beg-for-corn (next-dec)) (next-dec))
 
       :starters
         (if (= (:num-starters spec) (count options))
-          (-> (next-dec state)
+          (-> (next-dec)
               (gain-starter pid choice)
               (add-decision pid :starters (remove-from-vec options index)))
-          (-> (next-dec state)
-              (gain-starter pid choice)))
+          (-> (next-dec)
+              (gain-starter pid choice)
+              (possibly-beg-for-corn)))
 
       :gain-materials
-        (-> (next-dec state) (adjust-materials pid choice))
+        (-> (next-dec) (adjust-materials pid choice))
 
       :gain-resource
-        (-> (next-dec state) (adjust-materials pid choice))
+        (-> (next-dec) (adjust-materials pid choice))
 
       :jungle-mats
         (let [agri (get-in state [:players pid :tech :agri])
@@ -531,28 +518,28 @@
             (update state :errors conj "There are no jungle tiles left")
             (if (contains? choice :corn)
               (if corn-tile?
-                (-> (next-dec state)
+                (-> (next-dec)
                     (adjust-materials pid choice :pal)
                     (update-in [:jungle id :corn-tiles] dec))
                 (if (>= agri 2)
-                  (-> (next-dec state)
+                  (-> (next-dec)
                       (adjust-materials pid choice :pal))
                   (if wood-tile?
-                    (-> (next-dec state)
+                    (-> (next-dec)
                         (adjust-materials pid choice :pal)
                         (update-in [:jungle id :corn-tiles] dec)
                         (update-in [:jungle id :wood-tiles] dec)
                         (add-decision pid :anger-god))
                     (update state :errors conj "There are no corn tiles left"))))
               (if wood-tile?
-                (-> (next-dec state)
+                (-> (next-dec)
                     (adjust-materials pid choice :pal)
                     (update-in [:jungle id :wood-tiles] dec))
                 (update state :errors conj "There are no wood tiles left")))))
 
       :pay-resource
         (if (cost-payable? state pid choice)
-          (-> (next-dec state)
+          (-> (next-dec)
               (adjust-materials pid (negatise-map choice)))
           (update state :errors conj (str "Can't pay resource cost: " choice)))
 
@@ -563,7 +550,7 @@
                                 (change-map cost - {choice-key 1})
                                 cost)]
           (if (cost-payable? state pid discounted-cost)
-            (-> (next-dec state)
+            (-> (next-dec)
                 (adjust-materials pid (negatise-map discounted-cost)))
             (update state :errors conj (str "Can't afford cost: " discounted-cost))))
 
@@ -573,33 +560,33 @@
                          (cost-payable? state pid (:cost choice) :resource)
                          (cost-payable? state pid (:cost choice)))]
           (if payable?
-            (-> (next-dec state)
+            (-> (next-dec)
                 (build-building pid choice)
                 (update :buildings remove-from-vec index))
             (update state :errors conj (str "Can't afford building: " choice))))
 
       :tech
-        (cond-> (next-dec state)
+        (cond-> (next-dec)
           (contains? choice :agri) (buy-tech pid :agri)
           (contains? choice :extr) (buy-tech pid :extr)
           (contains? choice :arch) (buy-tech pid :arch)
           (contains? choice :theo) (buy-tech pid :theo))
 
       :free-tech
-        (-> (next-dec state) (adjust-tech pid choice))
+        (-> (next-dec) (adjust-tech pid choice))
 
       :temple
-        (-> (next-dec state) (adjust-temples pid choice))
+        (-> (next-dec) (adjust-temples pid choice))
 
       :anger-god
         (let [temple (first (keys choice))]
           (if (zero? (get-in state [:players pid :temples temple]))
             (update state :errors conj (str "Can't anger " temple))
-            (-> (next-dec state)
+            (-> (next-dec)
                 (adjust-temples pid (negatise-map choice)))))
 
       :two-diff-temples
-        (-> (next-dec state) (adjust-temples pid choice)))))
+        (-> (next-dec) (adjust-temples pid choice)))))
 
 (defn place-worker
   [state gear]
@@ -683,16 +670,16 @@
         (if (and (pos? turn)
                  (<= turn max-turn))
           (-> (cond-> state
-                      (and last-player? food-day?) food-day
-                      (and last-player? new-player-order) (assoc :player-order new-player-order)
-                      (and last-player? new-player-order) (dissoc :new-player-order)
-                      (and last-player? new-player-order) (dissoc :starting-player-space)
-                      (and last-player? new-player-order) (update-in [:players new-first-pid :workers] inc)
-                      last-player? (update :turn inc)
-                      last-player? (assoc-in [:active :pid] (first new-player-order))
-                      (not last-player?) (assoc-in [:active :pid] next-pid)
-                      (not test?) (possibly-beg-for-corn)
-                      (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
+                (and last-player? food-day?) food-day
+                (and last-player? new-player-order) (assoc :player-order new-player-order)
+                (and last-player? new-player-order) (dissoc :new-player-order)
+                (and last-player? new-player-order) (dissoc :starting-player-space)
+                (and last-player? new-player-order) (update-in [:players new-first-pid :workers] inc)
+                last-player? (update :turn inc)
+                last-player? (assoc-in [:active :pid] (first new-player-order))
+                (not last-player?) (assoc-in [:active :pid] next-pid)
+                (not test?) (possibly-beg-for-corn)
+                (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
               (update :active assoc :placed 0)
               (update :active assoc :worker-option :none))
           (update state :errors conj "Can't end turn"))))))
@@ -717,12 +704,13 @@
        (-> state
            (update :errors conj "Can't start game - game has already started"))
        (-> (cond-> state
-             (not test?) (possibly-beg-for-corn)
-             (not test?) (choose-starter-tiles 0)
-             (not test?) (assoc :player-order random-player-order)
+             ;; don't randomise player order for tests
              (not test?) (assoc-in [:active :pid] (first random-player-order))
-             test? (assoc :player-order player-order)
+             (not test?) (choose-starter-tiles (first random-player-order))
+             (not test?) (assoc :player-order random-player-order)
+             ; (not test?) (possibly-beg-for-corn)
              test? (assoc-in [:active :pid] 0)
+             test? (assoc :player-order player-order)
              test? (assoc :test? true))
            (update :turn inc)
            setup-buildings-monuments
