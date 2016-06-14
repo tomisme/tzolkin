@@ -1,11 +1,11 @@
 (defproject tzolkin "0.2.0-SNAPSHOT"
-  
+
   :license {:name "MIT"
             :url "https://opensource.org/licenses/MIT"}
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha3"]
                  [org.clojure/clojurescript "1.9.14"]
-                 [binaryage/devtools "0.6.1"]
+                 [binaryage/devtools "0.7.0"]
                  [devcards "0.2.1-7"]
                  [cljsjs/react-dom "0.14.3-1"] ;; fixes (devcards/#106)
                  [timothypratley/reanimated "0.2.0"]

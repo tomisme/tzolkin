@@ -20,7 +20,7 @@
 
 (defn setup-dev!
   []
-  (devtools/install! [:custom-formatters :sanity-hints])
+  (devtools/install! :all)
   (enable-console-print!))
 
 (setup-dev!)
