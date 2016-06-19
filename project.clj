@@ -3,8 +3,8 @@
   :license {:name "MIT"
             :url "https://opensource.org/licenses/MIT"}
 
-  :dependencies [[org.clojure/clojure "1.9.0-alpha3"]
-                 [org.clojure/clojurescript "1.9.14"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha7"]
+                 [org.clojure/clojurescript "1.9.76"]
                  [binaryage/devtools "0.7.0"]
                  [devcards "0.2.1-7"]
                  [cljsjs/react-dom "0.14.3-1"] ;; fixes (devcards/#106)
