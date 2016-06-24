@@ -18,7 +18,8 @@
             [lein-figwheel "0.5.4-2"]]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled"
-                                    "target"]
+                                    "target"
+                                    "out/server"]
 
   :cljsbuild {:builds [{:id "devcards"
                         :figwheel {:devcards true}
@@ -41,6 +42,16 @@
                         :compiler {:main       "tzolkin.core"
                                    :asset-path "js/compiled/out"
                                    :output-to  "resources/public/js/compiled/tzolkin.js"
-                                   :optimizations :advanced}}]}
+                                   :optimizations :advanced}}
+                       {:id "server"
+                        :figwheel true
+                        :source-paths ["src/server"]
+                        :compiler {:main server.core
+                                   :output-to "out/server/server.js"
+                                   :output-dir "out/server"
+                                   :optimizations :none
+                                   :target :nodejs
+                                   :cache-analysis true
+                                   :source-map true}}]}
 
   :figwheel {:css-dirs ["resources/public/css"]})

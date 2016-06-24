@@ -1,0 +1,16 @@
+{
+  "name": "server",
+  "version": "0.1.0",
+  "private": "true",
+  "engines": {
+    "node": "6.2.x"
+  },
+  "dependencies": {
+    "express": "^4.14.0",
+    "serve-static": "^1.11.1"
+  },
+  "devDependencies": {
+    "source-map-support": "^0.4.0",
+    "ws": "^1.1.0"
+  }
+}
