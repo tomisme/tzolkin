@@ -45,7 +45,7 @@
                                    :optimizations :advanced}}
                        {:id "server"
                         :figwheel true
-                        :source-paths ["src/server"]
+                        :source-paths ["src/tzolkin" "src/server"]
                         :compiler {:main server.core
                                    :output-to "out/server/server.js"
                                    :output-dir "out/server"
