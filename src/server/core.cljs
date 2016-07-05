@@ -3,8 +3,8 @@
    [cljs.nodejs :as nodejs]
    [figwheel.client :as fw]
    [matchbox.core :as m]
-   [tzolkin.logic :refer [add-event]]
-   [tzolkin.db :refer [fb-game setup-game-listener]]))
+   [tzolkin.logic :refer [add-event]]))
+   ; [tzolkin.db :refer [fb-game setup-game-listener]]))
 
 (enable-console-print!)
 
@@ -18,12 +18,12 @@
 
 (def global-es (atom {}))
 
-(setup-game-listener global-es)
+; (setup-game-listener global-es)
 
 (defn save-event
   [pid {:keys [type data]}]
-  (let [event-stream @global-es]
-    (clj->js {:es (m/swap-in! fb-game [:a] add-event)})))
+  (let [event-stream @global-es]))
+    ; (clj->js {:es (m/swap-in! fb-game [:a] add-event)})))
 
 (defn handle-game-msg
   [{:keys [type pid event]}]

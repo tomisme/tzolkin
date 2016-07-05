@@ -7,6 +7,10 @@
    [tzolkin.art   :as art]
    [tzolkin.utils :refer [log]]))
 
+(defn send-event!
+  [event]
+  ())
+
 (defn worker-gears-wrapper
   [es-atom re-state save on-end-turn on-take-starting-player]
   (let [jungle (:jungle @re-state)
@@ -17,16 +21,8 @@
         data (into {}
                (for [[gear _] (:gears spec)]
                  [gear
-                  {:on-worker-click (fn [slot]
-                                      (if save
-                                        (save (logic/add-event @es-atom [:remove-worker {:gear gear
-                                                                                         :slot slot}]))
-                                        (swap! es-atom logic/add-event [:remove-worker {:gear gear
-                                                                                        :slot slot}])))
-                   :on-center-click (fn []
-                                      (if save
-                                        (save (logic/add-event @es-atom [:place-worker {:gear gear}]))
-                                        (swap! es-atom logic/add-event [:place-worker {:gear gear}])))
+                  {:on-worker-click #(send-event! [:remove-worker {:gear gear :slot %}])
+                   :on-center-click #(send-event! [:place-worker {:gear gear}])
                    :teeth (get-in spec [:gears gear :teeth])
                    :workers (get-in @re-state [:gears gear])
                    :rotation (* (/ 360 (get-in spec [:gears gear :teeth])) (:turn @re-state))
