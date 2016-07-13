@@ -847,13 +847,48 @@
           y x]
       (inner-svg :spin x y turn-button-size))]])
 
+(defn starting-player-space
+  [on-click corn-bonus canvas-size active-pid player-color]
+  (let [hat-x (* canvas-size 0.83)
+        hat-y (* canvas-size 0.13)
+        hat-size (/ canvas-size 10)
+        player-size (/ canvas-size 70)]
+    [:g {:style {:cursor "pointer"}
+         :on-click #(on-click active-pid)}
+     (inner-svg :hat hat-x hat-y hat-size)
+     (inner-svg :corn
+                (+ hat-x (/ hat-size 3.5))
+                (+ hat-y (/ hat-size 4.2))
+                (/ hat-size 2.5))
+     [:text {:x (+ hat-x (/ hat-size 2))
+             :y (+ hat-y (/ hat-size 2))
+             :style {:stroke "white"
+                     :stroke-width 4
+                     :paint-order "stroke"
+                     :fill "black"}
+             :font-size 18
+             :text-anchor "middle"}
+      corn-bonus]
+     (when player-color
+       [:circle {:cx hat-x
+                 :cy hat-y
+                 :r player-size
+                 :fill (get color-strings player-color)}])]))
+
 
 (defn gear-layout-el
-  [gear-data jungle turn player-order players active on-end-turn on-take-starting-player]
+  [gear-data jungle turn player-order players active on-end-turn
+   on-take-starting-player starting-player-corn pid-on-start-space]
   (let [size 850]
     [:svg {:width size :height size}
            ;; for testing
            ; :style {:background-color "pink"}}
+     (starting-player-space on-take-starting-player
+                            starting-player-corn
+                            size
+                            (:pid active)
+                            (get-in players [pid-on-start-space :color]))
+
      (map
       (fn [gear]
         (let [loc (-> spec :gears gear :location)]

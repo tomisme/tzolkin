@@ -698,6 +698,9 @@
         pid-on-start-space (:starting-player-space state)
         can-double-spin? (:double-spin? (get-in state [:players pid-on-start-space]))
         double-dec? (and can-double-spin? last-player? new-order?)
+        starting-corn (:starting-player-corn state)
+        starting-corn? (and new-order? (pos? starting-corn))
+        add-starting-corn? (and last-player? (not new-order?))
         next-pid (if double-dec?
                    pid-on-start-space
                    (if (and (not last-player?) (not new-order?))
@@ -720,6 +723,9 @@
                 double-dec? (update :active assoc :pid pid-on-start-space)
                 double-dec? (add-decision pid-on-start-space :double-spin? {:next-pid (first new-player-order)})
                 last-player? (update :turn inc)
+                starting-corn? (update-in [:players pid-on-start-space :materials :corn] + starting-corn)
+                starting-corn? (assoc :starting-player-corn 0)
+                add-starting-corn? (update :starting-player-corn inc)
                 (and (> turn 1) (not test?)) (possibly-beg-for-corn)
                 (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
               (update :active assoc :placed 0)
@@ -729,6 +735,7 @@
 (defn init-game
   [state]
   (conj state {:turn 0
+               :starting-player-corn 0
                :active {:pid 0
                         :worker-option :none
                         :placed 0

@@ -166,7 +166,28 @@
              (update-in [:active :placed] inc)
              (update :active assoc :worker-option :place)
              (assoc :starting-player-space 1)
-             (assoc :new-player-order [1 0 2 3])))))
+             (assoc :new-player-order [1 0 2 3]))))
+  (testing "corn buildup"
+    (nod (-> s
+             (update :active assoc :pid 3)
+             (logic/end-turn)
+             (update :active assoc :pid 3)
+             (logic/end-turn))
+         (-> s
+             (assoc :turn 3)
+             (assoc :starting-player-corn 2))))
+  (testing "taking starting player after corn buildup"
+    (nod (-> s
+             (update :active assoc :pid 3)
+             (assoc :starting-player-corn 6)
+             (logic/take-starting-player)
+             (logic/end-turn)
+             (logic/handle-decision 1)) ;; say no to double spin
+         (-> s
+             (update :active assoc :pid 3)
+             (update :turn inc)
+             (assoc :player-order [3 0 1 2])
+             (update-in [:players 3 :materials :corn] + 6)))))
 
 (deftest double-spin-tests
   (testing "double spin"

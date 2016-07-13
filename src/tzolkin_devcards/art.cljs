@@ -193,7 +193,9 @@
    {}  ; players
    0 ; active
    nil ; on-end-turn
-   nil)) ; on-take-starting-player
+   nil ; on-take-starting-player
+   7 ; starting-player-corn
+   0)) ; pid-on-start-space
 
 (def jungle-atom
   (rg/atom [{:corn-tiles 4}
