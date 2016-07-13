@@ -39,8 +39,8 @@
    (let [pid (-> state :active :pid)
          num (if (or (= :tech type) (= :free-tech type)) data 1)
          options (case type
-                   :beg? '(true false)
-                   :double-spin? '(true false)
+                   :beg? '(true false) ;; TODO does this even work? use vec?
+                   :double-spin? [true false]
                    :starters data
                    :action (action-options (:gear data))
                    :temple temple-options
@@ -57,7 +57,8 @@
                    :free-tech tech-options)
          decision (cond-> {:type type :options options}
                     (= :jungle-mats type)  (conj [:jungle-id (:jungle-id data)])
-                    (= :pay-discount type) (conj [:cost (:cost data)]))]
+                    (= :pay-discount type) (conj [:cost (:cost data)])
+                    (:next-pid data)       (conj [:next-pid (:next-pid data)]))]
      (update-in state [:active :decisions] into (repeat num decision))))
   ([state pid type]
    (add-decision state pid type {})))
@@ -138,6 +139,7 @@
   [state pid track]
   (let [pos (-> state :players (get pid) :tech track)]
     (-> (cond-> state
+                ;; TODO does this even work? add-decision doesn't pass pid
           (= pos 1) (add-decision state :pay-resource)
           (= pos 2) (add-decision state :pay-resource)
           (= pos 2) (add-decision state :pay-resource))
@@ -194,16 +196,6 @@
 (defn start-trading
   [state]
   (update state :active assoc :trading? true))
-
-;; ================
-;; =  Double Spin =
-;; ================
-
-(defn double-spin
-  [{:keys [active] :as state}]
-  (-> state
-    (update :turn inc)
-    (assoc-in [:players (:pid active) :double-spin?] false)))
 
 ;; ==============
 ;; =  Buildings =
@@ -382,32 +374,56 @@
         (assoc-in [:materials :corn] (if (odd? new-corn) 1 0))
         (update :points - (* 3 unpaid-workers))))))
 
-(defn food-day
+(defn use-age-two-buildings
   [state]
-  (let [turn-details (get-in spec [:turns (dec (:turn state))])
-        age (:age turn-details)
-        turn-type (:type turn-details)
-        mats? (= :mats-food-day turn-type)
-        points? (= :points-food-day turn-type)]
-    (-> state
-      (assoc :buildings (vec (filter #(= 2 (:age %)) (shuffle (:buildings spec)))))
-      (update :players
-              (fn [players]
-                (mapv
-                  (fn [p]
-                    (cond-> (fd-pay-for-workers p)
-                      mats? (update :materials change-map + (fd-mats p))
-                      points? (update :points + (fd-points p))))
-                  players)))
-      (update :players
-              (fn [players]
-                (if points?
-                  (give-rewards-for-highest-temples players age)
-                  players))))))
+  (assoc state :buildings (vec (filter #(= 2 (:age %))
+                                       (shuffle (:buildings spec))))))
+
+(defn food-day
+  ([state force-fd]
+   (let [turn-details (get-in spec [:turns (dec (:turn state))])
+         age (:age turn-details)
+         turn-type (:type turn-details)
+         mats? (or (= :mats-food-day turn-type) (= :mats-food-day force-fd))
+         points? (or (= :points-food-day turn-type) (= :points-food-day force-fd))]
+     (-> (cond-> state
+           (and (= age 1) points?) (use-age-two-buildings))
+         (update :players
+                 (fn [players]
+                   (mapv
+                     (fn [p]
+                       (cond-> (fd-pay-for-workers p)
+                         mats? (update :materials change-map + (fd-mats p))
+                         points? (update :points + (fd-points p))))
+                     players)))
+         (update :players
+                 (fn [players]
+                   (if points?
+                     (give-rewards-for-highest-temples players age)
+                     players))))))
+  ([state]
+   (food-day state nil)))
 
 (defn finish-game
   [state]
   (do (.alert js/window "Game Over!") state))
+
+;; ================
+;; =  Double Spin =
+;; ================
+
+(defn double-spin
+  [{:keys [active] :as state}]
+  (let [;; end-turn has already finished at this point
+        ;; so we can get 'next turn' by looking at the current one
+        ;; this means we won't miss food day
+        next-turn-details (get-in spec [:turns (dec (:turn state))])
+        food-day-next-turn? (contains? #{:mats-food-day :points-food-day}
+                                       (:type next-turn-details))]
+    (-> (cond-> state
+          food-day-next-turn? (food-day))
+        (update :turn inc)
+        (assoc-in [:players (:pid active) :double-spin?] false))))
 
 ;; ================
 ;; = Beg for Corn =
@@ -498,15 +514,13 @@
         type     (:type decision)
         options  (:options decision)
         choice   (get options index)
-        next-dec #(update-in state [:active :decisions] rest)]
+        next-dec #(update-in state [:active :decisions] rest)
+        next-pid (:next-pid decision)]
     (case type
       :double-spin?
-        (if choice
-          (-> (next-dec)
-              (double-spin)
-              (assoc-in [:active :pid] (first (:player-order state))))
-          (-> (next-dec)
-              (assoc-in [:active :pid] (first (:player-order state)))))
+        (-> (cond-> (next-dec)
+              choice (double-spin))
+            (update :active assoc :pid next-pid))
 
       :beg?
         (if choice (beg-for-corn (next-dec)) (next-dec))
@@ -675,8 +689,6 @@
         pid (-> state :active :pid)
         player-order (:player-order state)
         last-player? (= (.indexOf player-order pid) (dec (count (:players state))))
-        next-pid (when-not last-player?
-                   (get player-order (inc (.indexOf player-order pid))))
         turn-details (get-in spec [:turns (dec turn)])
         turn-type (:type turn-details)
         food-day? (contains? #{:mats-food-day :points-food-day} turn-type)
@@ -685,25 +697,29 @@
         new-order? (and last-player? new-player-order)
         pid-on-start-space (:starting-player-space state)
         can-double-spin? (:double-spin? (get-in state [:players pid-on-start-space]))
-        double-dec? (and can-double-spin? new-order?)]
+        double-dec? (and can-double-spin? last-player? new-order?)
+        next-pid (if double-dec?
+                   pid-on-start-space
+                   (if (and (not last-player?) (not new-order?))
+                     (get player-order (inc (.indexOf player-order pid)))
+                     (if new-order?
+                       (first new-player-order)
+                       (first player-order))))]
     (if (seq decision)
       (update state :errors conj (str "Can't end turn - There's still a decision to be made"))
       (if (and last-player? (= turn max-turn))
         (finish-game state)
         (if (and (pos? turn)
                  (<= turn max-turn))
-          (-> (cond-> state
+          (-> (cond-> (update state :active assoc :pid next-pid)
                 (and last-player? food-day?) (food-day)
-                last-player? (update :turn inc)
-                last-player? (assoc-in [:active :pid] (first player-order))
-                (not last-player?) (assoc-in [:active :pid] next-pid)
-                new-order? (assoc-in [:active :pid] (first new-player-order))
                 new-order? (assoc :player-order new-player-order)
                 new-order? (dissoc :new-player-order)
                 new-order? (dissoc :starting-player-space)
                 new-order? (update-in [:players pid-on-start-space :workers] inc)
-                double-dec? (add-decision pid-on-start-space :double-spin?)
-                (and new-order? double-dec?) (assoc-in [:active :pid] pid-on-start-space)
+                double-dec? (update :active assoc :pid pid-on-start-space)
+                double-dec? (add-decision pid-on-start-space :double-spin? {:next-pid (first new-player-order)})
+                last-player? (update :turn inc)
                 (and (> turn 1) (not test?)) (possibly-beg-for-corn)
                 (and (= turn 1) (not test?) (not last-player?)) (choose-starter-tiles pid))
               (update :active assoc :placed 0)

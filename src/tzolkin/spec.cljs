@@ -415,9 +415,8 @@
    :points 0})
 
 (def spec
-  {:total-turns 27
+  {:total-turns (count turns)
    :skulls 13
-   :until-food-day [7 7 6 5 4 3 2 1 0 5 4 3 2 1 0 6 5 4 3 2 1 0 5 4 3 2 1 0]
    :trade-values {:wood 2 :stone 3 :gold 4}
    :num-available-buildings 4
    :num-starters 4

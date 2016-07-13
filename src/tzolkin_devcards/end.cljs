@@ -131,4 +131,46 @@
              (logic/adjust-temples 1 {:chac 3})
              (logic/adjust-materials 0 {:skull 1 :wood 2 :gold 1 :corn 4})
              (logic/adjust-materials 1 {:stone 2})
-             (assoc :buildings [])))))
+             (assoc :buildings []))))
+  (testing "age 2 buildings after second food day"
+    (is (= 2
+           (-> s
+               (assoc :turn 14)
+               (logic/food-day)
+               :buildings
+               (get 0) ;;should probably check *all* the buildings....
+               :age)))
+    (is (= (-> s
+               (assoc :turn 8)
+               (logic/food-day)
+               :buildings)
+           (:buildings s)))))
+
+(deftest double-spins
+  (testing "double spin"
+    (nod (-> s
+             (logic/take-starting-player)
+             (assoc-in [:active :pid] 3)
+             (logic/end-turn)
+             (logic/handle-decision 0)) ;; say yes to double spin
+         (-> s
+             (assoc :turn 3)
+             (assoc-in [:players 0 :double-spin?] false)
+             (assoc :player-order [1 2 3 0])
+             (assoc-in [:active :pid] 1))))
+  (testing "double spin doesn't skip food day"
+    (nod (-> s
+             (assoc :turn 7)
+             (assoc-in [:active :pid] 3)
+             (logic/take-starting-player)
+             (logic/end-turn)
+             (logic/handle-decision 0)) ;; say yes to double spin
+         (-> s
+             (assoc :turn 9)
+             (assoc-in [:players 3 :double-spin?] false)
+             (assoc :player-order [3 0 1 2])
+             (assoc-in [:active :pid] 3)
+             (logic/adjust-points 0 -9)
+             (logic/adjust-points 1 -9)
+             (logic/adjust-points 2 -9)
+             (logic/adjust-points 3 -9)))))
