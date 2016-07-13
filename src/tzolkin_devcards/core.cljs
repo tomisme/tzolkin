@@ -18,6 +18,8 @@
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [run-tests]]))
 
+(def pp cljs.pprint/pprint)
+
 (defn setup-dev!
   []
   (devtools/install! :all)

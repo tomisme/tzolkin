@@ -27,6 +27,17 @@
              (update-in [:players 0 :materials :corn] + 2)
              (update-in [:players 0 :temples :chac] inc)
              (update-in [:players 0 :tech :arch] inc))))
+  (testing "beg for corn"
+    (nod (-> s
+             (logic/add-decision 0 :beg?)
+             (logic/handle-decision 0))
+         (-> s
+             (update-in [:players 0 :materials :corn] + 3)
+             (logic/add-decision 0 :anger-god)))
+    (nod (-> s
+             (logic/add-decision 0 :beg?)
+             (logic/handle-decision 1))
+         s))
   (testing "gain materials"
     (nod (-> s
              (logic/add-decision 0 :gain-materials [{:corn 1} {:stone 1}])

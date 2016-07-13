@@ -39,7 +39,7 @@
    (let [pid (-> state :active :pid)
          num (if (or (= :tech type) (= :free-tech type)) data 1)
          options (case type
-                   :beg? '(true false) ;; TODO does this even work? use vec?
+                   :beg? [true false]
                    :double-spin? [true false]
                    :starters data
                    :action (action-options (:gear data))
