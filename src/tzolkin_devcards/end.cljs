@@ -146,7 +146,29 @@
                :buildings)
            (:buildings s)))))
 
-(deftest double-spins
+(deftest starting-player-tests
+  (testing "current starting player takes starting player"
+    (nod (-> s
+             (logic/take-starting-player))
+         (-> s
+             (update-in [:players 0 :workers] dec)
+             (update-in [:active :placed] inc)
+             (update :active assoc :worker-option :place)
+             (assoc :starting-player-space 0)
+             (assoc :new-player-order [1 2 3 0]))))
+  (testing "different player takes starting player"
+    (nod (-> s
+             (update :active assoc :pid 1)
+             (logic/take-starting-player))
+         (-> s
+             (update :active assoc :pid 1)
+             (update-in [:players 1 :workers] dec)
+             (update-in [:active :placed] inc)
+             (update :active assoc :worker-option :place)
+             (assoc :starting-player-space 1)
+             (assoc :new-player-order [1 0 2 3])))))
+
+(deftest double-spin-tests
   (testing "double spin"
     (nod (-> s
              (logic/take-starting-player)
