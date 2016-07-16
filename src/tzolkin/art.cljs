@@ -763,7 +763,7 @@
              :on-worker-click on-worker-click}])
 
 (defn players-dial-el
-  [size player-order players active on-take-starting-player]
+  [size player-order players active]
   (let [active-pid (:pid active)
         width size
         height size
@@ -791,9 +791,7 @@
                      spinner-y (- (el-cy i) (/ spinner-size 2))]
                  (inner-svg :spinner spinner-x spinner-y spinner-size)))]))
         player-order))
-     [:g {:transform (transform-str [:rotate {:deg 90 :x (/ size 2) :y (/ size 2)}])
-          :style {:cursor "pointer"}
-          :on-click #(on-take-starting-player active-pid)}
+     [:g {:transform (transform-str [:rotate {:deg 90 :x (/ size 2) :y (/ size 2)}])}
       (inner-svg :hat
                  (- cx (/ (* el-r 2.2) 2))
                  (- cy (/ size 7.9))
@@ -837,7 +835,7 @@
   [size turn player-order players active on-end-turn on-take-starting-player]
   [:g
    [:g {:transform (transform-str [:rotate {:deg -90 :x (/ size 2) :y (/ size 2)}])}
-    (players-dial-el size player-order players active on-take-starting-player)
+    (players-dial-el size player-order players active)
     (turn-clock-el size turn)]
    [:g {:class "hover-opacity"
         :style {:cursor "pointer"}
@@ -874,7 +872,6 @@
                  :cy hat-y
                  :r player-size
                  :fill (get color-strings player-color)}])]))
-
 
 (defn gear-layout-el
   [gear-data jungle turn player-order players active on-end-turn
