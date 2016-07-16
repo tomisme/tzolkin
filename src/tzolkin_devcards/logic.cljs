@@ -63,8 +63,21 @@
   (testing "adjust-temples"
     (nod (logic/adjust-temples s 0 {:chac 2 :quet 1})
          (-> s
-           (update-in [:players 0 :temples :chac] + 2)
-           (update-in [:players 0 :temples :quet] inc))))
+             (update-in [:players 0 :temples :chac] + 2)
+             (update-in [:players 0 :temples :quet] inc))))
+  (testing "adjust-temples: can't go higher than top"
+    (nod (-> s
+             (logic/adjust-temples 0 {:chac 5})
+             (logic/adjust-temples 0 {:chac 1}))
+         (-> s
+             (logic/adjust-temples 0 {:chac 5}))))
+  (testing "adjust-temples: top resets double spin"
+    (nod (-> s
+             (logic/double-spin)
+             (logic/adjust-temples 0 {:chac 5}))
+         (-> s
+             (update :turn inc)
+             (logic/adjust-temples 0 {:chac 5}))))
 
   (testing "adjust-tech"
     (nod (logic/adjust-tech s 0 {:agri 2 :arch 1})
