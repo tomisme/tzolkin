@@ -120,10 +120,7 @@
 (defn adjust-tech
   [state pid changes]
   (let [new-state (player-map-adjustment state pid :tech changes)
-        agri (-> new-state :players (get pid) :tech :agri)
-        extr (-> new-state :players (get pid) :tech :extr)
-        arch (-> new-state :players (get pid) :tech :arch)
-        theo (-> new-state :players (get pid) :tech :theo)]
+        {:keys [agri extr arch theo]} (-> new-state :players (get pid) :tech)]
     (cond-> new-state
       (= agri 4) (-> (player-map-adjustment pid :tech {:agri -1})
                      (add-decision pid :temple))
