@@ -36,7 +36,7 @@
 (defn remove-from-vec
   "Returns a new vector with the element at 'index' removed.
 
-  (remove-from-vec [:a :b :c] 1  =>  [:a :c])"
+  (remove-from-vec [:a :b :c] 1)  =>  [:a :c]"
   [v index]
   (vec (concat (subvec v 0 index) (subvec v (inc index)))))
 
@@ -58,7 +58,7 @@
      (for [[k v] changes] [k v]))))
 
 (defn negatise-map
-  "Multiple each value in map 'm' by -1"
+  "Multiply each value in map 'm' by -1"
   [m]
   (change-map m #(* % -1)))
 

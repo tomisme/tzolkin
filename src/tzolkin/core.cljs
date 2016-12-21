@@ -19,12 +19,10 @@
 
 (db/setup-connection-listener local-state-atom)
 
-(defn app-container
-  []
+(defn app-container []
   (game/board es-atom local-state-atom db/save))
 
-(defn render-app
-  []
+(defn render-app []
   (if-let [app-node (.getElementById js/document "app")]
     (rg/render-component [app-container] app-node)))
 
