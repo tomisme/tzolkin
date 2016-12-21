@@ -4,3 +4,6 @@ figwheel_server.log
 .lein-repl-history
 .nrepl-port
 out
+.idea
+.nightlight.edn
+tzolkin.iml
