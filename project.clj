@@ -15,7 +15,8 @@
                  [matchbox "0.0.9"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
-            [lein-figwheel "0.5.4-2"]]
+            [lein-figwheel "0.5.4-2"]
+            [lein-cljfmt "0.5.6"]]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled"
                                     "target"

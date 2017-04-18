@@ -1,8 +1,8 @@
 (ns tzolkin.logic
   (:require
-    [tzolkin.spec :refer [spec]]
-    [tzolkin.utils :refer [log indexed first-val rotate-vec
-                           remove-from-vec change-map negatise-map]]))
+   [tzolkin.spec :refer [spec]]
+   [tzolkin.utils :refer [log indexed first-val rotate-vec
+                          remove-from-vec change-map negatise-map]]))
 
 ;; ==============
 ;; =  Decisions =
@@ -140,8 +140,8 @@
           (= pos 1) (add-decision state :pay-resource)
           (= pos 2) (add-decision state :pay-resource)
           (= pos 2) (add-decision state :pay-resource))
-      (adjust-tech pid {track 1})
-      (add-decision pid :pay-resource))))
+        (adjust-tech pid {track 1})
+        (add-decision pid :pay-resource))))
 
 ;; ==========
 ;; =  Costs =
@@ -298,19 +298,19 @@
       steps))))
 
 (defn temple-winners
- [players]
- (into {}
-   (map
-    (fn [temple]
-      [temple (temple-winner players temple)])
-    '(:chac :quet :kuku))))
+  [players]
+  (into {}
+        (map
+         (fn [temple]
+           [temple (temple-winner players temple)])
+         '(:chac :quet :kuku))))
 
 (defn give-rewards-for-highest-temples
   [players age]
   (let [winners (temple-winners players)
         rewards (into {}
-                  (for [temple '(:chac :quet :kuku)]
-                   [temple (get (get-in spec [:temples temple :age-bonus]) age)]))]
+                      (for [temple '(:chac :quet :kuku)]
+                        [temple (get (get-in spec [:temples temple :age-bonus]) age)]))]
     (reduce
      (fn [players temple]
        (let [temple-winners (set (get winners temple))
@@ -339,15 +339,15 @@
   "Takes a player, returns a map of materials earned for temple postions"
   [player]
   (apply merge
-    (for [[temple step] (:temples player)]
-      (frequencies
-        (reduce
-         (fn [materials step]
-           (if-let [material (:material step)]
-             (conj materials material)
-             materials))
-         '()
-         (take (inc step) (get-in spec [:temples temple :steps])))))))
+         (for [[temple step] (:temples player)]
+           (frequencies
+            (reduce
+             (fn [materials step]
+               (if-let [material (:material step)]
+                 (conj materials material)
+                 materials))
+             '()
+             (take (inc step) (get-in spec [:temples temple :steps])))))))
 
 (defn fd-corn-cost
   [player]
@@ -368,8 +368,8 @@
     (if (>= new-corn 0)
       (assoc-in player [:materials :corn] new-corn)
       (-> player
-        (assoc-in [:materials :corn] (if (odd? new-corn) 1 0))
-        (update :points - (* 3 unpaid-workers))))))
+          (assoc-in [:materials :corn] (if (odd? new-corn) 1 0))
+          (update :points - (* 3 unpaid-workers))))))
 
 (defn use-age-two-buildings
   [state]
@@ -388,11 +388,11 @@
          (update :players
                  (fn [players]
                    (mapv
-                     (fn [p]
-                       (cond-> (fd-pay-for-workers p)
-                         mats? (update :materials change-map + (fd-mats p))
-                         points? (update :points + (fd-points p))))
-                     players)))
+                    (fn [p]
+                      (cond-> (fd-pay-for-workers p)
+                        mats? (update :materials change-map + (fd-mats p))
+                        points? (update :points + (fd-points p))))
+                    players)))
          (update :players
                  (fn [players]
                    (if points?
@@ -515,108 +515,108 @@
         next-pid (:next-pid decision)]
     (case type
       :double-spin?
-        (-> (cond-> (next-dec)
-              choice (double-spin))
-            (update :active assoc :pid next-pid))
+      (-> (cond-> (next-dec)
+            choice (double-spin))
+          (update :active assoc :pid next-pid))
 
       :beg?
-        (if choice (beg-for-corn (next-dec)) (next-dec))
+      (if choice (beg-for-corn (next-dec)) (next-dec))
 
       :starters
-        (if (= (:num-starters spec) (count options))
-          (-> (next-dec)
-              (gain-starter pid choice)
-              (add-decision pid :starters (remove-from-vec options index)))
-          (-> (next-dec)
-              (gain-starter pid choice)
-              (possibly-beg-for-corn)))
+      (if (= (:num-starters spec) (count options))
+        (-> (next-dec)
+            (gain-starter pid choice)
+            (add-decision pid :starters (remove-from-vec options index)))
+        (-> (next-dec)
+            (gain-starter pid choice)
+            (possibly-beg-for-corn)))
 
       :gain-materials
-        (-> (next-dec) (adjust-materials pid choice))
+      (-> (next-dec) (adjust-materials pid choice))
 
       :gain-resource
-        (-> (next-dec) (adjust-materials pid choice))
+      (-> (next-dec) (adjust-materials pid choice))
 
       :jungle-mats
-        (let [agri (get-in state [:players pid :tech :agri])
-              id (:jungle-id decision)
-              corn-tiles (get-in state [:jungle id :corn-tiles])
-              wood-tiles (get-in state [:jungle id :wood-tiles])
-              corn-tile? (and (pos? corn-tiles) (< wood-tiles corn-tiles))
-              wood-tile? (pos? wood-tiles)]
-          (if (and (not corn-tile?) (not wood-tile?) (< agri 2))
-            (update state :errors conj "There are no jungle tiles left")
-            (if (contains? choice :corn)
-              (if corn-tile?
+      (let [agri (get-in state [:players pid :tech :agri])
+            id (:jungle-id decision)
+            corn-tiles (get-in state [:jungle id :corn-tiles])
+            wood-tiles (get-in state [:jungle id :wood-tiles])
+            corn-tile? (and (pos? corn-tiles) (< wood-tiles corn-tiles))
+            wood-tile? (pos? wood-tiles)]
+        (if (and (not corn-tile?) (not wood-tile?) (< agri 2))
+          (update state :errors conj "There are no jungle tiles left")
+          (if (contains? choice :corn)
+            (if corn-tile?
+              (-> (next-dec)
+                  (adjust-materials pid choice :pal)
+                  (update-in [:jungle id :corn-tiles] dec))
+              (if (>= agri 2)
                 (-> (next-dec)
-                    (adjust-materials pid choice :pal)
-                    (update-in [:jungle id :corn-tiles] dec))
-                (if (>= agri 2)
+                    (adjust-materials pid choice :pal))
+                (if wood-tile?
                   (-> (next-dec)
-                      (adjust-materials pid choice :pal))
-                  (if wood-tile?
-                    (-> (next-dec)
-                        (adjust-materials pid choice :pal)
-                        (update-in [:jungle id :corn-tiles] dec)
-                        (update-in [:jungle id :wood-tiles] dec)
-                        (add-decision pid :anger-god))
-                    (update state :errors conj "There are no corn tiles left"))))
-              (if wood-tile?
-                (-> (next-dec)
-                    (adjust-materials pid choice :pal)
-                    (update-in [:jungle id :wood-tiles] dec))
-                (update state :errors conj "There are no wood tiles left")))))
+                      (adjust-materials pid choice :pal)
+                      (update-in [:jungle id :corn-tiles] dec)
+                      (update-in [:jungle id :wood-tiles] dec)
+                      (add-decision pid :anger-god))
+                  (update state :errors conj "There are no corn tiles left"))))
+            (if wood-tile?
+              (-> (next-dec)
+                  (adjust-materials pid choice :pal)
+                  (update-in [:jungle id :wood-tiles] dec))
+              (update state :errors conj "There are no wood tiles left")))))
 
       :pay-resource
-        (if (cost-payable? state pid choice)
-          (-> (next-dec)
-              (adjust-materials pid (negatise-map choice)))
-          (update state :errors conj (str "Can't pay resource cost: " choice)))
+      (if (cost-payable? state pid choice)
+        (-> (next-dec)
+            (adjust-materials pid (negatise-map choice)))
+        (update state :errors conj (str "Can't pay resource cost: " choice)))
 
       :pay-discount
-        (let [cost (:cost decision)
-              choice-key (first (keys choice))
-              discounted-cost (if (contains? cost choice-key)
-                                (change-map cost - {choice-key 1})
-                                cost)]
-          (if (cost-payable? state pid discounted-cost)
-            (-> (next-dec)
-                (adjust-materials pid (negatise-map discounted-cost)))
-            (update state :errors conj (str "Can't afford cost: " discounted-cost))))
+      (let [cost (:cost decision)
+            choice-key (first (keys choice))
+            discounted-cost (if (contains? cost choice-key)
+                              (change-map cost - {choice-key 1})
+                              cost)]
+        (if (cost-payable? state pid discounted-cost)
+          (-> (next-dec)
+              (adjust-materials pid (negatise-map discounted-cost)))
+          (update state :errors conj (str "Can't afford cost: " discounted-cost))))
 
       :build-building
-        (let [arch (get-in state [:players pid :tech :arch])
-              payable? (if (= arch 3)
-                         (cost-payable? state pid (:cost choice) :resource)
-                         (cost-payable? state pid (:cost choice)))]
-          (if payable?
-            (-> (next-dec)
-                (build-building pid choice)
-                (update :buildings remove-from-vec index))
-            (update state :errors conj (str "Can't afford building: " choice))))
+      (let [arch (get-in state [:players pid :tech :arch])
+            payable? (if (= arch 3)
+                       (cost-payable? state pid (:cost choice) :resource)
+                       (cost-payable? state pid (:cost choice)))]
+        (if payable?
+          (-> (next-dec)
+              (build-building pid choice)
+              (update :buildings remove-from-vec index))
+          (update state :errors conj (str "Can't afford building: " choice))))
 
       :tech
-        (cond-> (next-dec)
-          (contains? choice :agri) (buy-tech pid :agri)
-          (contains? choice :extr) (buy-tech pid :extr)
-          (contains? choice :arch) (buy-tech pid :arch)
-          (contains? choice :theo) (buy-tech pid :theo))
+      (cond-> (next-dec)
+        (contains? choice :agri) (buy-tech pid :agri)
+        (contains? choice :extr) (buy-tech pid :extr)
+        (contains? choice :arch) (buy-tech pid :arch)
+        (contains? choice :theo) (buy-tech pid :theo))
 
       :free-tech
-        (-> (next-dec) (adjust-tech pid choice))
+      (-> (next-dec) (adjust-tech pid choice))
 
       :temple
-        (-> (next-dec) (adjust-temples pid choice))
+      (-> (next-dec) (adjust-temples pid choice))
 
       :anger-god
-        (let [temple (first (keys choice))]
-          (if (zero? (get-in state [:players pid :temples temple]))
-            (update state :errors conj (str "Can't anger " temple))
-            (-> (next-dec)
-                (adjust-temples pid (negatise-map choice)))))
+      (let [temple (first (keys choice))]
+        (if (zero? (get-in state [:players pid :temples temple]))
+          (update state :errors conj (str "Can't anger " temple))
+          (-> (next-dec)
+              (adjust-temples pid (negatise-map choice)))))
 
       :two-diff-temples
-        (-> (next-dec) (adjust-temples pid choice)))))
+      (-> (next-dec) (adjust-temples pid choice)))))
 
 (defn place-worker
   [state gear]
@@ -661,16 +661,16 @@
         [action-type action-data] action]
     (if (and ;; (log action)
              ;; Not implemented yet! ===================
-             (not= :choose-action action-type)
-             (not (and (= :build action-type) (contains? #{:with-corn
-                                                           :double-or-monument}
-                                                         (:type action-data))))
+         (not= :choose-action action-type)
+         (not (and (= :build action-type) (contains? #{:with-corn
+                                                       :double-or-monument}
+                                                     (:type action-data))))
              ;; ========================================
-             (= player-color target-color)
-             (empty? (get-in state [:active :decisions]))
-             (or (= :remove worker-option) (= :none worker-option))
-             (or (not= :chi gear) (pos? skulls))
-             (cost-payable? state pid (:cost action-data)))
+         (= player-color target-color)
+         (empty? (get-in state [:active :decisions]))
+         (or (= :remove worker-option) (= :none worker-option))
+         (or (not= :chi gear) (pos? skulls))
+         (cost-payable? state pid (:cost action-data)))
       (-> state
           (update-in [:players pid :workers] inc)
           (update-in [:gears gear] assoc slot :none)
@@ -816,19 +816,19 @@
   [state [e data]]
   (when (:errors state) (log (:errors state)))
   (let [started? (pos? (:turn state))]
-   (cond-> state
-     (and (= :new-game e)   (not started?)) init-game
-     (and (= :start-game e) (not started?)) (start-game (:test? data))
-     (and (= :add-player e) (not started?)) (add-player (:name data) (:color data))
-     (and (= :take-starting e)    started?) take-starting-player
-     (and (= :make-trade e)       started?) (make-trade (:trade data))
-     (and (= :stop-trading e)     started?) stop-trading
-     (and (= :place-worker e)     started?) (place-worker (:gear data))
-     (and (= :remove-worker e)    started?) (remove-worker (:gear data) (:slot data))
-     (and (= :choose-option e)    started?) (handle-decision (:index data))
-     (and (= :end-turn e)         started?) end-turn
+    (cond-> state
+      (and (= :new-game e)   (not started?)) init-game
+      (and (= :start-game e) (not started?)) (start-game (:test? data))
+      (and (= :add-player e) (not started?)) (add-player (:name data) (:color data))
+      (and (= :take-starting e)    started?) take-starting-player
+      (and (= :make-trade e)       started?) (make-trade (:trade data))
+      (and (= :stop-trading e)     started?) stop-trading
+      (and (= :place-worker e)     started?) (place-worker (:gear data))
+      (and (= :remove-worker e)    started?) (remove-worker (:gear data) (:slot data))
+      (and (= :choose-option e)    started?) (handle-decision (:index data))
+      (and (= :end-turn e)         started?) end-turn
      ;; dev events
-     (= :give-stuff e) (player-map-adjustment (:pid data) (:k data) (:changes data)))))
+      (= :give-stuff e) (player-map-adjustment (:pid data) (:k data) (:changes data)))))
 
 ;; ================
 ;; = Event Stream =

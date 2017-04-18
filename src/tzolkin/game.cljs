@@ -14,30 +14,29 @@
         @re-state
 
         data (into {}
-               (for [[gear _] (:gears spec)]
-                 [gear
-                  {:on-worker-click (fn [slot]
-                                      (if save
-                                        (save (logic/add-event @es-atom [:remove-worker {:gear gear
-                                                                                         :slot slot}]))
-                                        (swap! es-atom logic/add-event [:remove-worker {:gear gear
-                                                                                        :slot slot}])))
-                   :on-center-click (fn []
-                                      (if save
-                                        (save (logic/add-event @es-atom [:place-worker {:gear gear}]))
-                                        (swap! es-atom logic/add-event [:place-worker {:gear gear}])))
-                   :teeth (get-in spec [:gears gear :teeth])
-                   :workers (get-in @re-state [:gears gear])
-                   :rotation (* (/ 360 (get-in spec [:gears gear :teeth])) (:turn @re-state))
-                   :actions (get-in spec [:gears gear :actions])}]))]
+                   (for [[gear _] (:gears spec)]
+                     [gear
+                      {:on-worker-click (fn [slot]
+                                          (if save
+                                            (save (logic/add-event @es-atom [:remove-worker {:gear gear
+                                                                                             :slot slot}]))
+                                            (swap! es-atom logic/add-event [:remove-worker {:gear gear
+                                                                                            :slot slot}])))
+                       :on-center-click (fn []
+                                          (if save
+                                            (save (logic/add-event @es-atom [:place-worker {:gear gear}]))
+                                            (swap! es-atom logic/add-event [:place-worker {:gear gear}])))
+                       :teeth (get-in spec [:gears gear :teeth])
+                       :workers (get-in @re-state [:gears gear])
+                       :rotation (* (/ 360 (get-in spec [:gears gear :teeth])) (:turn @re-state))
+                       :actions (get-in spec [:gears gear :actions])}]))]
     [art/gear-layout-el data jungle turn player-order players
-                        active on-end-turn on-take-starting-player
-                        starting-player-corn starting-player-space]))
+     active on-end-turn on-take-starting-player
+     starting-player-corn starting-player-space]))
 
 (defn status-bar-wrapper
   [es-atom re-state save on-end-turn]
-  (let [
-        on-start-game #(if save
+  (let [on-start-game #(if save
                          (save (logic/add-event @es-atom [:start-game {:test? false}]))
                          (swap! es-atom logic/add-event [:start-game {:test? false}]))
         on-decision (fn [option-index decision]
@@ -75,9 +74,9 @@
     (rg/create-class
      {:component-did-update #(art/scroll-log-down!)
       :reagent-render
-       (fn []
-         (art/game-log-el {:stream @es-atom
-                           :on-es-reset on-es-reset}))})))
+      (fn []
+        (art/game-log-el {:stream @es-atom
+                          :on-es-reset on-es-reset}))})))
 
 (defn fb-conn-indicator-wrapper
   [local-state-atom]
@@ -133,21 +132,21 @@
                                    (swap! es-atom logic/add-event [:take-starting]))]
     [:div {:style {:display "flex"}}
      [:div {:style {:margin "2rem"}}
-       [status-bar-wrapper es-atom re-state save on-end-turn]
-       [game-log-wrapper es-atom save]
-       [:div {:style {:display "flex"}}
-        [:button.ui.button {:on-click #(save (logic/gen-es test-events))}
-          "test events"]
-        [:button.ui.button {:on-click #(save (logic/gen-es new-2p-game-events))}
-          "new 2p game"]
-        [:button.ui.button {:on-click #(save (logic/gen-es new-4p-game-events))}
-          "new 4p game"]
-        [:button.ui.button {:on-click #(save (logic/gen-es [[:new-game]]))}
-          "new empty game"]
-        [:button.ui.button {:on-click #(save (logic/gen-es nil))}
-          "nil state"]
-        [fb-conn-indicator-wrapper local-state-atom]]]
+      [status-bar-wrapper es-atom re-state save on-end-turn]
+      [game-log-wrapper es-atom save]
+      [:div {:style {:display "flex"}}
+       [:button.ui.button {:on-click #(save (logic/gen-es test-events))}
+        "test events"]
+       [:button.ui.button {:on-click #(save (logic/gen-es new-2p-game-events))}
+        "new 2p game"]
+       [:button.ui.button {:on-click #(save (logic/gen-es new-4p-game-events))}
+        "new 4p game"]
+       [:button.ui.button {:on-click #(save (logic/gen-es [[:new-game]]))}
+        "new empty game"]
+       [:button.ui.button {:on-click #(save (logic/gen-es nil))}
+        "nil state"]
+       [fb-conn-indicator-wrapper local-state-atom]]]
      [:div [worker-gears-wrapper es-atom re-state save on-end-turn on-take-starting-player]]
      [:div {:style {:margin "1rem"}}
-       [temples-wrapper es-atom re-state]
-       [tech-tracks-wrapper es-atom re-state]]]))
+      [temples-wrapper es-atom re-state]
+      [tech-tracks-wrapper es-atom re-state]]]))

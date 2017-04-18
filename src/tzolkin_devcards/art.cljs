@@ -24,36 +24,36 @@
            "🌲🗿2🌕3🌽💀"))))
 
 (defcard-rg position-around-a-circle
- (let [width 150
-       height width
-       distance (/ width 3)
-       el-r 10
-       num 12
-       cx (/ width 2)
-       cy (/ height 2)
+  (let [width 150
+        height width
+        distance (/ width 3)
+        el-r 10
+        num 12
+        cx (/ width 2)
+        cy (/ height 2)
        ;; For element around a centre at (x, y), distance r, element's centre:
        ;;   (x + r cos(2kπ/n), y + r sin(2kπ/n))
        ;; n is the number of elements
        ;; k is the index of currently positioned element (btwe. 1 and n inclusive)
-       el-cx (fn [i] (+ cx (* distance (cos (/ (* 2 i pi) num)))))
-       el-cy (fn [i] (+ cy (* distance (sin (/ (* 2 i pi) num)))))]
-   [:svg {:width width :height height}
-    [:circle {:cx cx
-              :cy cy
-              :r (/ width 10)}]
-    (into [:g]
-      (map (fn [i]
-             [:circle {:cx (el-cx i)
-                       :cy (el-cy i)
-                       :r el-r}])
-           (range num)))]))
+        el-cx (fn [i] (+ cx (* distance (cos (/ (* 2 i pi) num)))))
+        el-cy (fn [i] (+ cy (* distance (sin (/ (* 2 i pi) num)))))]
+    [:svg {:width width :height height}
+     [:circle {:cx cx
+               :cy cy
+               :r (/ width 10)}]
+     (into [:g]
+           (map (fn [i]
+                  [:circle {:cx (el-cx i)
+                            :cy (el-cy i)
+                            :r el-r}])
+                (range num)))]))
 
 (defcard-rg symbol-examples
   (into [:div]
-    (for [size '(16 45)]
-      (into [:div {:style {:font-size size}}]
-        (for [[k v] art/symbols]
-          (str (name k) ": " v ", "))))))
+        (for [size '(16 45)]
+          (into [:div {:style {:font-size size}}]
+                (for [[k v] art/symbols]
+                  (str (name k) ": " v ", "))))))
 
 (defcard-doc
   "#Gears
@@ -172,10 +172,10 @@
 
 (defcard-rg all-starters
   (into [:div.ui.cards]
-    (map-indexed
-      (fn [index starter]
-        [:div (art/starter-card starter #(log "selected!"))])
-      (:starters spec))))
+        (map-indexed
+         (fn [index starter]
+           [:div (art/starter-card starter #(log "selected!"))])
+         (:starters spec))))
 
 (defcard-rg trade-window-test
   (art/trade-window-el {:materials {:corn 8 :wood 2 :stone 1 :gold 1 :skull 1}} #(log %) #(log %)))

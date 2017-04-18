@@ -114,7 +114,7 @@
              (logic/add-decision 0 :pay-resource)
              (logic/handle-decision 0))
          (-> s (update :errors conj (str "Can't pay resource cost: {:wood 1}"))
-               (logic/add-decision 0 :pay-resource))))
+             (logic/add-decision 0 :pay-resource))))
   (testing "build a building"
     (nod (-> s
              (assoc :buildings [{} {:materials {:corn 1}} {}])

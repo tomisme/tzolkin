@@ -53,9 +53,9 @@
    (into {} (for [[k v] original-map] [k (f v)])))
   ([original-map f changes]
    (reduce
-     (fn [m [k v]] (update m k #(f % v)))
-     original-map
-     (for [[k v] changes] [k v]))))
+    (fn [m [k v]] (update m k #(f % v)))
+    original-map
+    (for [[k v] changes] [k v]))))
 
 (defn negatise-map
   "Multiply each value in map 'm' by -1"

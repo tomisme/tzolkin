@@ -87,7 +87,6 @@
   * `position` refers to the actual board position of a slot. Remain static
    throughout the game (e.g. position 1 on `:yax` is always 1 wood")
 
-
 (defcard-doc
   "##Ideas
   Users construct a turn, made up of a sequence of moves, that is published to firebase.

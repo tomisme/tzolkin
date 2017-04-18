@@ -57,8 +57,8 @@
   (testing "adjust-materials"
     (nod (logic/adjust-materials s 0 {:stone 2 :gold 1})
          (-> s
-           (update-in [:players 0 :materials :stone] + 2)
-           (update-in [:players 0 :materials :gold] inc))))
+             (update-in [:players 0 :materials :stone] + 2)
+             (update-in [:players 0 :materials :gold] inc))))
 
   (testing "adjust-temples"
     (nod (logic/adjust-temples s 0 {:chac 2 :quet 1})
