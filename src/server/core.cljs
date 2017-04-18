@@ -1,3 +1,7 @@
+;; is this still useful?
+
+;; what's another direction we could go?
+
 (ns ^:figwheel-always server.core
   (:require
    [cljs.nodejs :as nodejs]

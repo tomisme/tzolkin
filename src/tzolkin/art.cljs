@@ -334,7 +334,7 @@
     (str
      name
      (case worker-option
-      :none " has not yet chosen to remove or place workers."
+      :none " can pick up or place a worker."
       :place (str " has placed " placed " worker(s).")
       :remove " is removing workers."
       "ERROR"))))

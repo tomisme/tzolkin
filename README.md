@@ -1,17 +1,17 @@
 # Tzolk'in
-WIP Tzolk'in boardgame in clojurescript using vanilla reagent (just passing full state around).
+WIP Tzolk'in boardgame engine/ui in clojurescript using vanilla reagent (just passing full state around).
 
 If you want to have a poke around run `lein figwheel`, open
 `localhost:3449/cards.html` in your browser and behold the magic of
 [devcards](https://github.com/bhauman/devcards).
 
-## Version 1
+## Goal 1
  - game includes all non-expansion game functionality
  - infinite undo
  - a single permanent board (to be reset after each game)
  - no sign in required, any user can play any move (will need to make sure it's their turn)
 
-## Version 2
+## Goal 2
  - users sign up and login via firebase
  - users set their display name
  - users can create a new board, adjust settings like max/min players
@@ -22,6 +22,6 @@ If you want to have a poke around run `lein figwheel`, open
  - wheels spin at end of turn
  - game history can be cycled through
 
-## Version 3+
+## Goal 3+
  - expansions
  - juicy animations

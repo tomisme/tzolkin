@@ -1,3 +1,5 @@
+/* only hover styles atm, is there a way to create these inline instead? */
+
 .hover-grower {
   transition: all .1s ease;
 }
