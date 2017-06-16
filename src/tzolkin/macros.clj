@@ -4,9 +4,11 @@
    [cljs.test :refer [is]]
    [pl.danieljanus.tagsoup :as ts]))
 
+
 (defmacro nod-old
   [a b]
   `(is (= (drop-last (diff ~a ~b)) '(nil nil))))
+
 
 (defmacro nod
   "nod or 'no difference' emits an 'is' statement from cljs.test that checks
@@ -19,6 +21,7 @@
               (list 'drop-last
                     (list 'clojure.data/diff a b))
               ''(nil nil))))
+
 
 (defmacro embed-svg [file]
   (let [hiccup (ts/parse-string (slurp (str "resources/public/images/" file)))]

@@ -2,15 +2,15 @@
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require
    [reagent.core :as rg]
-   [tzolkin.spec  :refer [spec]]
+   [tzolkin.spec :refer [spec]]
    [tzolkin.logic :as logic]
-   [tzolkin.art   :as art]
+   [tzolkin.art :as art]
    [tzolkin.utils :refer [log]]))
+
 
 (defn worker-gears-wrapper
   [es-atom re-state save on-end-turn on-take-starting-player]
-  (let [{:keys [jungle turn player-order players
-                active starting-player-corn starting-player-space]}
+  (let [{:keys [jungle turn player-order players active starting-player-corn starting-player-space]}
         @re-state
 
         data (into {}
@@ -30,9 +30,9 @@
                        :workers (get-in @re-state [:gears gear])
                        :rotation (* (/ 360 (get-in spec [:gears gear :teeth])) (:turn @re-state))
                        :actions (get-in spec [:gears gear :actions])}]))]
-    [art/gear-layout-el data jungle turn player-order players
-     active on-end-turn on-take-starting-player
-     starting-player-corn starting-player-space]))
+    [art/gear-layout-el
+     data jungle turn player-order players active on-end-turn on-take-starting-player starting-player-corn starting-player-space]))
+
 
 (defn status-bar-wrapper
   [es-atom re-state save on-end-turn]
@@ -65,6 +65,7 @@
                          on-start-game
                          on-add-player))))
 
+
 (defn game-log-wrapper
   [es-atom save]
   (let [on-es-reset (fn [index]
@@ -78,15 +79,18 @@
         (art/game-log-el {:stream @es-atom
                           :on-es-reset on-es-reset}))})))
 
+
 (defn fb-conn-indicator-wrapper
   [local-state-atom]
   (let [connected? (reaction (:fb-connected? @local-state-atom))]
     (fn []
       (art/fb-conn-indicator-el @connected?))))
 
+
 (defn temples-wrapper
   [es-atom re-state]
   (art/temples-el @re-state))
+
 
 (defn tech-tracks-wrapper
   [es-atom re-state]
@@ -94,10 +98,12 @@
     (fn []
       (art/tech-tracks-el @players))))
 
+
 (def new-2p-game-events
   [[:new-game]
    [:add-player {:name "Elisa" :color :red}]
    [:add-player {:name "Tom" :color :blue}]])
+
 
 (def new-4p-game-events
   [[:new-game]
@@ -105,6 +111,7 @@
    [:add-player {:name "Tom"   :color :blue}]
    [:add-player {:name "Aaron" :color :orange}]
    [:add-player {:name "Jess"  :color :yellow}]])
+
 
 (def test-events
   [[:new-game]
@@ -120,6 +127,7 @@
    [:place-worker {:gear :yax}]
    [:place-worker {:gear :yax}]
    [:end-turn]])
+
 
 (defn board
   [es-atom local-state-atom save]

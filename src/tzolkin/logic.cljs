@@ -4,24 +4,30 @@
    [tzolkin.utils :refer [log indexed first-val rotate-vec
                           remove-from-vec change-map negatise-map]]))
 
+
 ;; ==============
 ;; =  Decisions =
 ;; ==============
 
+
 (def resource-options
   (vec (for [k (:resources spec)] {k 1})))
+
 
 (def tech-options
   (vec (for [k (keys (:tech spec))] {k 1})))
 
+
 (def temple-options
   (vec (for [k (keys (:temples spec))] {k 1})))
+
 
 (def two-different-temple-options
   (vec (for [t1 (keys (:temples spec))
              t2 (keys (:temples spec))
              :when (not= t1 t2)]
          {t1 1 t2 1})))
+
 
 (defn action-options
   [gear]
@@ -30,9 +36,11 @@
     (let [num (get-in spec [:gears gear :regular-actions])]
       (vec (for [x (range num)] {gear x})))))
 
+
 (defn building-options
   [state]
   (vec (take (:num-available-buildings spec) (:buildings state))))
+
 
 (defn add-decision
   ([state pid type data]
@@ -63,9 +71,11 @@
   ([state pid type]
    (add-decision state pid type {})))
 
+
 ;; ============
 ;; =  Helpers =
 ;; ============
+
 
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
@@ -73,11 +83,13 @@
   (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ slot turn) teeth)))
 
+
 (defn gear-slot
   "Return the gear slot index of a board position after 'turn' spins"
   [gear position turn]
   (let [teeth (get-in spec [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
+
 
 (defn player-map-adjustment
   [state pid k changes]
@@ -85,17 +97,21 @@
         updated (change-map current + changes)]
     (assoc-in state [:players pid k] updated)))
 
+
 (defn adjust-points
   [state pid num]
   (update-in state [:players pid :points] + num))
+
 
 (defn adjust-workers
   [state pid num]
   (update-in state [:players pid :workers] + num))
 
+
 (defn adjust-temples
   [state pid changes]
   (player-map-adjustment state pid :temples changes))
+
 
 (defn adjust-materials
   ([state pid changes]
@@ -117,6 +133,7 @@
        (and (>= extr 2) (= :yax source)   stone?) (adjust-materials pid {:stone 1})
        (and (>= extr 3) (= :yax source)   gold?)  (adjust-materials pid {:gold 1})))))
 
+
 (defn adjust-tech
   [state pid changes]
   (let [new-state (player-map-adjustment state pid :tech changes)
@@ -132,6 +149,7 @@
       (= theo 4) (-> (player-map-adjustment pid :tech {:theo -1})
                      (adjust-materials pid {:skull 1})))))
 
+
 (defn buy-tech
   [state pid track]
   (let [pos (-> state :players (get pid) :tech track)]
@@ -143,13 +161,16 @@
         (adjust-tech pid {track 1})
         (add-decision pid :pay-resource))))
 
+
 ;; ==========
 ;; =  Costs =
 ;; ==========
 
+
 (defn is-resource?
   [material]
   (contains? #{:wood :stone :gold} material))
+
 
 (defn count-resources
   [materials]
@@ -160,6 +181,7 @@
        count))
    0
    materials))
+
 
 (defn cost-payable?
   ([state pid cost discount]
@@ -180,15 +202,18 @@
   ([state pid cost]
    (cost-payable? state pid cost nil)))
 
+
 (defn pay-cost
   [state pid cost]
   (if (:any-resource cost)
     (add-decision state pid :pay-resource {})
     (adjust-materials state pid (negatise-map cost))))
 
+
 ;; ============
 ;; =  Trading =
 ;; ============
+
 
 (defn start-trading
   [state]
@@ -198,11 +223,13 @@
 ;; =  Buildings =
 ;; ==============
 
+
 (defn gain-builder-building
   [state pid build]
   (case build
     :building (add-decision state pid :build-building)
     :monument (add-decision state pid :build-monument)))
+
 
 (defn gain-tech-building
   [state pid tech]
@@ -210,6 +237,7 @@
     (= :any tech)     (add-decision pid :free-tech 1)
     (= :any-two tech) (add-decision pid :free-tech 2)
     (map? tech)       (adjust-tech pid tech)))
+
 
 (defn gain-building
   [state pid building]
@@ -224,6 +252,7 @@
       materials   (adjust-materials pid materials)
       gain-worker (adjust-workers pid 1))))
 
+
 (defn build-building
   ([state pid building]
    (let [arch (get-in state [:players pid :tech :arch])
@@ -234,13 +263,16 @@
        (<= arch 2) (pay-cost pid cost)
        (= arch 3)  (add-decision pid :pay-discount {:cost cost})))))
 
+
 ;; ==============
 ;; = Game Start =
 ;; ==============
 
+
 (def initial-gears-state
   (into {} (for [k (keys (:gears spec))]
              [k (vec (repeat (get-in spec [:gears k :teeth]) :none))])))
+
 
 (defn setup-buildings-monuments
   [state]
@@ -248,6 +280,7 @@
       (assoc :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec)))))
       (assoc :monuments (vec (take (+ 2 (count (:players state)))
                                    (shuffle (:monuments spec)))))))
+
 
 (defn setup-jungle
   [state]
@@ -257,11 +290,13 @@
                           {:corn-tiles num :wood-tiles num}
                           {:corn-tiles num :wood-tiles num}])))
 
+
 (defn choose-starter-tiles
   [state pid]
   (let [tiles #(vec (take (:num-starters spec)
                           (shuffle (:starters spec))))]
     (add-decision state pid :starters (tiles))))
+
 
 (defn gain-starter
   [state pid {:keys [materials tech farm temple gain-worker]}]
@@ -272,9 +307,11 @@
     materials   (adjust-materials pid materials)
     gain-worker (adjust-workers pid 1)))
 
+
 ;; ========================
 ;; =  Food Day / Game End =
 ;; ========================
+
 
 (defn temple-winner
   [players temple]
@@ -297,6 +334,7 @@
        :winners '()}
       steps))))
 
+
 (defn temple-winners
   [players]
   (into {}
@@ -304,6 +342,7 @@
          (fn [temple]
            [temple (temple-winner players temple)])
          '(:chac :quet :kuku))))
+
 
 (defn give-rewards-for-highest-temples
   [players age]
@@ -326,6 +365,7 @@
      players
      '(:chac :quet :kuku))))
 
+
 (defn fd-points
   "Takes a player, returns the number of points earned for raw temple positions"
   [player]
@@ -334,6 +374,7 @@
           (fn [[temple step]]
             (get-in spec [:temples temple :steps step :points]))
           (:temples player))))
+
 
 (defn fd-mats
   "Takes a player, returns a map of materials earned for temple postions"
@@ -349,6 +390,7 @@
              '()
              (take (inc step) (get-in spec [:temples temple :steps])))))))
 
+
 (defn fd-corn-cost
   [player]
   (let [workers (:workers player)
@@ -359,6 +401,7 @@
         full-discounts (+ single-farms (* triple-farms 3))]
     (* (max 0 (- workers full-discounts))
        (max 0 (- 2 all-farms)))))
+
 
 (defn fd-pay-for-workers
   [player]
@@ -371,10 +414,12 @@
           (assoc-in [:materials :corn] (if (odd? new-corn) 1 0))
           (update :points - (* 3 unpaid-workers))))))
 
+
 (defn use-age-two-buildings
   [state]
   (assoc state :buildings (vec (filter #(= 2 (:age %))
                                        (shuffle (:buildings spec))))))
+
 
 (defn food-day
   ([state force-fd]
@@ -401,13 +446,16 @@
   ([state]
    (food-day state nil)))
 
+
 (defn finish-game
   [state]
   (do (.alert js/window "Game Over!") state))
 
+
 ;; ================
 ;; =  Double Spin =
 ;; ================
+
 
 (defn double-spin
   [{:keys [active] :as state}]
@@ -422,9 +470,11 @@
         (update :turn inc)
         (assoc-in [:players (:pid active) :double-spin?] false))))
 
+
 ;; ================
 ;; = Beg for Corn =
 ;; ================
+
 
 (defn possibly-beg-for-corn
   [state]
@@ -434,6 +484,7 @@
       (add-decision state pid :beg?)
       state)))
 
+
 (defn beg-for-corn
   [state]
   (let [pid (get-in state [:active :pid])
@@ -442,9 +493,12 @@
         (adjust-materials pid {:corn (- 3 corn)})
         (add-decision pid :anger-god))))
 
+
 ;; ============
 ;; =  Actions =
 ;; ============
+
+
 
 (defn handle-skull-action
   [state pid {:keys [resource points temple]}]
@@ -452,6 +506,7 @@
     resource (add-decision pid :gain-resource)
     points   (adjust-points pid points)
     temple   (adjust-temples pid {temple 1})))
+
 
 (defn handle-jungle-action
   [state pid v]
@@ -479,6 +534,7 @@
         (add-decision state pid :jungle-mats {:options options :jungle-id id})
         state))))
 
+
 (defn handle-action
   [state pid [k v]]
   (let [build-building?     (and (= :build k) (= :single (:type v)))
@@ -499,9 +555,11 @@
 
           (:cost v)             (pay-cost pid (:cost v))))))
 
+
 ;; ==================
 ;; = Event Handlers =
 ;; ==================
+
 
 (defn handle-decision
   "Decisions are handled last in first out"
@@ -618,6 +676,7 @@
       :two-diff-temples
       (-> (next-dec) (adjust-temples pid choice)))))
 
+
 (defn place-worker
   [state gear]
   (let [pid (-> state :active :pid)
@@ -645,6 +704,7 @@
           (update-in [:active :placed] inc)
           (update :active assoc :worker-option :place))
       (update state :errors conj "Can't place worker"))))
+
 
 (defn remove-worker
   [state gear slot]
@@ -677,6 +737,7 @@
           (update :active assoc :worker-option :remove)
           (handle-action pid action))
       (update state :errors conj "Can't remove worker"))))
+
 
 (defn end-turn
   [state]
@@ -729,6 +790,7 @@
               (update :active assoc :worker-option :none))
           (update state :errors conj "Can't end turn"))))))
 
+
 (defn init-game
   [state]
   (conj state {:turn 0
@@ -741,6 +803,7 @@
                :remaining-skulls (:skulls spec)
                :players []
                :gears initial-gears-state}))
+
 
 (defn start-game
   ([state test?]
@@ -762,6 +825,7 @@
            setup-buildings-monuments
            setup-jungle)))))
 
+
 (defn add-player
   [state name color]
   (if (contains? (set (map :color (:players state))) color)
@@ -769,6 +833,7 @@
     (update state :players conj (-> (:player-starting-stuff spec)
                                     (assoc :name name)
                                     (assoc :color color)))))
+
 
 (defn make-trade
   [state [type resource]]
@@ -781,9 +846,11 @@
         (adjust-materials pid {resource (case type :buy 1 :sell -1)})
         (adjust-materials pid {:corn corn-amount}))))
 
+
 (defn stop-trading
   [state]
   (update state :active assoc :trading? false))
+
 
 (defn take-starting-player
   [state]
@@ -812,6 +879,7 @@
           (assoc :new-player-order new-p-order))
       (update state :errors conj "Can't take starting player"))))
 
+
 (defn handle-event
   [state [e data]]
   (when (:errors state) (log (:errors state)))
@@ -830,9 +898,11 @@
      ;; dev events
       (= :give-stuff e) (player-map-adjustment (:pid data) (:k data) (:changes data)))))
 
+
 ;; ================
 ;; = Event Stream =
 ;; ================
+
 
 (defn add-event
   [es event]
@@ -843,10 +913,12 @@
       (do (log errors) es)
       (conj es [event new-state]))))
 
+
 (defn current-state
   [es]
   (let [[_ state] (last es)]
     state))
+
 
 (defn reset-es
   [es index]
@@ -854,6 +926,7 @@
     (if (< pos (count es))
       (vec (take pos es))
       es)))
+
 
 (defn gen-es
   [events]

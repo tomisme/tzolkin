@@ -7,6 +7,7 @@
   (:require-macros
    [tzolkin.macros :refer [embed-svg]]))
 
+
 (def el-titles
   {:resource "resource"
    :worker "worker"
@@ -32,6 +33,7 @@
    :points "points"
    :double-spin-ok "player can double spin"})
 
+
 (def color-strings
   {:red "#CC333F"
    :blue "#69D2E7"
@@ -46,6 +48,7 @@
    :uxe "#EBE54D"
    :chi "#9061C2"
    :pal "#7FAF1B"})
+
 
 (def symbols
   {:resource "🎁"
@@ -69,12 +72,15 @@
    :theo "theo"
    :choose-prev "⏪"})
 
+
 (def color-set
   #{:red :blue :orange :yellow})
+
 
 (defn e->val
   [event]
   (-> event .-target .-value))
+
 
 (defn transform-str
   "Takes any number of (supported) svg transform definitions
@@ -88,6 +94,7 @@
                     (if (and (:x data) (:y data))
                       (str " " (:x data) " " (:y data)))
                     ")")))))
+
 
 (defn img-path
   [k]
@@ -134,6 +141,7 @@
     :double-spin-ok "svg/double-spin-ok"
     "emoji/2753"))
 
+
 (defn svg-icon-el
   [k]
   (let [name (img-path k)]
@@ -146,11 +154,13 @@
                             ; :line-height "normal"}
                     :title (get el-titles k)}]))
 
+
 (defn temple-icon
   [temple]
   [:div {:class "hover-grower"
          :style {:cursor "pointer"}}
    (svg-icon-el temple)])
+
 
 (defn inner-svg
   [k x y size]
@@ -168,6 +178,7 @@
                        href
                        "\"/>")}}]))
 
+
 (defn amount-num-el
   [amount]
   [:div {:style {:padding-left "0.4em"
@@ -178,6 +189,7 @@
                  :word-wrap "normal"
                  :text-shadow "-2px 0 white, 0 2px white, 2px 0 white, 0 -2px white"}}
    amount])
+
 
 (defn svg-icon-group-el
   [icons]
@@ -191,6 +203,7 @@
                    (repeat amount (svg-icon-el icon)))))
          icons)))
 
+
 (defn symbols-str
   "Takes a map of materials and the amount of each and returns a string of
   symbols. Amounts larger than two represented by a number and a single symbol."
@@ -200,6 +213,7 @@
                  (apply str (repeat amount (get symbols material)))
                  (str amount (get symbols material))))))
 
+
 (defn tech-str
   [tech]
   (case tech
@@ -207,16 +221,19 @@
     :any-two "2x any tech"
     (symbols-str tech)))
 
+
 (defn points-el
   [points]
   [:div.ui.label {:style {:padding ".3rem .51rem"}}
    points])
+
 
 (defn farm-el
   [farms]
   (if (= :all farms)
     [:p "(🌽✔)"]
     (map-indexed (fn [index _] ^{:key index} [:p "(🌽🌽✔)"]) (range farms))))
+
 
 (defn building-card
   [building on-click choosing?]
@@ -253,6 +270,7 @@
        (when materials (svg-icon-group-el materials))
        (when points [:div (points-el points)])]]]))
 
+
 (defn available-buildings
   [buildings on-decision choosing?]
   [:div.ui.segment
@@ -262,6 +280,7 @@
           (fn [index building]
             [:div.item (building-card building #(on-decision index) choosing?)])
           (take (:num-available-buildings spec) buildings)))])
+
 
 (defn starter-card
   [{:keys [materials tech farm temple gain-worker]} on-select]
@@ -277,6 +296,7 @@
      (when farm (farm-el farm))
      (when gain-worker [:div (svg-icon-el :worker)])
      (when temple [:div (svg-icon-el temple)])]]])
+
 
 (defn decisions-el
   [active active-player on-decision]
@@ -326,6 +346,7 @@
                    (svg-icon-group-el option))]))
             decision-options))]))
 
+
 (defn active-player-status
   [active active-player]
   (let [worker-option (:worker-option active)
@@ -339,6 +360,7 @@
        :remove " is removing workers."
        "ERROR"))))
 
+
 (defn player-buildings-el
   [buildings]
   [:div.ui.cards {:style {:margin-top "0.5rem"
@@ -350,10 +372,12 @@
       [:div.item (building-card building nil false)])
     buildings)])
 
+
 (defn player-circle-el
   [color]
   [:i {:key color
        :class (str (name color) " circle icon")}])
+
 
 (def new-player-form-template
   [:span
@@ -361,6 +385,7 @@
     [:input.form-control {:id :new-player.name
                           :field :text
                           :type :text}]]])
+
 
 (defn new-player-form-el
   [on-add-player current-players]
@@ -378,6 +403,7 @@
          [bind-fields new-player-form-template doc]
          [:div.ui.submit.button {:on-click #(on-add-player (:new-player @doc))}
           "Add Player"]]))))
+
 
 ;; TODO fix padding to use rem
 (defn trade-window-el
@@ -411,6 +437,7 @@
      [:button.ui.button {:on-click on-stop-trading}
       "Finish Trading"]]))
 
+
 (defn active-player-command-bar-el
   [active active-player on-decision on-trade on-stop-trading color-str]
   (if (:trading? active)
@@ -422,6 +449,7 @@
         (decisions-el active active-player on-decision)
         [:div {:class (str "ui inverted segment " color-str)}
          (active-player-status active active-player)]))))
+
 
 (defn player-stats-el
   [pid player active?]
@@ -455,6 +483,7 @@
       (when (seq buildings)
         (player-buildings-el buildings))]]))
 
+
 (defn status-bar-el
   [state on-decision on-trade on-stop-trading on-end-turn on-start-game on-add-player]
   (let [turn (:turn state)
@@ -486,6 +515,7 @@
          (player-stats-el pid player (= active-pid pid)))
        (:players state))]]))
 
+
 (defn action-label
   [[k data]]
   (case k
@@ -515,6 +545,7 @@
                        (:points data) "p"
                        (when (:resource data) (:resource symbols)))
     "WHAT?"))
+
 
 (defn corn-cost-labels
   [cx cy r teeth]
@@ -546,6 +577,7 @@
                :font-size 14
                :text-anchor "middle"}
         index]])))
+
 
 (defn action-labels
   [cx cy r teeth actions gear]
@@ -616,6 +648,7 @@
                      (action-label action)]))
                 actions)])
 
+
 (defn worker-slots
   [cx cy r teeth workers on-click gear]
   [:g
@@ -644,6 +677,7 @@
          ;   index]]))
     workers)])
 
+
 (defn tile-svg
   [x y size r type]
   [:g
@@ -660,6 +694,7 @@
               (+ x (/ size 16))
               (+ y (/ size 20))
               (/ size 3))])
+
 
 (defn jungle-svg
   [cx cy r teeth jungle]
@@ -700,7 +735,7 @@
              (tile-svg (- cx (/ size 2.1))
                        (- (* r -0.15) (/ size 2.1))
                        size
-                       r 
+                       r
                        :wood))
            (when (> wood 1)
              (tile-svg cx (- (* r -0.15) (/ size 2.1)) size r :wood))
@@ -709,6 +744,7 @@
            (when (> wood 3)
              (tile-svg  cx (* r -0.15) size r :wood))]))
       jungle)]))
+
 
 (defn gear-svg
   [{:keys [cx cy r teeth rotation workers on-worker-click on-center-click
@@ -758,6 +794,7 @@
       (inner-svg gear (- cx s2) (- cy s2) s))]
    (when (= :pal gear) (jungle-svg cx cy r teeth jungle))])
 
+
 (defn worker-gear-svg
   [{:keys [gear workers on-worker-click on-center-click actions rotation size jungle]}]
   [gear-svg {:cx (/ size 1.97)
@@ -773,6 +810,7 @@
              :actions actions
              :on-center-click on-center-click
              :on-worker-click on-worker-click}])
+
 
 (defn players-dial-el
   [size player-order players active]
@@ -808,6 +846,7 @@
                  (- cx (/ (* el-r 2.2) 2))
                  (- cy (/ size 7.9))
                  (* el-r 2.2))]]))
+
 
 (defn turn-clock-el
   [size turn]
@@ -847,6 +886,7 @@
             ;  i])
                (range num)))))
 
+
 (defn middle-of-gears
   [size turn player-order players active on-end-turn on-take-starting-player]
   [:g
@@ -860,6 +900,7 @@
           x (- (/ size 2) (/ turn-button-size 2))
           y x]
       (inner-svg :spin x y turn-button-size))]])
+
 
 (defn starting-player-space
   [on-click corn-bonus canvas-size active-pid player-color]
@@ -888,6 +929,7 @@
                  :cy hat-y
                  :r player-size
                  :fill (get color-strings player-color)}])]))
+
 
 (defn gear-layout-el
   [gear-data jungle turn player-order players active on-end-turn
@@ -922,6 +964,7 @@
                              :actions (-> gear-data gear :actions)})]))
       '(:pal :yax :tik :uxe :chi))
      (middle-of-gears size turn player-order players active on-end-turn on-take-starting-player)]))
+
 
 (defn temples-el
   [{:keys [players]}]
@@ -968,6 +1011,7 @@
                  (svg-icon-el material)])]))
          (:steps temple)))]])])
 
+
 (defn tech-label
   [gear]
   (svg-icon-el (case gear
@@ -976,6 +1020,7 @@
                  :chi :plus-chi
                  :water :plus-water)))
 
+
 (defn tech-player-circles
   [players track step]
   (map
@@ -983,6 +1028,7 @@
      (when (= (get-in player [:tech track]) step)
        (player-circle-el (:color player))))
    players))
+
 
 (defn tech-first-col
   [players track]
@@ -998,6 +1044,7 @@
      [temple-icon track]]
     (tech-player-circles players track 0)]])
 
+
 (defn tech-player-box
   [players track step]
   [:div {:style {:top "auto"
@@ -1005,6 +1052,7 @@
                  :position "absolute"
                  :width "100%"}}
    (tech-player-circles players track step)])
+
 
 (defn tech-tracks-el
   [players]
@@ -1109,11 +1157,13 @@
      [:div.ui.segment {:style {:height "7rem"}}
       (svg-icon-el :skull)]]]])
 
+
 (defn event-player-el
   [player]
   (if player
     [:span (player-circle-el (:color player)) (:name player)]
     [:i.cross.icon]))
+
 
 (defn event-icon-group-el
   [icon]
@@ -1121,11 +1171,13 @@
                   :bottom "-0.4em"}}
    (svg-icon-group-el icon)])
 
+
 (defn event-icon-el
   [icon]
   [:span {:style {:position "relative"
                   :bottom "-0.4em"}}
    (svg-icon-el icon)])
+
 
 (defn event-summary-choice
   [{:keys [index decision]}]
@@ -1156,6 +1208,7 @@
       :build-building " built a building"
       [:span "ERROR: no matching choice found for key: " type])))
 
+
 (defn trade-description
   [{:keys [trade]}]
   (let [[type resource] trade]
@@ -1166,6 +1219,7 @@
          " for "
          (get-in spec [:trade-values resource])
          (:corn symbols))))
+
 
 (defn event-summary-el
   [[type data] state on-es-reset es-index]
@@ -1215,6 +1269,7 @@
       " | "
       [:a {:on-click #(on-es-reset es-index)} "reset here"]]]))
 
+
 (defn game-log-el
   [{:keys [stream on-es-reset]}]
   [:div.ui.segment {:id "game-log"
@@ -1226,12 +1281,14 @@
             (let [[type data] event]
               [:div.event
                [:div.content
-                (event-summary-el event state on-es-reset es-index)]])))
-         stream)])
+                (event-summary-el event state on-es-reset es-index)]]))
+          stream))])
+
 
 (defn scroll-log-down!
   []
   (set! (.-scrollTop (.getElementById js/document "game-log")) 99999))
+
 
 (defn fb-conn-indicator-el
   [connected?]
