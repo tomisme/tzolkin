@@ -1,29 +1,37 @@
 (ns tzolkin.core
   (:require
-   [reagent.core :as rg]
-   [tzolkin.game :as game]
-   [tzolkin.db :as db]
-   [tzolkin.logic :as logic]
+   [reagent.core]
+   [tzolkin.game]
+   [tzolkin.db]
+   [tzolkin.logic]
    [tzolkin.utils :refer [log]]
    [devtools.core :as devtools]))
 
-(devtools/install! :all)
+(defonce devtools
+  (devtools/install! :all))
 
-(def es-atom
-  (rg/atom (logic/gen-es [[:new-game]])))
 
-(def local-state-atom
-  (rg/atom {:fb-connected? false}))
+(def *game-state
+  (reagent.core/atom (tzolkin.logic/gen-es [[:new-game]])))
 
-(db/setup-game-listener es-atom)
 
-(db/setup-connection-listener local-state-atom)
+(def *app-state
+  (reagent.core/atom {:fb-connected? false}))
+
+
+(tzolkin.db/setup-game-listener *game-state)
+
+
+(tzolkin.db/setup-connection-listener *app-state)
+
 
 (defn app-container []
-  (game/board es-atom local-state-atom db/save))
+  (tzolkin.game/board *game-state *app-state tzolkin.db/save))
+
 
 (defn render-app []
   (if-let [app-node (.getElementById js/document "app")]
-    (rg/render-component [app-container] app-node)))
+    (reagent.core/render-component [app-container] app-node)))
+
 
 (render-app)

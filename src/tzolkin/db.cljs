@@ -1,23 +1,34 @@
 (ns tzolkin.db
   (:require
-   [matchbox.core :as m]
+   [matchbox.core]
    [tzolkin.utils :refer [log]]))
 
-(def root
-  (m/connect "https://playtzolkin.firebaseio.com/"))
+(def base-ref
+  (matchbox.core/connect "https://playtzolkin.firebaseio.com/"))
 
-(def fb-game (m/get-in root [:tzolkin]))
+
+(def connection-ref
+  (matchbox.core/connect "https://bgames.firebaseio.com/.info/connected"))
+
+
+(def games-ref
+  (matchbox.core/get-in base-ref [:tzolkin]))
+
 
 (defn setup-game-listener
   [es-atom]
-  (m/listen-to fb-game :value (fn [[_ v]]
-                                (reset! es-atom (:a v)))))
+  (let [handler (fn [[_ new-val]]
+                 (reset! es-atom (:a new-val)))]
+   (matchbox.core/listen-to games-ref :value handler)))
+
 
 (defn setup-connection-listener
   [local-state-atom]
-  (let [ref (m/connect "https://bgames.firebaseio.com/.info/connected")]
-    (m/listen-to ref :value #(swap! local-state-atom assoc :fb-connected? (second %)))))
+  (let [handler (fn [[_ new-val]]
+                 (swap! local-state-atom assoc :fb-connected? new-val))]
+   (matchbox.core/listen-to ref :value handler)))
+
 
 (defn save
-  [es]
-  (m/reset-in! fb-game [:a] es))
+  [event-stream]
+  (matchbox.core/reset-in! games-ref [:a] event-stream))
