@@ -1,7 +1,7 @@
 (ns tzolkin.db
   (:require
-   [matchbox.core]
-   [tzolkin.utils :refer [log]]))
+   [matchbox.core]))
+   ; [tzolkin.utils :refer [log]]))
 
 (def base-ref
   (matchbox.core/connect "https://playtzolkin.firebaseio.com/"))
@@ -26,7 +26,7 @@
   [local-state-atom]
   (let [handler (fn [[_ new-val]]
                  (swap! local-state-atom assoc :fb-connected? new-val))]
-   (matchbox.core/listen-to ref :value handler)))
+   (matchbox.core/listen-to connection-ref :value handler)))
 
 
 (defn save

@@ -4,7 +4,7 @@
    [tzolkin.game]
    [tzolkin.db]
    [tzolkin.logic]
-   [tzolkin.utils :refer [log]]
+   ; [tzolkin.utils :refer [log]]
    [devtools.core :as devtools]))
 
 (defonce devtools

@@ -4,8 +4,8 @@
    [reagent.core :as rg]
    [tzolkin.spec :refer [spec]]
    [tzolkin.logic :as logic]
-   [tzolkin.art :as art]
-   [tzolkin.utils :refer [log]]))
+   [tzolkin.art :as art]))
+   ; [tzolkin.utils :refer [log]]))
 
 
 (defn worker-gears-wrapper
