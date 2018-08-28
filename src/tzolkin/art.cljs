@@ -3,9 +3,7 @@
    [tzolkin.spec :refer [spec]]
    [tzolkin.utils :refer [log sin cos pi]]
    [reagent.core :as rg]
-   [reagent-forms.core :refer [bind-fields]])
-  (:require-macros
-   [tzolkin.macros :refer [embed-svg]]))
+   [reagent-forms.core :refer [bind-fields]]))
 
 
 (def el-titles

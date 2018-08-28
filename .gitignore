@@ -1,9 +1,3 @@
-resources/public/js/compiled
 target
-figwheel_server.log
-.lein-repl-history
-.nrepl-port
-out
-.idea
-.nightlight.edn
-tzolkin.iml
+.cpcache
+.rebel_readline_history

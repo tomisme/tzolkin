@@ -2,7 +2,7 @@
   (:require
    [clojure.data :as data :refer [diff]]
    [cljs.test :refer [is]]
-   [pl.danieljanus.tagsoup :as ts]))
+   #_[pl.danieljanus.tagsoup :as ts]))
 
 
 (defmacro nod-old
@@ -23,6 +23,6 @@
               ''(nil nil))))
 
 
-(defmacro embed-svg [file]
-  (let [hiccup (ts/parse-string (slurp (str "resources/public/images/" file)))]
-    `~hiccup))
+#_(defmacro embed-svg [file]
+    (let [hiccup (ts/parse-string (slurp (str "resources/public/images/" file)))]
+      `~hiccup))

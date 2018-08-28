@@ -1,7 +1,7 @@
 (ns tzolkin-devcards.art
   (:require
    [reagent.core :as rg]
-   [timothypratley.reanimated.core :as anim]
+   [reanimated.core :as anim]
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
    [tzolkin.logic :as logic]
