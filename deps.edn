@@ -3,8 +3,7 @@
         devcards {:mvn/version "0.2.5"}
         reagent {:mvn/version "0.8.1"}
         reagent-forms {:mvn/version "0.5.42"}
-        timothypratley/reanimated {:mvn/version "0.3.0"}}
-        ; re-frame {:mvn/version "0.10.5"}
-        ; matchbox {:mvn/version "0.0.9"}
-        ; clj-tagsoup {:mvn/version "0.3.0"}
+        timothypratley/reanimated {:mvn/version "0.3.0"}
+        re-frame {:mvn/version "0.10.5"}}
+        ; stylefy {:mvn/version "1.7.0"}
  :paths ["src" "target" "resources"]}

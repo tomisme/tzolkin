@@ -2,17 +2,17 @@
   (:require
    [tzolkin.spec  :refer [spec]]
    [tzolkin.logic :as logic]
-   [tzolkin.game  :as game]
    [tzolkin.art   :as art])
   (:require-macros
-   [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
+   [devcards.core :refer [defcard defcard-doc]]
    [cljs.test :refer [testing is run-tests]]))
 
 (defcard-doc
   "## Game Spec"
   spec)
 
-(defcard-doc "#Tzolk'in
+(defcard-doc
+  "#Tzolk'in
   ##Rules
   ###PLAYER TURNS
 
@@ -79,26 +79,4 @@
   day does not push any worker off the gears.
   Flip your player board to the darker side if you
   use this privilege. Any workers pushed off the
-  gears return to their players.
-
-  ## Dev Terminology
-  * `slot` refers to an index in a gear's vector of workers.
-           Slots rotate as the gear spins.
-  * `position` refers to the actual board position of a slot. Remain static
-   throughout the game (e.g. position 1 on `:yax` is always 1 wood")
-
-(defcard-doc
-  "##Ideas
-  Users construct a turn, made up of a sequence of moves, that is published to firebase.
-
-  Other users confirm that the move is valid on their clients.
-
-  Tournaments could involve a third party bot in an umpire slot.
-
-  ```
-  [[:place :yax]
-   [:place :yax]]
-
-  [[:remove [:yax 1]]
-   [:choose :agri]]
-  ```")
+  gears return to their players.")

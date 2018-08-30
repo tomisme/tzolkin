@@ -5,7 +5,6 @@
    [tzolkin.spec :refer [spec]]
    [tzolkin.art :as art]
    [tzolkin.logic :as logic]
-   [tzolkin.game :as game]
    [tzolkin-devcards.game :refer [s]]
    [tzolkin.utils :refer [log sin cos pi]])
   (:require-macros
@@ -138,11 +137,11 @@
   spin-test-atom
   {:inspect-data true})
 
-(def test-event-stream
-  (logic/gen-es game/test-events))
+#_(def test-event-stream
+    (logic/gen-es game/test-events))
 
-(defcard-rg game-log-art-test
-  [art/game-log-el {:stream test-event-stream}])
+#_(defcard-rg game-log-art-test
+    [art/game-log-el {:stream test-event-stream}])
 
 (defcard-rg temple-art-test
   [:div {:style {:width 462}}
