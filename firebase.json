@@ -1,8 +1,0 @@
-{
-  "firebase": "playtzolkin",
-  "public": "resources/public",
-  "ignore": [
-    "firebase.json",
-    "**/.*"
-  ]
-}
