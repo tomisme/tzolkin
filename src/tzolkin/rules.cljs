@@ -1,6 +1,6 @@
-(ns tzolkin.logic
+(ns tzolkin.rules
   (:require
-   [tzolkin.spec :refer [spec]]
+   [tzolkin.seed :refer [seed]]
    [tzolkin.utils :refer [log indexed first-val rotate-vec
                           remove-from-vec change-map negatise-map]]))
 
@@ -11,20 +11,20 @@
 
 
 (def resource-options
-  (vec (for [k (:resources spec)] {k 1})))
+  (vec (for [k (:resources seed)] {k 1})))
 
 
 (def tech-options
-  (vec (for [k (keys (:tech spec))] {k 1})))
+  (vec (for [k (keys (:tech seed))] {k 1})))
 
 
 (def temple-options
-  (vec (for [k (keys (:temples spec))] {k 1})))
+  (vec (for [k (keys (:temples seed))] {k 1})))
 
 
 (def two-different-temple-options
-  (vec (for [t1 (keys (:temples spec))
-             t2 (keys (:temples spec))
+  (vec (for [t1 (keys (:temples seed))
+             t2 (keys (:temples seed))
              :when (not= t1 t2)]
          {t1 1 t2 1})))
 
@@ -33,13 +33,13 @@
   [gear]
   (if (= :non-chi gear)
     (vec (for [g '(:yax :tik :uxe :pal) x (range 5)] {g x}))
-    (let [num (get-in spec [:gears gear :regular-actions])]
+    (let [num (get-in seed [:gears gear :regular-actions])]
       (vec (for [x (range num)] {gear x})))))
 
 
 (defn building-options
   [state]
-  (vec (take (:num-available-buildings spec) (:buildings state))))
+  (vec (take (:num-available-buildings seed) (:buildings state))))
 
 
 (defn add-decision
@@ -80,14 +80,14 @@
 (defn gear-position
   "Returns the current board position of a gear slot after 'turn' spins"
   [gear slot turn]
-  (let [teeth (get-in spec [:gears gear :teeth])]
+  (let [teeth (get-in seed [:gears gear :teeth])]
     (mod (+ slot turn) teeth)))
 
 
 (defn gear-slot
   "Return the gear slot index of a board position after 'turn' spins"
   [gear position turn]
-  (let [teeth (get-in spec [:gears gear :teeth])]
+  (let [teeth (get-in seed [:gears gear :teeth])]
     (mod (+ position (- teeth turn)) teeth)))
 
 
@@ -187,7 +187,7 @@
   ([state pid cost discount]
    (if (contains? cost :any-resource)
      (boolean (some #(pos? (get-in state [:players pid :materials %]))
-                    (:resources spec)))
+                    (:resources seed)))
      (let [player-materials (get-in state [:players pid :materials])]
        (and
         (>= (count-resources player-materials) (dec (count-resources cost)))
@@ -270,16 +270,16 @@
 
 
 (def initial-gears-state
-  (into {} (for [k (keys (:gears spec))]
-             [k (vec (repeat (get-in spec [:gears k :teeth]) :none))])))
+  (into {} (for [k (keys (:gears seed))]
+             [k (vec (repeat (get-in seed [:gears k :teeth]) :none))])))
 
 
 (defn setup-buildings-monuments
   [state]
   (-> state
-      (assoc :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings spec)))))
+      (assoc :buildings (vec (filter #(= 1 (:age %)) (shuffle (:buildings seed)))))
       (assoc :monuments (vec (take (+ 2 (count (:players state)))
-                                   (shuffle (:monuments spec)))))))
+                                   (shuffle (:monuments seed)))))))
 
 
 (defn setup-jungle
@@ -293,8 +293,8 @@
 
 (defn choose-starter-tiles
   [state pid]
-  (let [tiles #(vec (take (:num-starters spec)
-                          (shuffle (:starters spec))))]
+  (let [tiles #(vec (take (:num-starters seed)
+                          (shuffle (:starters seed))))]
     (add-decision state pid :starters (tiles))))
 
 
@@ -349,7 +349,7 @@
   (let [winners (temple-winners players)
         rewards (into {}
                       (for [temple '(:chac :quet :kuku)]
-                        [temple (get (get-in spec [:temples temple :age-bonus]) age)]))]
+                        [temple (get (get-in seed [:temples temple :age-bonus]) age)]))]
     (reduce
      (fn [players temple]
        (let [temple-winners (set (get winners temple))
@@ -372,7 +372,7 @@
   (apply +
          (map
           (fn [[temple step]]
-            (get-in spec [:temples temple :steps step :points]))
+            (get-in seed [:temples temple :steps step :points]))
           (:temples player))))
 
 
@@ -388,7 +388,7 @@
                  (conj materials material)
                  materials))
              '()
-             (take (inc step) (get-in spec [:temples temple :steps])))))))
+             (take (inc step) (get-in seed [:temples temple :steps])))))))
 
 
 (defn fd-corn-cost
@@ -418,12 +418,12 @@
 (defn use-age-two-buildings
   [state]
   (assoc state :buildings (vec (filter #(= 2 (:age %))
-                                       (shuffle (:buildings spec))))))
+                                       (shuffle (:buildings seed))))))
 
 
 (defn food-day
   ([state force-fd]
-   (let [turn-details (get-in spec [:turns (dec (:turn state))])
+   (let [turn-details (get-in seed [:turns (dec (:turn state))])
          age (:age turn-details)
          turn-type (:type turn-details)
          mats? (or (= :mats-food-day turn-type) (= :mats-food-day force-fd))
@@ -462,7 +462,7 @@
   (let [;; end-turn has already finished at this point
         ;; so we can get 'next turn' by looking at the current one
         ;; this means we won't miss food day
-        next-turn-details (get-in spec [:turns (dec (:turn state))])
+        next-turn-details (get-in seed [:turns (dec (:turn state))])
         food-day-next-turn? (contains? #{:mats-food-day :points-food-day}
                                        (:type next-turn-details))]
     (-> (cond-> state
@@ -581,7 +581,7 @@
       (if choice (beg-for-corn (next-dec)) (next-dec))
 
       :starters
-      (if (= (:num-starters spec) (count options))
+      (if (= (:num-starters seed) (count options))
         (-> (next-dec)
             (gain-starter pid choice)
             (add-decision pid :starters (remove-from-vec options index)))
@@ -682,7 +682,7 @@
   (let [pid (-> state :active :pid)
         worker-option (get-in state [:active :worker-option])
         gear-slots (get-in state [:gears gear])
-        max-position (- (get-in spec [:gears gear :teeth]) 2)
+        max-position (- (get-in seed [:gears gear :teeth]) 2)
         turn (:turn state)
         position (first-val (rotate-vec gear-slots turn) :none)
         slot (gear-slot gear position turn)
@@ -717,7 +717,7 @@
         player-color (:color player)
         target-color (get-in state [:gears gear slot])
         action-position (dec position)
-        action (get-in spec [:gears gear :actions action-position])
+        action (get-in seed [:gears gear :actions action-position])
         [action-type action-data] action]
     (if (and ;; (log action)
              ;; Not implemented yet! ===================
@@ -742,12 +742,12 @@
 (defn end-turn
   [state]
   (let [turn (:turn state)
-        max-turn (:total-turns spec)
+        max-turn (:total-turns seed)
         test? (:test? state)
         pid (-> state :active :pid)
         player-order (:player-order state)
         last-player? (= (.indexOf player-order pid) (dec (count (:players state))))
-        turn-details (get-in spec [:turns (dec turn)])
+        turn-details (get-in seed [:turns (dec turn)])
         turn-type (:type turn-details)
         food-day? (contains? #{:mats-food-day :points-food-day} turn-type)
         decision (get-in state [:active :decisions])
@@ -800,7 +800,7 @@
                         :placed 0
                         :decisions '()
                         :trading? false}
-               :remaining-skulls (:skulls spec)
+               :remaining-skulls (:skulls seed)
                :players []
                :gears initial-gears-state}))
 
@@ -830,7 +830,7 @@
   [state name color]
   (if (contains? (set (map :color (:players state))) color)
     (update state :errors conj "There is already a player of that color in this game")
-    (update state :players conj (-> (:player-starting-stuff spec)
+    (update state :players conj (-> (:player-starting-stuff seed)
                                     (assoc :name name)
                                     (assoc :color color)))))
 
@@ -838,7 +838,7 @@
 (defn make-trade
   [state [type resource]]
   (let [pid (-> state :active :pid)
-        price (get-in spec [:trade-values resource])
+        price (get-in seed [:trade-values resource])
         corn-amount (case type
                       :buy (* -1 price)
                       :sell price)]

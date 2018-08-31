@@ -1,3 +1,3 @@
-{:main tzolkin-devcards.core
+{:main tzolkin-dev.core
  :devcards true
  :preloads [devtools.preload devcards.core]}

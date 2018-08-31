@@ -1,4 +1,4 @@
-(ns tzolkin.macros
+(ns tzolkin-dev.macros
   (:require
    [clojure.data :as data :refer [diff]]
    [cljs.test :refer [is]]

@@ -1,10 +1,10 @@
-(ns tzolkin-devcards.game
+(ns tzolkin-dev.test-data
   (:require
-   [tzolkin.logic :as logic]))
+   [tzolkin.rules :as rules]))
 
 (defn reduce-events
   [prev-state events]
-  (reduce logic/handle-event prev-state events))
+  (reduce rules/handle-event prev-state events))
 
 (def s
   (reduce-events {}

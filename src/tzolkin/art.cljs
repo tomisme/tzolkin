@@ -1,6 +1,6 @@
 (ns tzolkin.art
   (:require
-   [tzolkin.spec :refer [spec]]
+   [tzolkin.seed :refer [seed]]
    [tzolkin.utils :refer [log sin cos pi]]
    [reagent.core :as rg]
    [reagent-forms.core :refer [bind-fields]]))
@@ -277,7 +277,7 @@
          (map-indexed
           (fn [index building]
             [:div.item (building-card building #(on-decision index) choosing?)])
-          (take (:num-available-buildings spec) buildings)))])
+          (take (:num-available-buildings seed) buildings)))])
 
 
 (defn starter-card
@@ -408,7 +408,7 @@
   [player on-trade on-stop-trading]
   (let [materials (:materials player)
         resources (filter (fn [[m _]]
-                            (contains? (set (:resources spec)) m))
+                            (contains? (set (:resources seed)) m))
                           materials)
         corn (:corn materials)]
     [:div
@@ -428,7 +428,7 @@
                   (amount-num-el v) (svg-icon-el k)]
                  " ("
                  [:div {:style {:display "inline-block"}}
-                  (amount-num-el (get-in spec [:trade-values k])) (svg-icon-el :corn) "ea.)"]]
+                  (amount-num-el (get-in seed [:trade-values k])) (svg-icon-el :corn) "ea.)"]]
                 [:button.ui.icon.button {:on-click #(on-trade [:sell k])}
                  [:i.minus.icon]]])
              resources))]
@@ -778,7 +778,7 @@
    [:g {:style {:pointer-events "none"}
         :transform (transform-str [:rotate {:deg (-
                                                   (* (if gear
-                                                       (-> spec
+                                                       (-> seed
                                                            :gears
                                                            gear
                                                            :location)
@@ -799,7 +799,7 @@
              :cy (/ size 5)
              :r (if (= :chi gear) 100 80)
              :rotation rotation
-             :teeth (get-in spec [:gears gear :teeth])
+             :teeth (get-in seed [:gears gear :teeth])
              :tooth-height-factor 1.15
              :tooth-width-factor 0.75
              :workers workers
@@ -852,7 +852,7 @@
         height size
         distance (/ width 6.5)
         el-size (/ size 30)
-        num (:total-turns spec)
+        num (:total-turns seed)
         cx (/ width 2)
         cy (/ height 2)
         el-cx (fn [i] (+ cx (* distance (cos (/ (* 2 i pi) num)))))
@@ -863,10 +863,10 @@
                    [:g {:transform (transform-str [:rotate {:deg 90
                                                             :x (el-cx i)
                                                             :y (el-cy i)}])}
-                    (inner-svg (case (-> (:turns spec)
+                    (inner-svg (case (-> (:turns seed)
                                          (get i)
                                          :type)
-                                 :normal (case (-> (:turns spec)
+                                 :normal (case (-> (:turns seed)
                                                    (get i)
                                                    :age)
                                            1 :age1-spot
@@ -944,7 +944,7 @@
 
      (map
       (fn [gear]
-        (let [loc (-> spec :gears gear :location)]
+        (let [loc (-> seed :gears gear :location)]
           [:g {:key gear
                :transform (transform-str [:rotate {:deg (* loc (/ 360 26))
                                                    :x (/ size 1.97)
@@ -969,7 +969,7 @@
   [:div.ui.equal.width.grid {:style {:padding "0.5rem"
                                      :margin-right "0.2rem"
                                      :font-size 16}}
-   (for [[t temple] (:temples spec)]
+   (for [[t temple] (:temples seed)]
      ^{:key t}
      [:div.bottom.aligned.column
       [:div
@@ -1215,7 +1215,7 @@
            :sell " sold a ")
          (get symbols resource)
          " for "
-         (get-in spec [:trade-values resource])
+         (get-in seed [:trade-values resource])
          (:corn symbols))))
 
 

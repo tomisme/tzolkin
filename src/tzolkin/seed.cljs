@@ -1,4 +1,5 @@
-(ns tzolkin.spec)
+(ns tzolkin.seed)
+
 
 (def buildings
   [{:cost {:corn 4}
@@ -156,6 +157,7 @@
     :color :blue
     :age 2}])
 
+
 (def monuments
   [{:cost {:stone 3 :gold 3}
     :for-highest-track true
@@ -193,6 +195,7 @@
    {:cost {:wood 1 :gold 4}
     :for-each-tile :wood
     :color :brown}])
+
 
 (def starters
   [{:materials {:corn 5 :stone 1}
@@ -252,6 +255,7 @@
     :uxe 5}
    {:materials {:corn 7 :wood 2}
     :chi 10}])
+
 
 (def gears
   {:pal {:name "Palenque"
@@ -345,6 +349,7 @@
                                    :resource true}]
                    [:choose-action {:gear :chi}]]}})
 
+
 (def temples
   {:chac {:name "Chaac"
           :age-bonus {1 6
@@ -387,11 +392,13 @@
                   {:points 9}
                   {:points 10}]}})
 
+
 (def tech
   {:agri {}
    :extr {}
    :arch {}
    :theo {}})
+
 
 (def turns
   (vec
@@ -405,6 +412,7 @@
      (repeat 5 {:age 2 :type :normal})
      {:age 2 :type :points-food-day}])))
 
+
 (def player-starting-stuff
   {:materials {:corn 0 :wood 0 :stone 0 :gold 0 :skull 0}
    :temples {:chac 1 :quet 1 :kuku 1}
@@ -414,7 +422,8 @@
    :workers 3
    :points 0})
 
-(def spec
+
+(def seed
   {:total-turns (count turns)
    :skulls 13
    :trade-values {:wood 2 :stone 3 :gold 4}

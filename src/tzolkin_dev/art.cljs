@@ -1,15 +1,16 @@
-(ns tzolkin-devcards.art
+(ns tzolkin-dev.art
   (:require
    [reagent.core :as rg]
    [reanimated.core :as anim]
-   [tzolkin.spec :refer [spec]]
+   [tzolkin.seed :refer [seed]]
    [tzolkin.art :as art]
-   [tzolkin.logic :as logic]
-   [tzolkin-devcards.game :refer [s]]
+   [tzolkin.rules :as rules]
+   [tzolkin-dev.test-data :refer [s]]
    [tzolkin.utils :refer [log sin cos pi]])
   (:require-macros
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
+
 
 (deftest art-tests
   (testing "transform-str"
@@ -21,6 +22,7 @@
   (testing "symbols-str"
     (is (= (art/symbols-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
            "🌲🗿2🌕3🌽💀"))))
+
 
 (defcard-rg position-around-a-circle
   (let [width 150
@@ -47,6 +49,7 @@
                             :r el-r}])
                 (range num)))]))
 
+
 (defcard-rg symbol-examples
   (into [:div]
         (for [size '(16 45)]
@@ -54,10 +57,6 @@
                 (for [[k v] art/symbols]
                   (str (name k) ": " v ", "))))))
 
-(defcard-doc
-  "#Gears
-  The spinning gears are a one of the coolest mechanics in Tzolk'in. They're
-  also the main way that players interact with the game.")
 
 (defcard-rg gear-creator
   (fn [data _]
@@ -109,7 +108,9 @@
             :tooth-height-factor 1.1})
   {:inspect-data true})
 
+
 (def spin-test-atom (rg/atom 0))
+
 
 (defn spinning-worker-gear
   [{:keys [workers actions on-worker-click]}]
@@ -127,25 +128,30 @@
                       :gear :tik
                       :rotation @rotation-spring}]])))
 
+
 (defcard-rg spinning-worker-gear-test
   [:div
    [:button {:on-click #(swap! spin-test-atom + (/ 360 10))}
     "Spin the gear!"]
-   (for [[k v] (get spec :gears)]
+   (for [[k v] (get seed :gears)]
      [:button {:key k} (:name v)])
    [spinning-worker-gear]]
   spin-test-atom
   {:inspect-data true})
 
+
 #_(def test-event-stream
-    (logic/gen-es game/test-events))
+    (rules/gen-es game/test-events))
+
 
 #_(defcard-rg game-log-art-test
     [art/game-log-el {:stream test-event-stream}])
 
+
 (defcard-rg temple-art-test
   [:div {:style {:width 462}}
    (art/temples-el s)])
+
 
 (defcard-rg tech-art-test
   [:div {:style {:width 480}}
@@ -159,6 +165,7 @@
                            (assoc-in [2 :tech :theo] 1)
                            (assoc-in [3 :tech :theo] 1)))])
 
+
 (defcard-rg status-bar-test
   (art/status-bar-el
    s
@@ -169,15 +176,18 @@
    #(log "start game!")
    #(log "add player")))
 
+
 (defcard-rg all-starters
   (into [:div.ui.cards]
         (map-indexed
          (fn [index starter]
            [:div (art/starter-card starter #(log "selected!"))])
-         (:starters spec))))
+         (:starters seed))))
+
 
 (defcard-rg trade-window-test
   (art/trade-window-el {:materials {:corn 8 :wood 2 :stone 1 :gold 1 :skull 1}} #(log %) #(log %)))
+
 
 (defcard-rg gear-layout-test
   (art/gear-layout-el
@@ -196,6 +206,7 @@
    7 ; starting-player-corn
    0)) ; pid-on-start-space
 
+
 (def jungle-atom
   (rg/atom [{:corn-tiles 4}
             {:corn-tiles 3
@@ -204,6 +215,7 @@
              :wood-tiles 1}
             {:corn-tiles 2
              :wood-tiles 0}]))
+
 
 (defcard-rg jungle-test
   [:svg {:width 280 :height 210}

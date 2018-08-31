@@ -1,11 +1,11 @@
-(ns tzolkin-devcards.end
+(ns tzolkin-dev.end-game
   (:require
-   [tzolkin.spec :refer [spec]]
-   [tzolkin.logic :as logic]
-   [tzolkin-devcards.game :refer [s]]
+   [tzolkin.seed :refer [seed]]
+   [tzolkin.rules :as rules]
+   [tzolkin-dev.test-data :refer [s]]
    [tzolkin.utils :refer [log]])
   (:require-macros
-   [tzolkin.macros :refer [nod]]
+   [tzolkin-dev.macros :refer [nod]]
    [devcards.core :refer [defcard defcard-rg defcard-doc deftest]]
    [cljs.test :refer [testing is run-tests]]))
 
@@ -22,20 +22,20 @@
   (testing "starving workers"
     (nod (-> s
              (assoc :turn 14)
-             (logic/adjust-materials 0 {:corn 6})
-             (logic/adjust-materials 1 {:corn 5})
-             (logic/adjust-materials 2 {:corn 4})
-             (logic/adjust-materials 3 {:corn 3})
-             (logic/food-day)
+             (rules/adjust-materials 0 {:corn 6})
+             (rules/adjust-materials 1 {:corn 5})
+             (rules/adjust-materials 2 {:corn 4})
+             (rules/adjust-materials 3 {:corn 3})
+             (rules/food-day)
              (assoc :buildings []))
          (-> s
              (assoc :turn 14)
-             (logic/adjust-points 0 6)
-             (logic/adjust-points 1 3)
-             (logic/adjust-materials 1 {:corn 1})
-             (logic/adjust-points 2 3)
-             (logic/adjust-points 3 0)
-             (logic/adjust-materials 3 {:corn 1})
+             (rules/adjust-points 0 6)
+             (rules/adjust-points 1 3)
+             (rules/adjust-materials 1 {:corn 1})
+             (rules/adjust-points 2 3)
+             (rules/adjust-points 3 0)
+             (rules/adjust-materials 3 {:corn 1})
              (assoc :buildings []))))
   (testing "farms"
     (nod (-> s
@@ -43,113 +43,113 @@
              (update-in [:players 0 :buildings] conj {:farm 1})
              (update-in [:players 1 :buildings] conj {:farm 3})
              (update-in [:players 2 :buildings] conj {:farm :all})
-             (logic/adjust-materials 0 {:corn 6})
-             (logic/adjust-materials 1 {:corn 6})
-             (logic/adjust-materials 2 {:corn 6})
-             (logic/adjust-materials 3 {:corn 6})
-             (logic/adjust-points 0 -6)
-             (logic/adjust-points 1 -6)
-             (logic/adjust-points 2 -6)
-             (logic/adjust-points 3 -6)
-             (logic/food-day)
+             (rules/adjust-materials 0 {:corn 6})
+             (rules/adjust-materials 1 {:corn 6})
+             (rules/adjust-materials 2 {:corn 6})
+             (rules/adjust-materials 3 {:corn 6})
+             (rules/adjust-points 0 -6)
+             (rules/adjust-points 1 -6)
+             (rules/adjust-points 2 -6)
+             (rules/adjust-points 3 -6)
+             (rules/food-day)
              (assoc :buildings []))
          (-> s
              (assoc :turn 14)
              (update-in [:players 0 :buildings] conj {:farm 1})
              (update-in [:players 1 :buildings] conj {:farm 3})
              (update-in [:players 2 :buildings] conj {:farm :all})
-             (logic/adjust-materials 0 {:corn 2})
-             (logic/adjust-materials 1 {:corn 6})
-             (logic/adjust-materials 2 {:corn 3})
+             (rules/adjust-materials 0 {:corn 2})
+             (rules/adjust-materials 1 {:corn 6})
+             (rules/adjust-materials 2 {:corn 3})
              (assoc :buildings []))))
   (testing "points food day"
     (nod (-> s
              (assoc :turn 14)
-             (logic/adjust-temples 0 {:chac 4})
-             (logic/adjust-temples 1 {:quet 1 :kuku 1})
-             (logic/adjust-materials 0 {:corn 6})
-             (logic/adjust-materials 1 {:corn 6})
-             (logic/adjust-materials 2 {:corn 6})
-             (logic/adjust-materials 3 {:corn 6})
-             (logic/food-day)
+             (rules/adjust-temples 0 {:chac 4})
+             (rules/adjust-temples 1 {:quet 1 :kuku 1})
+             (rules/adjust-materials 0 {:corn 6})
+             (rules/adjust-materials 1 {:corn 6})
+             (rules/adjust-materials 2 {:corn 6})
+             (rules/adjust-materials 3 {:corn 6})
+             (rules/food-day)
              (assoc :buildings []))
          (-> s
              (assoc :turn 14)
-             (logic/adjust-temples 0 {:chac 4})
-             (logic/adjust-temples 1 {:quet 1 :kuku 1})
-             (logic/adjust-points 0 13)
-             (logic/adjust-points 1 8)
+             (rules/adjust-temples 0 {:chac 4})
+             (rules/adjust-temples 1 {:quet 1 :kuku 1})
+             (rules/adjust-points 0 13)
+             (rules/adjust-points 1 8)
              (assoc :buildings [])))
     (nod (-> s
              (assoc :turn 27)
-             (logic/adjust-temples 0 {:chac 4 :kuku 1})
-             (logic/adjust-temples 1 {:quet 1 :kuku 1})
-             (logic/adjust-materials 0 {:corn 6})
-             (logic/adjust-materials 1 {:corn 6})
-             (logic/adjust-materials 2 {:corn 6})
-             (logic/adjust-materials 3 {:corn 6})
-             (logic/food-day)
+             (rules/adjust-temples 0 {:chac 4 :kuku 1})
+             (rules/adjust-temples 1 {:quet 1 :kuku 1})
+             (rules/adjust-materials 0 {:corn 6})
+             (rules/adjust-materials 1 {:corn 6})
+             (rules/adjust-materials 2 {:corn 6})
+             (rules/adjust-materials 3 {:corn 6})
+             (rules/food-day)
              (assoc :buildings []))
          (-> s
              (assoc :turn 27)
-             (logic/adjust-temples 0 {:chac 4 :kuku 1})
-             (logic/adjust-temples 1 {:quet 1 :kuku 1})
-             (logic/adjust-points 0 12)
-             (logic/adjust-points 1 10)
+             (rules/adjust-temples 0 {:chac 4 :kuku 1})
+             (rules/adjust-temples 1 {:quet 1 :kuku 1})
+             (rules/adjust-points 0 12)
+             (rules/adjust-points 1 10)
              (assoc :buildings []))))
   (testing "mats food day"
     (nod (-> s
              (assoc :turn 8)
-             (logic/adjust-temples 0 {:kuku 4 :quet 2})
-             (logic/adjust-temples 1 {:chac 3})
-             (logic/adjust-materials 0 {:corn 10})
-             (logic/adjust-materials 1 {:corn 6})
-             (logic/adjust-materials 2 {:corn 6})
-             (logic/adjust-materials 3 {:corn 6})
-             (logic/food-day)
+             (rules/adjust-temples 0 {:kuku 4 :quet 2})
+             (rules/adjust-temples 1 {:chac 3})
+             (rules/adjust-materials 0 {:corn 10})
+             (rules/adjust-materials 1 {:corn 6})
+             (rules/adjust-materials 2 {:corn 6})
+             (rules/adjust-materials 3 {:corn 6})
+             (rules/food-day)
              (assoc :buildings []))
          (-> s
              (assoc :turn 8)
-             (logic/adjust-temples 0 {:kuku 4 :quet 2})
-             (logic/adjust-temples 1 {:chac 3})
-             (logic/adjust-materials 0 {:skull 1 :wood 2 :gold 1 :corn 4})
-             (logic/adjust-materials 1 {:stone 2})
+             (rules/adjust-temples 0 {:kuku 4 :quet 2})
+             (rules/adjust-temples 1 {:chac 3})
+             (rules/adjust-materials 0 {:skull 1 :wood 2 :gold 1 :corn 4})
+             (rules/adjust-materials 1 {:stone 2})
              (assoc :buildings [])))
     (nod (-> s
              (assoc :turn 8)
-             (logic/adjust-temples 0 {:kuku 4 :quet 2})
-             (logic/adjust-temples 1 {:chac 3})
-             (logic/adjust-materials 0 {:corn 10})
-             (logic/adjust-materials 1 {:corn 6})
-             (logic/adjust-materials 2 {:corn 6})
-             (logic/adjust-materials 3 {:corn 6})
-             (logic/food-day)
+             (rules/adjust-temples 0 {:kuku 4 :quet 2})
+             (rules/adjust-temples 1 {:chac 3})
+             (rules/adjust-materials 0 {:corn 10})
+             (rules/adjust-materials 1 {:corn 6})
+             (rules/adjust-materials 2 {:corn 6})
+             (rules/adjust-materials 3 {:corn 6})
+             (rules/food-day)
              (assoc :buildings []))
          (-> s
              (assoc :turn 8)
-             (logic/adjust-temples 0 {:kuku 4 :quet 2})
-             (logic/adjust-temples 1 {:chac 3})
-             (logic/adjust-materials 0 {:skull 1 :wood 2 :gold 1 :corn 4})
-             (logic/adjust-materials 1 {:stone 2})
+             (rules/adjust-temples 0 {:kuku 4 :quet 2})
+             (rules/adjust-temples 1 {:chac 3})
+             (rules/adjust-materials 0 {:skull 1 :wood 2 :gold 1 :corn 4})
+             (rules/adjust-materials 1 {:stone 2})
              (assoc :buildings []))))
   (testing "age 2 buildings after second food day"
     (is (= 2
            (-> s
                (assoc :turn 14)
-               (logic/food-day)
+               (rules/food-day)
                :buildings
                (get 0) ;;should probably check *all* the buildings....
                :age)))
     (is (= (-> s
                (assoc :turn 8)
-               (logic/food-day)
+               (rules/food-day)
                :buildings)
            (:buildings s)))))
 
 (deftest starting-player-tests
   (testing "current starting player takes starting player"
     (nod (-> s
-             (logic/take-starting-player))
+             (rules/take-starting-player))
          (-> s
              (update-in [:players 0 :workers] dec)
              (update-in [:active :placed] inc)
@@ -159,7 +159,7 @@
   (testing "different player takes starting player"
     (nod (-> s
              (update :active assoc :pid 1)
-             (logic/take-starting-player))
+             (rules/take-starting-player))
          (-> s
              (update :active assoc :pid 1)
              (update-in [:players 1 :workers] dec)
@@ -170,9 +170,9 @@
   (testing "corn buildup"
     (nod (-> s
              (update :active assoc :pid 3)
-             (logic/end-turn)
+             (rules/end-turn)
              (update :active assoc :pid 3)
-             (logic/end-turn))
+             (rules/end-turn))
          (-> s
              (assoc :turn 3)
              (assoc :starting-player-corn 2))))
@@ -180,9 +180,9 @@
     (nod (-> s
              (update :active assoc :pid 3)
              (assoc :starting-player-corn 6)
-             (logic/take-starting-player)
-             (logic/end-turn)
-             (logic/handle-decision 1)) ;; say no to double spin
+             (rules/take-starting-player)
+             (rules/end-turn)
+             (rules/handle-decision 1)) ;; say no to double spin
          (-> s
              (update :active assoc :pid 3)
              (update :turn inc)
@@ -192,10 +192,10 @@
 (deftest double-spin-tests
   (testing "double spin"
     (nod (-> s
-             (logic/take-starting-player)
+             (rules/take-starting-player)
              (assoc-in [:active :pid] 3)
-             (logic/end-turn)
-             (logic/handle-decision 0)) ;; say yes to double spin
+             (rules/end-turn)
+             (rules/handle-decision 0)) ;; say yes to double spin
          (-> s
              (assoc :turn 3)
              (assoc-in [:players 0 :double-spin?] false)
@@ -205,15 +205,15 @@
     (nod (-> s
              (assoc :turn 7)
              (assoc-in [:active :pid] 3)
-             (logic/take-starting-player)
-             (logic/end-turn)
-             (logic/handle-decision 0)) ;; say yes to double spin
+             (rules/take-starting-player)
+             (rules/end-turn)
+             (rules/handle-decision 0)) ;; say yes to double spin
          (-> s
              (assoc :turn 9)
              (assoc-in [:players 3 :double-spin?] false)
              (assoc :player-order [3 0 1 2])
              (assoc-in [:active :pid] 3)
-             (logic/adjust-points 0 -9)
-             (logic/adjust-points 1 -9)
-             (logic/adjust-points 2 -9)
-             (logic/adjust-points 3 -9)))))
+             (rules/adjust-points 0 -9)
+             (rules/adjust-points 1 -9)
+             (rules/adjust-points 2 -9)
+             (rules/adjust-points 3 -9)))))

@@ -1,10 +1,10 @@
-(ns tzolkin-devcards.frame
+(ns tzolkin-dev.frame
   (:require
    [reagent.core :as rg]
    [re-frame.core :as rf]
    [tzolkin.art :as art]
-   [tzolkin.logic :as logic]
-   [tzolkin.spec :refer [spec]]
+   [tzolkin.rules :as rules]
+   [tzolkin.seed :refer [seed]]
    [tzolkin.frame])
   (:require-macros
    [devcards.core :refer [defcard-rg]]))
@@ -41,15 +41,15 @@
 
 
 (rf/reg-event-db :test-ev1
-  (fn [_ _] {:es (logic/gen-es test-events)}))
+  (fn [_ _] {:es (rules/gen-es test-events)}))
 (rf/reg-event-db :test-ev2
-  (fn [_ _] {:es (logic/gen-es new-2p-game-events)}))
+  (fn [_ _] {:es (rules/gen-es new-2p-game-events)}))
 (rf/reg-event-db :test-ev3
-  (fn [_ _] {:es (logic/gen-es new-4p-game-events)}))
+  (fn [_ _] {:es (rules/gen-es new-4p-game-events)}))
 (rf/reg-event-db :test-ev4
-  (fn [_ _] {:es (logic/gen-es [[:new-game]])}))
+  (fn [_ _] {:es (rules/gen-es [[:new-game]])}))
 (rf/reg-event-db :test-ev5
-  (fn [_ _] {:es (logic/gen-es nil)}))
+  (fn [_ _] {:es (rules/gen-es nil)}))
 
 
 (defn test-run-el
@@ -101,15 +101,15 @@
 
     [art/gear-layout-el
      (into {}
-           (for [[gear _] (:gears spec)]
+           (for [[gear _] (:gears seed)]
              [gear
               {:on-worker-click #(rf/dispatch [:do [:remove-worker {:gear gear
                                                                     :slot %}]])
                :on-center-click #(rf/dispatch [:do [:place-worker {:gear gear}]])
-               :teeth (get-in spec [:gears gear :teeth])
+               :teeth (get-in seed [:gears gear :teeth])
                :workers (get-in game-state [:gears gear])
-               :rotation (* turn (/ 360 (get-in spec [:gears gear :teeth])))
-               :actions (get-in spec [:gears gear :actions])}]))
+               :rotation (* turn (/ 360 (get-in seed [:gears gear :teeth])))
+               :actions (get-in seed [:gears gear :actions])}]))
      jungle
      turn
      player-order
