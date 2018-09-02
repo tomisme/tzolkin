@@ -41,15 +41,15 @@
 
 
 (rf/reg-event-db :test-ev1
-  (fn [_ _] {:es (rules/gen-es test-events)}))
+  (fn [_ _] {:es (rules/events->es test-events)}))
 (rf/reg-event-db :test-ev2
-  (fn [_ _] {:es (rules/gen-es new-2p-game-events)}))
+  (fn [_ _] {:es (rules/events->es new-2p-game-events)}))
 (rf/reg-event-db :test-ev3
-  (fn [_ _] {:es (rules/gen-es new-4p-game-events)}))
+  (fn [_ _] {:es (rules/events->es new-4p-game-events)}))
 (rf/reg-event-db :test-ev4
-  (fn [_ _] {:es (rules/gen-es [[:new-game]])}))
+  (fn [_ _] {:es (rules/events->es [[:new-game]])}))
 (rf/reg-event-db :test-ev5
-  (fn [_ _] {:es (rules/gen-es nil)}))
+  (fn [_ _] {:es (rules/events->es nil)}))
 
 
 (defn test-run-el
@@ -90,7 +90,7 @@
     :reagent-render
     (fn []
       (art/game-log-el {:stream @(rf/subscribe [:es])
-                        :on-es-reset #(rf/dispatch [:reset-es %])}))}))
+                        :on-es-reset #(rf/dispatch [:rollback-es %])}))}))
 
 
 (defn gears-component

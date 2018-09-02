@@ -14,7 +14,7 @@
   (:require-macros
    [cljs.test]))
 
-(defn tests
+(defn run-all-tests
   []
   (cljs.test/run-tests
     'tzolkin-dev.actions

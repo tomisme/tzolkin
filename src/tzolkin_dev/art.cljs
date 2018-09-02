@@ -141,7 +141,7 @@
 
 
 #_(def test-event-stream
-    (rules/gen-es game/test-events))
+    (rules/events->es game/test-events))
 
 
 #_(defcard-rg game-log-art-test

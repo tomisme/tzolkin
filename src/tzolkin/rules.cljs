@@ -1,5 +1,6 @@
 (ns tzolkin.rules
   (:require
+   [clojure.spec.alpha :as s]
    [tzolkin.seed :refer [seed]]
    [tzolkin.utils :refer [log indexed first-val rotate-vec
                           remove-from-vec change-map negatise-map]]))
@@ -136,9 +137,9 @@
 
 (defn adjust-tech
   [state pid changes]
-  (let [new-state (player-map-adjustment state pid :tech changes)
-        {:keys [agri extr arch theo]} (-> new-state :players (get pid) :tech)]
-    (cond-> new-state
+  (let [state' (player-map-adjustment state pid :tech changes)
+        {:keys [agri extr arch theo]} (-> state' :players (get pid) :tech)]
+    (cond-> state'
       (= agri 4) (-> (player-map-adjustment pid :tech {:agri -1})
                      (add-decision pid :temple))
       (= extr 4) (-> (player-map-adjustment pid :tech {:extr -1})
@@ -154,7 +155,6 @@
   [state pid track]
   (let [pos (-> state :players (get pid) :tech track)]
     (-> (cond-> state
-                ;; TODO does this even work? add-decision doesn't pass pid
           (= pos 1) (add-decision state :pay-resource)
           (= pos 2) (add-decision state :pay-resource)
           (= pos 2) (add-decision state :pay-resource))
@@ -904,14 +904,25 @@
 ;; ================
 
 
-(defn add-event
-  [es event]
-  (let [[_ prev-state] (last es)
-        new-state (handle-event prev-state event)
-        errors (:errors new-state)]
-    (if (or errors (= prev-state new-state))
-      (do (log errors) es)
-      (conj es [event new-state]))))
+(s/def ::pid int?)
+(s/def ::worker-option #{:none :pick :place})
+(s/def ::placed pos-int?)
+#_(s/def ::decisions)
+(s/def ::trading? boolean?)
+(s/def ::active (s/keys :req-un [::pid
+                                 ::worker-option
+                                 ::placed
+                                 ::decisions
+                                 ::trading?]))
+(s/def ::state (s/keys :req-un [::turn
+                                ::starting-player-corn
+                                ::active
+                                ::remaining-skulls
+                                ::players
+                                ::gears]))
+(s/def ::event keyword?)
+(s/def ::es (s/coll-of (s/tuple ::event ::state)
+                       :into []))
 
 
 (defn current-state
@@ -920,22 +931,32 @@
     state))
 
 
-(defn reset-es
+(defn add-event
+  [es event]
+  (let [state (current-state es)
+        state' (handle-event state event)
+        errors (:errors state')]
+    (if (or errors (= state state'))
+      (do (log errors) es)
+      (conj es [event state']))))
+
+
+(defn rollback-es
   [es index]
-  (let [pos (inc index)]
-    (if (< pos (count es))
-      (vec (take pos es))
+  (let [i (inc index)]
+    (if (< i (count es))
+      (vec (take i es))
       es)))
 
 
-(defn gen-es
+(defn events->es
   [events]
-  (:stream
+  (::es
    (reduce
-    (fn [prev event]
-      (let [state (handle-event (:state prev) event)]
-        {:stream (conj (:stream prev) [event state])
-         :state state}))
-    {:stream []
-     :state {}}
+    (fn [es event]
+      (let [state (handle-event (::state es) event)]
+        {::es (conj (::es es) [event state])
+         ::state state}))
+    {::es []
+     ::state {}}
     events)))

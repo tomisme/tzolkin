@@ -8,7 +8,7 @@
 (rf/reg-event-db
   :init
   (fn [_ _]
-    {:es (rules/gen-es [[:new-game]])}))
+    {:es (rules/events->es [[:new-game]])}))
 
 
 (rf/reg-event-db
@@ -18,9 +18,9 @@
 
 
 (rf/reg-event-db
-  :reset-es
+  :rollback-es
   (fn [db [_ idx]]
-    {:es (rules/reset-es (:es db) idx)}))
+    {:es (rules/rollback-es (:es db) idx)}))
 
 
 (rf/reg-sub
