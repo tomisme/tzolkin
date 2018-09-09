@@ -109,33 +109,44 @@
   (update-in state [:players pid :workers] + num))
 
 
+(defn adjust-temple-up
+  [state pid temple]
+  (let [move-up #(player-map-adjustment % pid :temples {temple 1})
+        step (get-in state [:players pid :temples temple])
+        num-steps (count (get-in seed [:temples temple :steps]))
+        top (dec num-steps)
+        at-top? (= step top)
+        moving-to-top? (= step (dec top))
+        top-occupied? (some #(= top
+                                (get-in % [:temples temple]))
+                            (:players state))]
+    (if at-top?
+      state
+      (if moving-to-top?
+        (if top-occupied?
+          state
+          (assoc-in (move-up state) [:players pid :double-spin?] true))
+        (move-up state)))))
+
+
+(defn adjust-temple-down
+  [state pid temple]
+  (player-map-adjustment state pid :temples {temple -1}))
+
+
 (defn adjust-temples
   [state pid changes]
-  (let [give-double-spin #(assoc-in % [:players pid :double-spin?] true)
-        move-up #(player-map-adjustment %1 pid :temples {%2 1})
-        move-down #(player-map-adjustment %1 pid :temples {%2 -1})
-        f1 (fn [[temple amt]] (repeat amt temple))
-        f2 (fn [[temple amt]] (repeat (* -1 amt) temple))
-        pos-moves (flatten (map f1 changes))
-        neg-moves (flatten (map f2 changes))
-        do-pos (fn [state]
-                 (reduce (fn [state temple]
-                           (let [n (get-in state [:players pid :temples temple])
-                                 steps (get-in seed [:temples temple :steps])
-                                 num-steps (count steps)
-                                 at-top? (= (inc n) num-steps)
-                                 moving-to-top? (= (inc n) (dec num-steps))]
-                             (if at-top?
-                               state
-                               (cond-> (move-up state temple)
-                                 moving-to-top? (give-double-spin)))))
-                         state
-                         pos-moves))
-        do-neg (fn [state]
-                 (reduce move-down state neg-moves))]
-    (-> state
-        do-pos
-        do-neg)))
+  (-> state
+      ((fn [state]
+         (reduce #(adjust-temple-up %1 pid %2)
+                 state
+                 (flatten (map (fn [[k n]] (repeat n k))
+                               changes)))))
+      ((fn [state]
+         (reduce #(adjust-temple-down %1 pid %2)
+                 state
+                 (flatten (map (fn [[k n]] (repeat (* -1 n) k))
+                               changes)))))))
 
 
 (defn adjust-materials
@@ -177,11 +188,11 @@
 
 (defn buy-tech
   [state pid track]
-  (let [pos (-> state :players (get pid) :tech track)]
+  (let [step (-> state :players (get pid) :tech track)]
     (-> (cond-> state
-          (= pos 1) (add-decision state :pay-resource)
-          (= pos 2) (add-decision state :pay-resource)
-          (= pos 2) (add-decision state :pay-resource))
+          (= step 1) (add-decision state :pay-resource)
+          (= step 2) (add-decision state :pay-resource)
+          (= step 2) (add-decision state :pay-resource))
         (adjust-tech pid {track 1})
         (add-decision pid :pay-resource))))
 

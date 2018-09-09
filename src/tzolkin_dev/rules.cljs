@@ -67,10 +67,17 @@
              (update-in [:players 0 :temples :quet] inc))))
   (testing "adjust-temples: can't go higher than top"
     (nod (-> s
-             (rules/adjust-temples 0 {:chac 5})
-             (rules/adjust-temples 0 {:chac 1}))
+             (rules/adjust-temples 0 {:chac 4})
+             (rules/adjust-temples 0 {:chac 4}))
          (-> s
              (rules/adjust-temples 0 {:chac 5}))))
+  (testing "adjust-temples: only one player at top"
+    (nod (-> s
+             (rules/adjust-temples 0 {:chac 50})
+             (rules/adjust-temples 1 {:chac 50}))
+         (-> s
+             (rules/adjust-temples 0 {:chac 6})
+             (rules/adjust-temples 1 {:chac 5}))))
   (testing "adjust-temples: top resets double spin"
     (nod (-> s
              (rules/double-spin)
