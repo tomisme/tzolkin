@@ -1,3 +1,5 @@
+^{:open-url "http://[[server-hostname]]:[[server-port]]/dev.html"
+  :auto-testing true}
 {:main tzolkin-dev.core
  :devcards true
- :preloads [devtools.preload devcards.core]}
+ :preloads [devcards.core]}
