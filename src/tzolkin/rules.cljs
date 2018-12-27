@@ -544,17 +544,13 @@
 
 
 (defn handle-jungle-action
-  [state pid v]
-  (let [player (get-in state [:players :pid])
+  [state pid {:keys [corn wood jungle-id]}]
+  (let [id jungle-id
+        player (get-in state [:players :pid])
         agri (get-in player [:tech :agri])
         extr (get-in player [:tech :extr])
-        corn (:corn v)
-        wood (:wood v)
-        id (:jungle-id v)
-        corn-tiles (get-in state [:jungle id :corn-tiles])
-        wood-tiles (get-in state [:jungle id :wood-tiles])
-        corn-tile? (pos? corn-tiles)
-        wood-tile? (pos? wood-tiles)
+        corn-tile? (pos? (get-in state [:jungle id :corn-tiles]))
+        wood-tile? (pos? (get-in state [:jungle id :wood-tiles]))
         options (cond-> []
                   (or corn-tile? (>= agri 2)) (conj {:corn corn})
                   wood-tile? (conj {:wood wood}))]
@@ -940,6 +936,9 @@
 
 
 (s/def ::pid int?)
+(s/def ::turn pos-int?) ;; TODO
+(s/def ::starting-player-corn pos-int?) ;; TODO
+(s/def ::remaining-skulls pos-int?) ;; TODO
 (s/def ::worker-option #{:none :pick :place})
 (s/def ::placed pos-int?)
 #_(s/def ::decisions)
@@ -947,14 +946,14 @@
 (s/def ::active (s/keys :req-un [::pid
                                  ::worker-option
                                  ::placed
-                                 ::decisions
+                                 ; ::decisions
                                  ::trading?]))
 (s/def ::state (s/keys :req-un [::turn
                                 ::starting-player-corn
                                 ::active
-                                ::remaining-skulls
-                                ::players
-                                ::gears]))
+                                ::remaining-skulls]))
+                                ; ::players
+                                ; ::gears]))
 (s/def ::event keyword?)
 (s/def ::es (s/coll-of (s/tuple ::event ::state)
                        :into []))

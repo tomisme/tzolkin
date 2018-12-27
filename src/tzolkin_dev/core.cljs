@@ -8,6 +8,7 @@
    [tzolkin-dev.end-game]
    [tzolkin-dev.frame]
    [tzolkin-dev.glossary]
+   [tzolkin-dev.rules_state]
    [tzolkin-dev.rules]
    [tzolkin-dev.utils]
    [tzolkin-dev.workers])
