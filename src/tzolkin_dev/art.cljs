@@ -24,7 +24,36 @@
            "🌲🗿2🌕3🌽💀"))))
 
 
-(defcard-rg position-around-a-circle
+(defcard-rg symbol-examples
+  (into [:div]
+        (for [size '(16 45)]
+          (into [:div {:style {:font-size size}}]
+                (for [[k v] art/symbols]
+                  (str (name k) ": " v ", "))))))
+
+
+(defcard-rg circle
+  (let [w 150
+        h w
+        cx (/ w 2)
+        cy (/ h 2)
+        r 20]
+    [:svg {:width w :height h}
+     [:circle {:cx cx :cy cy :r r}]]))
+
+
+(defcard-doc
+  "## Positioning things around a circle
+  For each element around a centre at (cx, cy):
+  ```
+    x = cx + r cos(2kπ/n)
+    y = cy + r sin(2kπ/n)
+  ```
+  - r: distance from center
+  - n: total number of elements
+  - k: index of current element")
+
+(defcard-rg pos-around-a-circle
   (let [width 150
         height width
         distance (/ width 3)
@@ -32,10 +61,6 @@
         num 12
         cx (/ width 2)
         cy (/ height 2)
-       ;; For element around a centre at (x, y), distance r, element's centre:
-       ;;   (x + r cos(2kπ/n), y + r sin(2kπ/n))
-       ;; n is the number of elements
-       ;; k is the index of currently positioned element (btwe. 1 and n inclusive)
         el-cx (fn [i] (+ cx (* distance (cos (/ (* 2 i pi) num)))))
         el-cy (fn [i] (+ cy (* distance (sin (/ (* 2 i pi) num)))))]
     [:svg {:width width :height height}
@@ -43,19 +68,31 @@
                :cy cy
                :r (/ width 10)}]
      (into [:g]
-           (map (fn [i]
-                  [:circle {:cx (el-cx i)
-                            :cy (el-cy i)
-                            :r el-r}])
-                (range num)))]))
+           (for [i (range num)]
+             [:circle {:cx (el-cx i)
+                       :cy (el-cy i)
+                       :r el-r}]))]))
 
 
-(defcard-rg symbol-examples
-  (into [:div]
-        (for [size '(16 45)]
-          (into [:div {:style {:font-size size}}]
-                (for [[k v] art/symbols]
-                  (str (name k) ": " v ", "))))))
+;; inputs:
+;;  - outer circle radius
+;;  - inner circle radius (thickness?)
+;;  - % of circle
+(defcard-rg manual-annulus-sectors
+  [:svg {:width 150 :height 150}
+   [:circle {:cx 50 :cy 50 :r 40 :fill "transparent"
+             :stroke-width 25
+             :stroke "green"
+             :stroke-dasharray "50 1000"
+             :stroke-dashoffset -10}]
+   [:path {:d
+           "
+           M 80 80
+           A 40 40 0 0 0 120 120
+           L 120 100
+           A 20 20 0 0 1 100 80
+           Z
+           "}]])
 
 
 (defcard-rg gear-creator
@@ -111,7 +148,6 @@
 
 (def spin-test-atom (rg/atom 0))
 
-
 (defn spinning-worker-gear
   [{:keys [workers actions on-worker-click]}]
   (let [rotation-spring (anim/spring spin-test-atom)
@@ -128,16 +164,12 @@
                       :gear :tik
                       :rotation @rotation-spring}]])))
 
-
 (defcard-rg spinning-worker-gear-test
   [:div
    [:button {:on-click #(swap! spin-test-atom + (/ 360 10))}
     "Spin the gear!"]
-   (for [[k v] (get seed :gears)]
-     [:button {:key k} (:name v)])
    [spinning-worker-gear]]
-  spin-test-atom
-  {:inspect-data true})
+  spin-test-atom)
 
 
 #_(def test-event-stream
