@@ -97,40 +97,42 @@
 (defn img-path
   [k]
   (case k
-    :corn  "flaticon/012-corn"
-    :wood  "flaticon/013-log"
-    :stone "flaticon/015-wheel"
-    :gold  "flaticon/016-ingot"
-    :skull "flaticon/014-diamond"
-    :chac  "flaticon/003-frog"
-    :quet  "flaticon/002-lion"
-    :kuku  "flaticon/005-deer"
-    :yax   "flaticon/022-peach"
-    :tik   "flaticon/018-strawberry"
-    :uxe   "flaticon/019-lemon"
-    :chi   "flaticon/020-grape"
-    :pal   "flaticon/021-apple"
-    :agri "flaticon/008-sprout"
-    :extr "flaticon/009-pick"
-    :arch "flaticon/010-settings"
-    :theo "flaticon/011-open-book"
-    :resource "svg/cube"
-    :spin "svg/spin"
-    :points "flaticon/017-star"
-    :worker "emoji/1f464"
-    :plus-yax "svg/plus-yax"
-    :plus-chi "svg/plus-chi"
-    :plus-pal "svg/plus-pal"
-    :plus-water "svg/plus-water"
-    :resource-day "svg/cube-question"
-    :spinner "svg/spinner"
-    :hat "flaticon/top-hat2"
-    :food-day-points "svg/food-day-points"
-    :food-day-mats "svg/food-day-mats"
-    :age1-spot "svg/age1-spot"
-    :age2-spot "svg/age2-spot"
-    :building "svg/building-symbol"
-    :double-spin-ok "svg/double-spin-ok"))
+    :corn  "corn"
+    :wood  "log"
+    :stone "wheel"
+    :gold  "ingot"
+    :skull "diamond"
+    :chac  "frog"
+    :quet  "lion"
+    :kuku  "deer"
+    :yax   "peach"
+    :tik   "strawberry"
+    :uxe   "lemon"
+    :chi   "grape"
+    :pal   "apple"
+    :agri "sprout"
+    :extr "pick"
+    :arch "settings"
+    :theo "open-book"
+    :resource "cube"
+    :spin "spin"
+    :points "star"
+    :worker "user"
+    :plus-yax "plus-yax"
+    :plus-chi "plus-chi"
+    :plus-pal "plus-pal"
+    :plus-water "plus-water"
+    :resource-day "cube-question"
+    :spinner "spinner"
+    :hat "top-hat2"
+    :food-day-points "food-day-points"
+    :food-day-mats "food-day-mats"
+    :age1-spot "age1-spot"
+    :age2-spot "age2-spot"
+    :building "building-symbol"
+    :double-spin-ok "double-spin-ok"
+    (let [_ (js/console.log "No image found for: " k)]
+      "")))
 
 
 (defn svg-icon-el
@@ -568,6 +570,151 @@
                :font-size 14
                :text-anchor "middle"}
         index]])))
+
+
+(defn standard-icon-el
+  [{:keys [k x y size]}]
+  (if (= k :or)
+    [:text {:x (+ x (/ size 2.7))
+            :y (+ y (/ size 1.2))
+            :style {:font-size size}}
+     "/"]
+    (inner-svg k x y size)))
+
+
+(defn labeled-icon-el
+  [{:keys [k n x y size]}]
+  [:g
+   (inner-svg k x y size)
+   [:text {:x x
+           :y (+ y (/ size 1.1))
+           :stroke "white"
+           :paint-order "stroke"
+           :stroke-width (/ size 10)
+           :style {:font-size (/ size 1.3)}}
+    n]])
+
+
+(defn counted-icon-group-el
+  [{:keys [icons cx cy size]}]
+  (let [icons-xs (reduce (fn [coll [k n]]
+                           (if (> n 2)
+                             (conj coll {:k k :n n})
+                             (into coll (repeat (or n 1) {:k k :n 1}))))
+                         []
+                         icons)
+        x-padding (/ size 5)
+        total-width (* (count icons-xs) (+ size (/ x-padding 2)))
+        y (- cy (/ size 2))]
+    (into [:g]
+          (map-indexed (fn [idx {:keys [k n]}]
+                         (let [x (- (+ cx (* idx (+ size x-padding)))
+                                    (/ total-width 2))]
+                           (if (= n 1)
+                             (standard-icon-el {:k k :x x :y y :size size})
+                             (labeled-icon-el {:n n :k k :x x :y y :size size}))))
+                       icons-xs))))
+
+
+(defmulti action-label-content-el
+  (fn [{:keys [action]}]
+    (let [[k _] action]
+      k)))
+
+
+(defmethod action-label-content-el :default [_])
+
+
+(defmethod action-label-content-el :jungle-mats
+  [{:keys [cx cy label-width action]}]
+  (let [[_ {:keys [corn wood]}] action
+        size (/ label-width 3)]
+    (counted-icon-group-el {:cx cx :cy cy :size size
+                            :icons (if (and corn wood)
+                                     [[:corn corn]
+                                      [:or]
+                                      [:wood wood]]
+                                     [[:corn corn]])})))
+
+
+(defmethod action-label-content-el :gain-materials
+  [{:keys [cx cy label-width action]}]
+  (let [[_ {:keys [mats]}] action
+        size (/ label-width 3)]
+    (counted-icon-group-el {:cx cx :cy cy :size size
+                            :icons mats})))
+
+
+(defmethod action-label-content-el :skull-action
+  [{:keys [cx cy label-width action]}]
+  (let [[_ {:keys [points temple resource]}] action
+        size (/ label-width 3)]
+    (counted-icon-group-el {:cx cx :cy cy :size size
+                            :icons (if resource
+                                     [[temple]
+                                      [:points points]
+                                      [:resource]]
+                                     [[temple]
+                                      [:points points]])})))
+
+
+(defmethod action-label-content-el :choose-action
+  [{:keys [cx cy label-width action]}]
+  (let [[_ {:keys [gear]}] action
+        size (/ label-width 2)
+        offset (/ size 2)
+        x (- cx offset)
+        y (- cy offset)]
+    (inner-svg gear x y size)))
+
+
+(defn action-label-el
+  [{:keys [color cx cy r length action]}]
+  (let [circumference (* 2 pi r)
+        width (/ r 2.8)]
+    [:g
+     [:circle {:cx cx :cy cy :r r
+               :fill "transparent"
+               :stroke-width width
+               :stroke color
+               :stroke-dasharray (str length " 1000")}]
+     (let [arc-deg (/ (* length 180) (* pi r))
+           deg (+ 90 (/ arc-deg 2))]
+       [:g {:transform (transform-str [:rotate {:deg deg
+                                                :x cx
+                                                :y cy}])}
+        (action-label-content-el {:cx cx
+                                  :cy (- cy r)
+                                  :action action
+                                  :label-width width})])]))
+
+
+(defn readable-action-label-el
+  [{:keys [cx cy r length] :as label}]
+  (let [circumference (* 2 pi r)
+        arc-deg (/ (* length 180) (* pi r))
+        deg (- -90 (/ arc-deg 2))]
+    [:g {:transform (transform-str [:rotate {:deg deg :x cx :y cy}])}
+     (action-label-el label)]))
+
+
+(defn action-labels-el
+  [{:keys [cx cy r gear]}]
+  (let [{:keys [actions teeth]} (get-in seed [:gears gear])
+        color (get color-strings gear)
+        circumference (* 2 pi r)
+        spacing (/ circumference 100)
+        arc-len (- (/ circumference teeth) spacing)]
+    (into [:g]
+          (map-indexed
+           (fn [idx action]
+            (let [deg (* idx (/ 360 teeth))]
+              [:g {:transform (transform-str [:rotate {:deg deg :x cx :y cy}])}
+               (action-label-el {:cx cx :cy cy :r r
+                                 :length arc-len
+                                 :color color
+                                 :action action})]))
+           actions))))
 
 
 (defn action-labels

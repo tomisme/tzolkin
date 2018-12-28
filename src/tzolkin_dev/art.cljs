@@ -19,17 +19,17 @@
     (is (= (art/transform-str [:rotate {:deg 55 :x 10 :y 10}]
                               [:rotate {:deg 10 :x 1 :y 1}])
            "rotate(55 10 10)rotate(10 1 1)")))
-  (testing "symbols-str"
-    (is (= (art/symbols-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
-           "🌲🗿2🌕3🌽💀"))))
+  #_(testing "symbols-str"
+      (is (= (art/symbols-str {:wood 1 :stone 1 :gold 2 :corn 3 :skull 1})
+             "🌲🗿2🌕3🌽💀"))))
 
 
-(defcard-rg symbol-examples
-  (into [:div]
-        (for [size '(16 45)]
-          (into [:div {:style {:font-size size}}]
-                (for [[k v] art/symbols]
-                  (str (name k) ": " v ", "))))))
+#_(defcard-rg symbol-examples
+    (into [:div]
+          (for [size '(16 45)]
+            (into [:div {:style {:font-size size}}]
+                  (for [[k v] art/symbols]
+                    (str (name k) ": " v ", "))))))
 
 
 (defcard-rg circle
@@ -53,6 +53,7 @@
   - n: total number of elements
   - k: index of current element")
 
+
 (defcard-rg pos-around-a-circle
   (let [width 150
         height width
@@ -64,9 +65,6 @@
         el-cx (fn [i] (+ cx (* distance (cos (/ (* 2 i pi) num)))))
         el-cy (fn [i] (+ cy (* distance (sin (/ (* 2 i pi) num)))))]
     [:svg {:width width :height height}
-     [:circle {:cx cx
-               :cy cy
-               :r (/ width 10)}]
      (into [:g]
            (for [i (range num)]
              [:circle {:cx (el-cx i)
@@ -74,10 +72,6 @@
                        :r el-r}]))]))
 
 
-;; inputs:
-;;  - outer circle radius
-;;  - inner circle radius (thickness?)
-;;  - % of circle
 (defcard-rg manual-annulus-sectors
   [:svg {:width 150 :height 150}
    [:circle {:cx 50 :cy 50 :r 40 :fill "transparent"
@@ -85,15 +79,40 @@
              :stroke "green"
              :stroke-dasharray "50 1000"
              :stroke-dashoffset -10}]
-   [:path {:d
-           "
-           M 80 80
-           A 40 40 0 0 0 120 120
-           L 120 100
-           A 20 20 0 0 1 100 80
-           Z
-           "}]])
+   [:path {:d "M 80 80
+               A 40 40 0 0 0 120 120
+               L 120 100
+               A 20 20 0 0 1 100 80
+               Z"}]])
 
+
+(defcard-doc (:gears seed))
+
+
+(defcard-rg readable-action-labels
+  (into [:div]
+        (for [[gear {:keys [actions]}] (:gears seed)]
+          (into [:div]
+                (for [action actions]
+                  (let [a 500]
+                    [:svg {:width (/ a 3) :height (/ a 6)}
+                     (art/readable-action-label-el {:action action
+                                                    :color (get art/color-strings gear)
+                                                    :cx (/ a 6)
+                                                    :cy (/ a 2.5)
+                                                    :r (/ a 3)
+                                                    :length (/ a 4)})]))))))
+
+
+(defcard-rg action-labels
+  (into [:div]
+        (for [[gear _] (:gears seed)]
+          (let [a 350]
+            [:svg {:width (/ a 1.2) :height (/ a 1.2)}
+             (art/action-labels-el {:gear gear
+                                    :cx (/ a 2.5)
+                                    :cy (/ a 2.5)
+                                    :r (/ a 3)})]))))
 
 (defcard-rg gear-creator
   (fn [data _]
@@ -107,7 +126,7 @@
            [:div.label "Size"]
            [:input {:type "range"
                     :value size
-                    :min 100, :max 200
+                    :min 75, :max 200
                     :on-change #(set :size (art/e->val %))}]]
           [:div.field
            [:div.label "Teeth"]
