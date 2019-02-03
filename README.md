@@ -1,5 +1,7 @@
 # Tzolkin
 
+![](pic.png)
+
 ```
 clojure -m figwheel.main -b dev -r
 ```
